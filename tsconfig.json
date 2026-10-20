@@ -1,0 +1,38 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/data-hboat"
+    },
+    {
+      "path": "./packages/sim-ocean"
+    },
+    {
+      "path": "./packages/sim-hull"
+    },
+    {
+      "path": "./packages/sim-rig"
+    },
+    {
+      "path": "./packages/sim-world"
+    },
+    {
+      "path": "./packages/render-ocean"
+    },
+    {
+      "path": "./packages/render-ship"
+    },
+    {
+      "path": "./packages/render-scene"
+    },
+    {
+      "path": "./packages/tool-scenario"
+    },
+    {
+      "path": "./packages/tool-validate"
+    }
+  ]
+}

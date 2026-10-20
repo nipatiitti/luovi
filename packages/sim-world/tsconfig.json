@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.sim.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../sim-ocean"
+    },
+    {
+      "path": "../sim-hull"
+    },
+    {
+      "path": "../sim-rig"
+    }
+  ]
+}
