@@ -1,15 +1,15 @@
 // Layer order from docs/intention/05-separation-of-concerns.md:
 // data -> core -> sim-ocean/hull/rig -> sim-world -> render-* -> tool-*/game-*
 // A package never imports from a layer above it. Renderers and tools never import a model package.
-const pkg = (glob) => `^packages/(${glob})/`;
+const pkg = (glob) => `^packages/(${glob})/`
 
-const data = 'data-[^/]+';
-const core = 'core';
-const models = 'sim-(ocean|hull|rig)';
-const world = 'sim-world';
-const render = 'render-[^/]+';
-const tools = 'tool-[^/]+';
-const games = 'game-[^/]+';
+const data = 'data-[^/]+'
+const core = 'core'
+const models = 'sim-(ocean|hull|rig)'
+const world = 'sim-world'
+const render = 'render-[^/]+'
+const tools = 'tool-[^/]+'
+const games = 'game-[^/]+'
 
 const mayImport = (name, from, allowed) => ({
   name,
@@ -20,7 +20,7 @@ const mayImport = (name, from, allowed) => ({
     path: '^packages/',
     pathNot: [pkg(from)].concat(allowed ? [pkg(allowed)] : []),
   },
-});
+})
 
 module.exports = {
   forbidden: [
@@ -56,4 +56,4 @@ module.exports = {
     },
     reporterOptions: { text: { highlightFocused: true } },
   },
-};
+}
