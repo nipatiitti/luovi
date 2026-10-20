@@ -40,6 +40,8 @@
 
 - The design doc is the source of truth for intent; code is the source of truth for behaviour. When they disagree, open the question rather than silently changing either.
 
+- All and every user facing questions should be asked with available "ask user a question" tools or some other relvant tool.
+
 ## Agentic workflow
 
 - Work is cut into small slices. A slice brief says "this file needs something like this", never code. The agent that takes a slice has implementation authority within it.
