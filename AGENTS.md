@@ -39,3 +39,35 @@
 - Performance budgets are requirements: 60 Hz fixed tick, hero boat under 1 ms CPU, full-rigged ship rig and sails under 2 ms, renderer under 5 ms GPU at 1440p on an RTX 4060 class card. Profile before optimising, and never trade determinism for speed in `sim-*`.
 
 - The design doc is the source of truth for intent; code is the source of truth for behaviour. When they disagree, open the question rather than silently changing either.
+
+## Agentic workflow
+
+- Work is cut into small slices. A slice brief says "this file needs something like this", never code. The agent that takes a slice has implementation authority within it.
+
+- An agent ends its slice with context under 200k tokens. If a slice will not fit, split it before starting.
+
+- An agent never writes tests for code it wrote itself.
+
+- An agent never verifies code it wrote itself. It runs `pnpm check` to see that the tree compiles and lints, nothing more.
+
+- One agent writes one slice.
+
+- After a few slices land, a separate sweeper reads the diffs and reports problems. A separate fixer fixes them. At most two sweep-and-fix rounds per batch.
+
+- The coordinator spends no context on sweeping or fixing; it delegates both and reads only the reports.
+
+- The coordinator ends with one final sweep of all changes against the plan and leaves the tree ready for hand-off to a fresh designer and coordinator pair.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on nipatiitti/luovi, driven with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default triage labels, unchanged: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` at the root and ADRs under `docs/adr/`. Both are created lazily by `/domain-modeling`, so their absence is normal. See `docs/agents/domain.md`.
