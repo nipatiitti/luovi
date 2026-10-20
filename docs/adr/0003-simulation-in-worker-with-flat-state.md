@@ -1,0 +1,3 @@
+# Simulation in a Worker with a flat ship state buffer from day one
+
+The simulation runs in a Web Worker from the first build, and ship state is a described layout over a Float64Array shared through a double-buffered SharedArrayBuffer, with the renderer interpolating between the two most recent ticks. Retrofitting a Worker later would mean touching every renderer read of ship state, so the flat layout is the contract now even though an object graph would be more convenient in the first weeks. The same layout serves replays (append the buffer per tick) and later networking with no serialisation step.
