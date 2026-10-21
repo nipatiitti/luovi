@@ -143,3 +143,27 @@ _Avoid_: Iteration, inner step, sub-tick
 **Pressure relief**:
 The free-surface correction that removes the side force a rigid-wall image over-predicts near the waterline, applied per strip by depth and chord.
 _Avoid_: Free-surface factor, image correction, waterline loss
+
+**State buffer**:
+The flat array of doubles that is a simulation's complete integrator state at one tick: a header, then every ship's rigid body, controls, lag states, particles, rod segments and coarse cloth. Resuming from it and the effective scenario continues the simulation identically.
+_Avoid_: State vector, world state, sim state
+
+**Derived buffer**:
+The flat array the simulation fills each tick with what it computed from state and never feeds back, such as module forces, line tensions and sail pressures. Renderers and benchmarks read it; nothing resumes from it.
+_Avoid_: Telemetry, debug buffer, outputs
+
+**Input**:
+A control target or an environment edit stamped with the tick it was applied at. The recorded sequence of inputs replayed over a scenario reproduces a simulation.
+_Avoid_: Command, event, action, message
+
+**Snapshot**:
+The effective scenario, the tick and the state buffer together: everything needed to resume a simulation mid-run.
+_Avoid_: Save, checkpoint, dump
+
+**Effective scenario**:
+The scenario as it stands after every environment edit applied so far. A fresh run starts from the authored scenario; a resumed run starts from the effective one.
+_Avoid_: Live scenario, current settings, world parameters
+
+**Particle**:
+A rig node that moves relative to the hull and is not a cloth node, such as a spar end, a rod segment end or a block in a running line. Fixed hull nodes are definition data, never state.
+_Avoid_: Point mass, vertex, free node
