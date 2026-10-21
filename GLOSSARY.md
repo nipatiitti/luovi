@@ -67,3 +67,27 @@ _Avoid_: Test vector, fixture, reference value
 **State hash**:
 The integer digest of a state buffer after a run, used to prove that two engines produced the same simulation.
 _Avoid_: Checksum, fingerprint, snapshot
+
+**Environment query**:
+The batched interface the simulation reads water, wind and depth through: points and a tick in, values out. The CPU implementation is authoritative; the GPU one is for looks.
+_Avoid_: Sampler, ocean API, world query
+
+**Wave component**:
+One travelling cosine of the band: a wave vector, a frequency, an amplitude and a phase.
+_Avoid_: Gerstner wave, bin, term
+
+**Band**:
+The authoritative part of the sea, every wave longer than the cut, held as wave components. Hulls feel it and the renderer draws it.
+_Avoid_: Low band, CPU sea, swell (as a generic term)
+
+**Tail**:
+The visual part of the sea, every wave shorter than the cut, drawn by the renderer and felt by nothing.
+_Avoid_: FFT sea, detail, high band
+
+**Cut wavenumber**:
+The single wavenumber that separates band from tail. One value per scenario, shared by both.
+_Avoid_: Split, cutoff, k_s (in prose)
+
+**Sea description**:
+The static sea data the simulation hands the renderer: the wave components, the cut wavenumber, the effective choppiness and the tail's initial spectrum.
+_Avoid_: Ocean state, spectrum (for the whole), wave data
