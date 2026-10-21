@@ -91,3 +91,7 @@ _Avoid_: Split, cutoff, k_s (in prose)
 **Sea description**:
 The static sea data the simulation hands the renderer: the wave components, the cut wavenumber, the effective choppiness and the tail's initial spectrum.
 _Avoid_: Ocean state, spectrum (for the whole), wave data
+
+**Rest hydrostatics**:
+The canoe body's upright hydrostatics at a load condition's static equilibrium, computed once at load, that a resistance regression reads. Heel and running trim never change them.
+_Avoid_: Regression inputs, static hydrostatics, design hydrostatics
