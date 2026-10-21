@@ -24,9 +24,11 @@
 
 - Dependency direction is one way: data → core → sim-ocean/hull/rig → sim-world → render-_ → tool-_/game-\*. A package never imports from a layer below... [sic: above] it in this list. Games and renderers import `sim-world` only, never a model package.
 
+- Ship data is one `data` package, a directory per ship under `src/ships/<id>/` with `authored/` sources and a bake-written `baked.ts`, shared tables under `src/shared/`. Only `tool-bake` writes a baked file, CI re-bakes and fails on a diff, and nothing in the bake branches on a ship id: a ship that needs different bake behaviour gets a new authored field with a default. See `docs/adr/0009`.
+
 - No special cases for sailing states. There is no "aback", "in irons", "luffing", "broaching" or "sternway" flag anywhere. If a behaviour needs a branch to appear, the force model is wrong; fix the model.
 
-- No magic coefficients. Every empirical constant (polar, regression coefficient, damping, cloth property) lives in `data-*` with a source citation in the data file, not in code. Code receives coefficients through the ship definition.
+- No magic coefficients. Every empirical constant (polar, regression coefficient, damping, cloth property) lives in the `data` package with a source citation in the data file, not in code. Code receives coefficients through the ship definition.
 
 - Units and frames: SI everywhere, angles in radians, wind and water velocities as vectors (never speed + direction) outside the UI layer. World frame is right-handed, z up, x east, y north; body frame is x forward, y port, z up; heel is positive to starboard, leeway positive when drifting to leeward. Convert at the boundary, never inside a model.
 

@@ -15,6 +15,6 @@
   "dependencies": {
     "@luovi/core": "workspace:*",
     "@luovi/sim-world": "workspace:*",
-    "@luovi/data-hboat": "workspace:*"
+    "@luovi/data": "workspace:*"
   }
 }

@@ -41,8 +41,20 @@ One closed section stack of the hull, such as the canoe solid, the keel solid or
 _Avoid_: Body, hull body, mesh, part
 
 **Baked**:
-Derived ship data produced offline from authored sources and committed, such as the uniform section stacks the simulation reads. The authored source is the drawing's own points with provenance.
+Derived ship data that the bake tool produces from authored sources and that is committed, such as the uniform section stacks the simulation reads. The simulation reads nothing else.
 _Avoid_: Compiled, lofted, generated
+
+**Authored source**:
+The hand-typed record of what a drawing, certificate or tuning guide prints, point by point with provenance, that the bake reads. The simulation never reads it.
+_Avoid_: Raw data, input file, model data, offsets (for the whole)
+
+**Provenance record**:
+The part of a baked ship definition that says how it was produced: the loft rules, the bake tool version, the hash of the authored input, the source ids and the bake check values.
+_Avoid_: Metadata, build info, manifest
+
+**Bake check**:
+A comparison the bake makes between a figure it lofted and the printed figure that figure must reproduce, within an authored tolerance. A miss fails the bake; it is not a benchmark.
+_Avoid_: Validation, sanity check, test
 
 **Lifting surface**:
 A planform the side-force model acts on: a fin, a rudder, or the submerged hull itself for an integral keel.

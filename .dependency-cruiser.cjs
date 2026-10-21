@@ -1,9 +1,10 @@
 // Layer order from docs/intention/05-separation-of-concerns.md:
 // data -> core -> sim-ocean/hull/rig -> sim-world -> render-* -> tool-*/game-*
 // A package never imports from a layer above it. Renderers and tools never import a model package.
+// data imports core as types only (docs/adr/0009): the contract types, never a runtime edge.
 const pkg = (glob) => `^packages/(${glob})/`
 
-const data = 'data-[^/]+'
+const data = 'data'
 const core = 'core'
 const models = 'sim-(ocean|hull|rig)'
 const world = 'sim-world'
@@ -24,7 +25,14 @@ const mayImport = (name, from, allowed) => ({
 
 module.exports = {
   forbidden: [
-    mayImport('data-imports-nothing', data, null),
+    mayImport('data-imports-only-core', data, core),
+    {
+      name: 'data-imports-core-as-types-only',
+      severity: 'error',
+      comment: 'data may import core for its types only; it has no runtime dependency on anything.',
+      from: { path: pkg(data) },
+      to: { path: pkg(core), dependencyTypesNot: ['type-only'] },
+    },
     mayImport('core-imports-nothing', core, null),
     mayImport('models-import-core-and-data', models, `${core}|${data}`),
     mayImport('world-imports-core-data-models', world, `${core}|${data}|${models}`),

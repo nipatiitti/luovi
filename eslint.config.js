@@ -3,7 +3,12 @@ import prettier from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import tseslint from 'typescript-eslint'
 
-const simSources = ['packages/core/src/**/*.ts', 'packages/sim-*/src/**/*.ts', 'packages/data-*/src/**/*.ts']
+const simSources = [
+  'packages/core/src/**/*.ts',
+  'packages/sim-*/src/**/*.ts',
+  'packages/data/src/**/*.ts',
+  'packages/tool-bake/src/**/*.ts',
+]
 
 // IEEE 754 operations that every engine rounds identically. Everything else in Math differs
 // across V8, JavaScriptCore and SpiderMonkey and must come from core's deterministic math.

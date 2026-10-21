@@ -7,3 +7,7 @@ A ship definition carries by value everything the simulation reads: regression c
 - Adding a shared polar or coefficient set is a change in `data-*`, never in `core` or `sim-*`.
 - Two definitions may carry identical tables; that duplication is in committed data, not in code, and is what keeps the loader trivial.
 - If a derived artefact ever needs to ship with a definition, that is a version bump of the contract, not a side channel.
+
+## Amendment, 2026-10-22
+
+Decided by the bake pipeline ticket ([#10](https://github.com/nipatiitti/luovi/issues/10)), recorded in [ADR 0009](0009-baked-ship-data-from-tool-bake-in-one-data-package.md). All ships live in one `data` package that exports a static record of definitions keyed by id. That record is a TypeScript import, not the registry this decision rejected: there is no resolver, no second schema, and `sim-world` still receives one validated object. The "bake time" at which shared tables are imported is the run of `tool-bake`.

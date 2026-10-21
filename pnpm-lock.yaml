@@ -38,7 +38,7 @@ importers:
 
   packages/core: {}
 
-  packages/data-hboat: {}
+  packages/data: {}
 
   packages/render-ocean:
     dependencies:
@@ -123,9 +123,9 @@ importers:
       '@luovi/core':
         specifier: workspace:*
         version: link:../core
-      '@luovi/data-hboat':
+      '@luovi/data':
         specifier: workspace:*
-        version: link:../data-hboat
+        version: link:../data
       '@luovi/sim-world':
         specifier: workspace:*
         version: link:../sim-world

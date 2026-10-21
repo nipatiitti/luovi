@@ -5,7 +5,7 @@
       "path": "./packages/core"
     },
     {
-      "path": "./packages/data-hboat"
+      "path": "./packages/data"
     },
     {
       "path": "./packages/sim-ocean"
