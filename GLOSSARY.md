@@ -116,6 +116,30 @@ _Avoid_: Heel step, heel sample, roll bin
 The strip forces of a lattice for one unit kinematic input, precomputed at load, so a tick's force is a weighted sum of basis solutions instead of a solve.
 _Avoid_: Mode, influence vector, unit response
 
+**Coarse cloth**:
+The authoritative sail mesh the simulation integrates, a handful of nodes per sail, whose corners are rig nodes. Everything a sail does to the ship comes from it.
+_Avoid_: Sail mesh, cloth sim, physics cloth
+
+**Fine cloth**:
+The visual sail surface the renderer upsamples from the coarse cloth. It touches nothing in the simulation.
+_Avoid_: Render cloth, detail cloth, high-res sail
+
+**Running line**:
+A line whose length a control sets, such as a sheet, brace, halyard or guy, running from a rig node through its blocks to its belay. One line is one constraint over its whole path, slack allowed, never pushing.
+_Avoid_: Rope, sheet (as a generic term), rope chain
+
+**Standing rigging**:
+A pretensioned line between two rig nodes that a tuning sets and no control moves, such as a shroud, stay or runner. It holds a spar and never pushes.
+_Avoid_: Wire, stay (as a generic term), fixed rigging
+
+**Spar**:
+A mast, yard, boom, gaff or pole that rig nodes sit on. Rigid unless its bending is a sailing effect, as a yacht mast's is.
+_Avoid_: Stick, beam, rod
+
+**Substep**:
+One of the equal solver steps a tick is divided into for the rig; the count is a scenario setting.
+_Avoid_: Iteration, inner step, sub-tick
+
 **Pressure relief**:
 The free-surface correction that removes the side force a rigid-wall image over-predicts near the waterline, applied per strip by depth and chord.
 _Avoid_: Free-surface factor, image correction, waterline loss
