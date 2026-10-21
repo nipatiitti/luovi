@@ -24,6 +24,10 @@ _Avoid_: Test, validation target, validation test
 A ship's steady speed as a function of true wind angle and true wind speed.
 _Avoid_: Polar (bare), VPP curve
 
+**Gate**:
+The comparison of one measured number with a benchmark's target and tolerance that decides pass or fail. A number a benchmark reports without comparing is logged, not gated.
+_Avoid_: Assertion, check (bare), threshold
+
 **Sail polar**:
 A sail class's pressure coefficient as a function of local angle of attack across the full ±180°.
 _Avoid_: Polar (bare), Cp curve, aero curve
