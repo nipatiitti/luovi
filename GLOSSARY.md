@@ -95,3 +95,27 @@ _Avoid_: Ocean state, spectrum (for the whole), wave data
 **Rest hydrostatics**:
 The canoe body's upright hydrostatics at a load condition's static equilibrium, computed once at load, that a resistance regression reads. Heel and running trim never change them.
 _Avoid_: Regression inputs, static hydrostatics, design hydrostatics
+
+**Stall weight**:
+A lifting surface's share of its attached-flow lift, one below its stall onset angle and zero past its stall end angle, on the local inflow angle. Lift and cross-flow are summed, never switched.
+_Avoid_: Blend weight, VLM weight, lift fraction
+
+**Appendage polar**:
+A lifting surface's normal-force coefficient over the full 0 to 90 degrees of local inflow angle, indexed by effective aspect ratio, carrying the separated range that attached-flow lift cannot.
+_Avoid_: Plate law, bluff-plate coefficient, stall polar
+
+**Carry-over**:
+The continuation of a fin's lattice through the canoe body up to the waterline, so the hull carries the fin's root circulation.
+_Avoid_: Hull lattice (for a fin keel), extended keel, hull lift
+
+**Heel bin**:
+One heel angle at which a ship's lattice is built and solved at load; a tick blends the two neighbouring bins.
+_Avoid_: Heel step, heel sample, roll bin
+
+**Basis solution**:
+The strip forces of a lattice for one unit kinematic input, precomputed at load, so a tick's force is a weighted sum of basis solutions instead of a solve.
+_Avoid_: Mode, influence vector, unit response
+
+**Pressure relief**:
+The free-surface correction that removes the side force a rigid-wall image over-predicts near the waterline, applied per strip by depth and chord.
+_Avoid_: Free-surface factor, image correction, waterline loss
