@@ -1,0 +1,46 @@
+
+== Cost per 60 Hz tick (ms), one Gauss-Seidel sweep per substep, wind 7.6 m/s on all sails ==
+
+H-boat 6x6: particles 119, quats 8, triangles 100
+  distance constraints 346 (cloth 316, attach 25, standing 10, rigid spar 5), ropes 31, cosserat segments 8, bend-twist 7
+  substeps   rate   median     p95     max   vmax(m/s) NaN
+         1     60    0.013    0.024    0.095     0.19   no
+         2    120    0.021    0.023    0.066     5.70   no
+         4    240    0.040    0.043    0.067     1.20   no
+         8    480    0.080    0.083    0.112     0.09   no
+        16    960    0.159    0.171    0.268     0.12   no
+        32   1920    0.319    0.336    0.472     0.29   no
+        64   3840    0.643    0.682   24.995     9.21   no
+
+H-boat 8x12: particles 239, quats 8, triangles 308
+  distance constraints 1010 (cloth 956, attach 49, standing 10, rigid spar 5), ropes 31, cosserat segments 8, bend-twist 7
+  substeps   rate   median     p95     max   vmax(m/s) NaN
+         1     60    0.026    0.028    0.129     5.43   no
+         2    120    0.053    0.058    0.170     7.99   no
+         4    240    0.104    0.109    0.135     8.84   no
+         8    480    0.208    0.219    0.278     2.54   no
+        16    960    0.414    0.437    0.541     1.51   no
+        32   1920    0.829    0.861    0.990     3.69   no
+        64   3840    1.657    1.739    1.935     6.71   no
+
+Joutsen 6x6: particles 1381, quats 192, triangles 1500
+  distance constraints 5046 (cloth 4740, attach 252, standing 30, rigid spar 54), ropes 246, cosserat segments 192, bend-twist 171
+  substeps   rate   median     p95     max   vmax(m/s) NaN
+         1     60    0.155    0.176    0.283     8.21   no
+         2    120    0.307    0.328    0.438     8.46   no
+         4    240    0.609    0.647    0.838     7.76   no
+         8    480    1.208    1.268    1.427     7.16   no
+        16    960    2.410    2.510    2.708     6.95   no
+        32   1920    4.832    4.986    5.380     6.92   no
+        64   3840    9.669    9.897   38.036     7.03   no
+
+Joutsen 8x12: particles 3181, quats 192, triangles 4620
+  distance constraints 14826 (cloth 14340, attach 432, standing 30, rigid spar 54), ropes 246, cosserat segments 192, bend-twist 171
+  substeps   rate   median     p95     max   vmax(m/s) NaN
+         1     60    0.404    0.425    0.569     9.74   no
+         2    120    0.809    0.850    0.970     6.20   no
+         4    240    1.615    1.720    1.934     6.90   no
+         8    480    3.177    3.377    4.106     6.78   no
+        16    960    6.345    6.545   14.001     7.20   no
+        32   1920   12.533   13.043   41.666     5.28   no
+        64   3840   24.967   25.435   26.556     7.38   no

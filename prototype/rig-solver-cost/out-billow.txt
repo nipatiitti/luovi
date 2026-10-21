@@ -1,0 +1,8 @@
+
+== Billow and tension jitter: H-boat 6x6 in 7.6 m/s wind, 20 s, then a 15 m/s gust for 5 s ==
+   reports peak particle speed and the std of forestay tension over the last 2 s (N); a static rig should be quiet
+  substeps  2: peak speed 10.91 m/s, gust peak 15.02 m/s, windward cap shroud 0 N sd 0.0 N 
+  substeps  4: peak speed 12.04 m/s, gust peak 23.63 m/s, windward cap shroud 0 N sd 0.0 N 
+  substeps  8: peak speed 14.26 m/s, gust peak 13.07 m/s, windward cap shroud 0 N sd 0.0 N 
+  substeps 16: peak speed 14.93 m/s, gust peak 15.46 m/s, windward cap shroud 1022 N sd 294.2 N 
+  substeps 32: peak speed 16.35 m/s, gust peak 11.73 m/s, windward cap shroud 3958 N sd 226.4 N 

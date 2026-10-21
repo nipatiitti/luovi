@@ -1,0 +1,131 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1500' height='620' viewBox='0 0 1500 620' font-family='Helvetica, Arial, sans-serif'>
+<rect width='1500' height='620' fill='white'/>
+<text x='20.0' y='30.0' font-size='16' text-anchor='start' fill='#222' font-weight='bold'>Cost per 60 Hz tick in Node 26 on this machine, one sweep per substep, aero per substep, median of 300 ticks</text>
+<rect x='80.0' y='90.0' width='900.0' height='440.0' fill='#fafafa' opacity='1' stroke='#999'/>
+<text x='530.0' y='80.0' font-size='15' text-anchor='middle' fill='#222' font-weight='bold'>milliseconds per tick against substeps</text>
+<text x='530.0' y='568.0' font-size='13' text-anchor='middle' fill='#222' font-weight='normal'>substeps per tick (60 to 3840 Hz)</text>
+<text x='32.0' y='310.0' font-size='13' text-anchor='middle' fill='#222' font-weight='normal' transform='rotate(-90 32 310.0)'>ms per tick (log)</text>
+<line x1='80.0' y1='90.0' x2='80.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='80.0' y='546.0' font-size='12' text-anchor='middle' fill='#222' font-weight='normal'>1</text>
+<line x1='230.0' y1='90.0' x2='230.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='230.0' y='546.0' font-size='12' text-anchor='middle' fill='#222' font-weight='normal'>2</text>
+<line x1='380.0' y1='90.0' x2='380.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='380.0' y='546.0' font-size='12' text-anchor='middle' fill='#222' font-weight='normal'>4</text>
+<line x1='530.0' y1='90.0' x2='530.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='530.0' y='546.0' font-size='12' text-anchor='middle' fill='#222' font-weight='normal'>8</text>
+<line x1='680.0' y1='90.0' x2='680.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='680.0' y='546.0' font-size='12' text-anchor='middle' fill='#222' font-weight='normal'>16</text>
+<line x1='830.0' y1='90.0' x2='830.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='830.0' y='546.0' font-size='12' text-anchor='middle' fill='#222' font-weight='normal'>32</text>
+<line x1='980.0' y1='90.0' x2='980.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='980.0' y='546.0' font-size='12' text-anchor='middle' fill='#222' font-weight='normal'>64</text>
+<line x1='80.0' y1='530.0' x2='980.0' y2='530.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='534.0' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>0.01</text>
+<line x1='80.0' y1='469.6' x2='980.0' y2='469.6' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='473.6' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>0.03</text>
+<line x1='80.0' y1='403.5' x2='980.0' y2='403.5' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='407.5' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>0.1</text>
+<line x1='80.0' y1='343.1' x2='980.0' y2='343.1' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='347.1' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>0.3</text>
+<line x1='80.0' y1='276.9' x2='980.0' y2='276.9' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='280.9' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>1</text>
+<line x1='80.0' y1='238.8' x2='980.0' y2='238.8' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='242.8' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>2</text>
+<line x1='80.0' y1='216.5' x2='980.0' y2='216.5' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='220.5' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>3</text>
+<line x1='80.0' y1='150.4' x2='980.0' y2='150.4' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='154.4' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>10</text>
+<line x1='80.0' y1='90.0' x2='980.0' y2='90.0' stroke='#ddd' stroke-width='1' opacity='1'/>
+<text x='74.0' y='94.0' font-size='12' text-anchor='end' fill='#222' font-weight='normal'>30</text>
+<rect x='80.0' y='276.9' width='900.0' height='253.1' fill='#2b8a3e' opacity='0.08' stroke='none'/>
+<line x1='80.0' y1='276.9' x2='980.0' y2='276.9' stroke='#2b8a3e' stroke-width='1.5' stroke-dasharray='6,4' opacity='1'/>
+<text x='974.0' y='271.9' font-size='12' text-anchor='end' fill='#2b8a3e' font-weight='normal'>hero boat 1 ms budget</text>
+<line x1='80.0' y1='238.8' x2='980.0' y2='238.8' stroke='#d9480f' stroke-width='1.5' stroke-dasharray='6,4' opacity='1'/>
+<text x='974.0' y='233.8' font-size='12' text-anchor='end' fill='#d9480f' font-weight='normal'>full-rigged ship rig and sails 2 ms budget</text>
+<polyline points='80.0,517.2 230.0,491.3 380.0,454.2 530.0,416.1 680.0,378.2 830.0,340.1 980.0,301.5' fill='none' stroke='#1f5fbf' stroke-width='2' opacity='1' stroke-linejoin='round'/>
+<circle cx='80.0' cy='517.2' r='3.5' fill='#1f5fbf'/>
+<circle cx='230.0' cy='491.3' r='3.5' fill='#1f5fbf'/>
+<circle cx='380.0' cy='454.2' r='3.5' fill='#1f5fbf'/>
+<circle cx='530.0' cy='416.1' r='3.5' fill='#1f5fbf'/>
+<circle cx='680.0' cy='378.2' r='3.5' fill='#1f5fbf'/>
+<circle cx='830.0' cy='340.1' r='3.5' fill='#1f5fbf'/>
+<circle cx='980.0' cy='301.5' r='3.5' fill='#1f5fbf'/>
+<polyline points='80.0,513.5 230.0,489.9 380.0,453.4 530.0,413.3 680.0,376.3 830.0,337.7 980.0,298.4' fill='none' stroke='#1f5fbf' stroke-width='1' opacity='1' stroke-dasharray='3,3' stroke-linejoin='round'/>
+<polyline points='80.0,475.8 230.0,438.5 380.0,401.7 530.0,364.1 680.0,326.1 830.0,288.4 980.0,250.1' fill='none' stroke='#d9480f' stroke-width='2' opacity='1' stroke-linejoin='round'/>
+<circle cx='80.0' cy='475.8' r='3.5' fill='#d9480f'/>
+<circle cx='230.0' cy='438.5' r='3.5' fill='#d9480f'/>
+<circle cx='380.0' cy='401.7' r='3.5' fill='#d9480f'/>
+<circle cx='530.0' cy='364.1' r='3.5' fill='#d9480f'/>
+<circle cx='680.0' cy='326.1' r='3.5' fill='#d9480f'/>
+<circle cx='830.0' cy='288.4' r='3.5' fill='#d9480f'/>
+<circle cx='980.0' cy='250.1' r='3.5' fill='#d9480f'/>
+<polyline points='80.0,473.0 230.0,435.8 380.0,399.6 530.0,360.3 680.0,322.3 830.0,286.4 980.0,248.0' fill='none' stroke='#d9480f' stroke-width='1' opacity='1' stroke-dasharray='3,3' stroke-linejoin='round'/>
+<polyline points='80.0,380.3 230.0,342.9 380.0,304.9 530.0,267.1 680.0,229.1 830.0,190.9 980.0,152.9' fill='none' stroke='#2b8a3e' stroke-width='2' opacity='1' stroke-linejoin='round'/>
+<circle cx='80.0' cy='380.3' r='3.5' fill='#2b8a3e'/>
+<circle cx='230.0' cy='342.9' r='3.5' fill='#2b8a3e'/>
+<circle cx='380.0' cy='304.9' r='3.5' fill='#2b8a3e'/>
+<circle cx='530.0' cy='267.1' r='3.5' fill='#2b8a3e'/>
+<circle cx='680.0' cy='229.1' r='3.5' fill='#2b8a3e'/>
+<circle cx='830.0' cy='190.9' r='3.5' fill='#2b8a3e'/>
+<circle cx='980.0' cy='152.9' r='3.5' fill='#2b8a3e'/>
+<polyline points='80.0,374.9 230.0,339.1 380.0,301.5 530.0,263.2 680.0,227.0 830.0,189.5 980.0,151.8' fill='none' stroke='#2b8a3e' stroke-width='1' opacity='1' stroke-dasharray='3,3' stroke-linejoin='round'/>
+<polyline points='80.0,327.3 230.0,289.9 380.0,252.2 530.0,214.6 680.0,176.7 830.0,138.6 980.0,100.6' fill='none' stroke='#862e9c' stroke-width='2' opacity='1' stroke-linejoin='round'/>
+<circle cx='80.0' cy='327.3' r='3.5' fill='#862e9c'/>
+<circle cx='230.0' cy='289.9' r='3.5' fill='#862e9c'/>
+<circle cx='380.0' cy='252.2' r='3.5' fill='#862e9c'/>
+<circle cx='530.0' cy='214.6' r='3.5' fill='#862e9c'/>
+<circle cx='680.0' cy='176.7' r='3.5' fill='#862e9c'/>
+<circle cx='830.0' cy='138.6' r='3.5' fill='#862e9c'/>
+<circle cx='980.0' cy='100.6' r='3.5' fill='#862e9c'/>
+<polyline points='80.0,322.6 230.0,285.6 380.0,249.6 530.0,212.1 680.0,175.1 830.0,137.4 980.0,99.7' fill='none' stroke='#862e9c' stroke-width='1' opacity='1' stroke-dasharray='3,3' stroke-linejoin='round'/>
+<line x1='96.0' y1='120.0' x2='120.0' y2='120.0' stroke='#1f5fbf' stroke-width='3' opacity='1'/>
+<text x='126.0' y='124.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>H-boat 6x6: 119 particles, 346 distance, 31 lines, 8 Cosserat, 100 triangles</text>
+<line x1='96.0' y1='138.0' x2='120.0' y2='138.0' stroke='#d9480f' stroke-width='3' opacity='1'/>
+<text x='126.0' y='142.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>H-boat 8x12: 239 particles, 1010 distance, 31 lines, 8 Cosserat, 308 triangles</text>
+<line x1='96.0' y1='156.0' x2='120.0' y2='156.0' stroke='#2b8a3e' stroke-width='3' opacity='1'/>
+<text x='126.0' y='160.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>Joutsen 6x6: 1381 particles, 5046 distance, 246 lines, 192 Cosserat, 1500 triangles</text>
+<line x1='96.0' y1='174.0' x2='120.0' y2='174.0' stroke='#862e9c' stroke-width='3' opacity='1'/>
+<text x='126.0' y='178.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>Joutsen 8x12: 3181 particles, 14826 distance, 246 lines, 192 Cosserat, 4620 triangles</text>
+<text x='96.0' y='200.0' font-size='12' text-anchor='start' fill='#444' font-weight='normal'>solid: median, dotted: p95</text>
+<text x='1010.0' y='100.0' font-size='14' text-anchor='start' fill='#222' font-weight='bold'>median ms per tick</text>
+<text x='1010.0' y='122.0' font-size='12' text-anchor='start' fill='#222' font-weight='bold'>substeps</text>
+<text x='1100.0' y='122.0' font-size='12' text-anchor='middle' fill='#222' font-weight='bold'>H-boat 6x6</text>
+<text x='1195.0' y='122.0' font-size='12' text-anchor='middle' fill='#222' font-weight='bold'>H-boat 8x12</text>
+<text x='1290.0' y='122.0' font-size='12' text-anchor='middle' fill='#222' font-weight='bold'>Joutsen 6x6</text>
+<text x='1385.0' y='122.0' font-size='12' text-anchor='middle' fill='#222' font-weight='bold'>Joutsen 8x12</text>
+<text x='1010.0' y='144.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>1 (60 Hz)</text>
+<text x='1100.0' y='144.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.01</text>
+<text x='1195.0' y='144.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.03</text>
+<text x='1290.0' y='144.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.15</text>
+<text x='1385.0' y='144.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.40</text>
+<text x='1010.0' y='164.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>2 (120 Hz)</text>
+<text x='1100.0' y='164.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.02</text>
+<text x='1195.0' y='164.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.05</text>
+<text x='1290.0' y='164.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.30</text>
+<text x='1385.0' y='164.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.79</text>
+<text x='1010.0' y='184.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>4 (240 Hz)</text>
+<text x='1100.0' y='184.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.04</text>
+<text x='1195.0' y='184.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.10</text>
+<text x='1290.0' y='184.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.60</text>
+<text x='1385.0' y='184.0' font-size='12' text-anchor='middle' fill='#e67700' font-weight='normal'>1.57</text>
+<text x='1010.0' y='204.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>8 (480 Hz)</text>
+<text x='1100.0' y='204.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.08</text>
+<text x='1195.0' y='204.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.20</text>
+<text x='1290.0' y='204.0' font-size='12' text-anchor='middle' fill='#e67700' font-weight='normal'>1.19</text>
+<text x='1385.0' y='204.0' font-size='12' text-anchor='middle' fill='#c92a2a' font-weight='normal'>3.11</text>
+<text x='1010.0' y='224.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>16 (960 Hz)</text>
+<text x='1100.0' y='224.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.16</text>
+<text x='1195.0' y='224.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.41</text>
+<text x='1290.0' y='224.0' font-size='12' text-anchor='middle' fill='#c92a2a' font-weight='normal'>2.39</text>
+<text x='1385.0' y='224.0' font-size='12' text-anchor='middle' fill='#c92a2a' font-weight='normal'>6.20</text>
+<text x='1010.0' y='244.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>32 (1920 Hz)</text>
+<text x='1100.0' y='244.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.32</text>
+<text x='1195.0' y='244.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.81</text>
+<text x='1290.0' y='244.0' font-size='12' text-anchor='middle' fill='#c92a2a' font-weight='normal'>4.78</text>
+<text x='1385.0' y='244.0' font-size='12' text-anchor='middle' fill='#c92a2a' font-weight='normal'>12.38</text>
+<text x='1010.0' y='264.0' font-size='12' text-anchor='start' fill='#222' font-weight='normal'>64 (3840 Hz)</text>
+<text x='1100.0' y='264.0' font-size='12' text-anchor='middle' fill='#2b8a3e' font-weight='normal'>0.64</text>
+<text x='1195.0' y='264.0' font-size='12' text-anchor='middle' fill='#e67700' font-weight='normal'>1.63</text>
+<text x='1290.0' y='264.0' font-size='12' text-anchor='middle' fill='#c92a2a' font-weight='normal'>9.55</text>
+<text x='1385.0' y='264.0' font-size='12' text-anchor='middle' fill='#c92a2a' font-weight='normal'>24.75</text>
+</svg>
