@@ -59,3 +59,11 @@ _Avoid_: Loading, trim (bare), displacement condition
 **Tuning**:
 A named set of standing-rigging pretensions for a ship, such as a tuning guide's light-air or heavy-air settings. A scenario names one.
 _Avoid_: Rig setup, preset, trim (bare)
+
+**Golden vector**:
+A reference input and output pair from the oracle build of the deterministic math that the port must reproduce bit for bit.
+_Avoid_: Test vector, fixture, reference value
+
+**State hash**:
+The integer digest of a state buffer after a run, used to prove that two engines produced the same simulation.
+_Avoid_: Checksum, fingerprint, snapshot
