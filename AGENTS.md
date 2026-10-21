@@ -42,6 +42,15 @@
 
 - All and every user facing questions should be asked with available "ask user a question" tools or some other relvant tool.
 
+## Grilling rounds
+
+A grilling session (`/grilling`, a wayfinder ticket, any design decision put to Niilo) runs in rounds. Niilo's input is the scarce resource: spend it on decisions, and on nothing a lookup could settle.
+
+1. Settle every fact first. A question that waits on the filesystem, a paper or a web page goes to a subagent; only decisions reach Niilo.
+2. Ask the whole frontier in one round as numbered questions in the chat, each with a recommended answer, worded so "yes" takes the recommendation. Nothing is left silently assumed: a decision that goes unasked is a decision the agent made.
+3. Collect the answers with one "ask user a question" call: the first question asks whether the recommendations stand, with "Yes to all" first and "Yes with exceptions, named by number" second. Add a separate question in the same call only for a genuine fork, the one or two decisions whose answer reshapes the work, with the recommended option first.
+4. An exception is the answer to that question. A second round happens only when an exception reshapes the frontier; otherwise record and act.
+
 ## Agentic workflow
 
 - Work is cut into small slices. A slice brief says "this file needs something like this", never code. The agent that takes a slice has implementation authority within it.
