@@ -211,3 +211,27 @@ _Avoid_: Runtime, engine loop, bridge, glue
 **Slot**:
 One tick's state buffer and derived buffer side by side in the shared array. The simulation writes one slot while the renderer reads the other.
 _Avoid_: Frame, page, back buffer
+
+**Cascade**:
+One FFT tile of the tail that holds the wavenumbers of one annulus, from a sixth of its tile length down to a sixth of the next cascade's. Cascades partition the tail; nothing is counted twice.
+_Avoid_: Band (for a cascade), layer, octave, FFT level
+
+**Ring**:
+One level of the camera-centred clipmap mesh the sea is drawn on, at twice the spacing of the ring inside it, snapped to its own world grid.
+_Avoid_: LOD level, tier, shell
+
+**Render setting**:
+A parameter of a renderer that changes the picture and nothing the simulation computes, such as a cascade tile or a ring count. It never enters a scenario or a state hash.
+_Avoid_: Quality setting, graphics option, config
+
+**Foam buffer**:
+The camera-centred, world-aligned texture of foam density near the camera, filled by breaking and hull contact, moved by the surface and fading at a cited rate.
+_Avoid_: Foam map, whitecap texture, turbulence buffer
+
+**Breaking threshold**:
+The value of the surface Jacobian below which a point is breaking and injects foam, solved at sea-state build so the far-field coverage matches a cited coverage law.
+_Avoid_: Foam threshold, epsilon, magic number
+
+**Far-field coverage**:
+The fraction of a pixel's footprint that is foam beyond the foam buffer, filtered from the spectrum's Jacobian statistics rather than drawn.
+_Avoid_: Whitecap fraction, foam percentage, distant foam
