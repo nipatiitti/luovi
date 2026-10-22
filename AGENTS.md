@@ -40,7 +40,7 @@
 
 - Performance budgets are requirements: 60 Hz fixed tick, hero boat under 1 ms CPU, full-rigged ship rig and sails under 2 ms, renderer under 5 ms GPU at 1440p on an RTX 4060 class card. Profile before optimising, and never trade determinism for speed in `sim-*`.
 
-- The design doc is the source of truth for intent; code is the source of truth for behaviour. When they disagree, open the question rather than silently changing either.
+- The design doc is the source of truth for intent; code is the source of truth for behaviour. When they disagree, open the question rather than silently changing either. Once the question is decided, the source doc is corrected and re-exported naming the ADR that decided it; only schedule deviations are recorded on the wayfinder map.
 
 - All and every user facing questions should be asked with available "ask user a question" tools or some other relvant tool.
 
