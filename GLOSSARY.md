@@ -183,3 +183,23 @@ _Avoid_: Live scenario, current settings, world parameters
 **Particle**:
 A rig node that moves relative to the hull and is not a cloth node, such as a spar end, a rod segment end or a block in a running line. Fixed hull nodes are definition data, never state.
 _Avoid_: Point mass, vertex, free node
+
+**Driver**:
+The part of a benchmark that produces inputs during a run, such as a rudder controller holding a wind angle or a search over sheet lengths. It lives in tooling and is deterministic, so a run with a driver replays the same on every engine.
+_Avoid_: Autopilot, controller (for the whole), optimiser
+
+**Load report**:
+What the simulation computed about a ship once at load and exposes for reading: rest hydrostatics, regression inputs against their bounds, derivatives, sizes and check values. Benchmarks and tools read it; nothing feeds back from it.
+_Avoid_: Debug output, load log, diagnostics
+
+**Recording**:
+An authored scenario and its input stream in one file. Replaying a recording reproduces the run it came from.
+_Avoid_: Replay file, log, session
+
+**Reference sea**:
+One of the three named sea states, light, moderate and storm, that ocean benchmarks and cost figures are stated on.
+_Avoid_: Test sea, sea preset, sample sea
+
+**Steady-state window**:
+The span of ticks over which a benchmark averages a measurement after the run has settled. A window whose halves disagree is unsettled and its gate fails.
+_Avoid_: Averaging period, sample window, measurement interval

@@ -63,6 +63,8 @@ A grilling session (`/grilling`, a wayfinder ticket, any design decision put to 
 
 - An agent never verifies code it wrote itself. It runs `pnpm check` to see that the tree compiles and lints, nothing more.
 
+- `pnpm validate` is the quick benchmark tier and is run once per batch by the sweeper, never by a slice agent. `pnpm validate --full` is run by the coordinator's final sweep or by CI on main.
+
 - One agent writes one slice.
 
 - After a few slices land, a separate sweeper reads the diffs and reports problems. A separate fixer fixes them. At most two sweep-and-fix rounds per batch.
