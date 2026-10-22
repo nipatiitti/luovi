@@ -203,3 +203,11 @@ _Avoid_: Test sea, sea preset, sample sea
 **Steady-state window**:
 The span of ticks over which a benchmark averages a measurement after the run has settled. A window whose halves disagree is unsettled and its gate fails.
 _Avoid_: Averaging period, sample window, measurement interval
+
+**Host**:
+The code that owns the simulation Worker, the shared slots and the input channel on behalf of a tool or game. It paces the simulation and never computes a force.
+_Avoid_: Runtime, engine loop, bridge, glue
+
+**Slot**:
+One tick's state buffer and derived buffer side by side in the shared array. The simulation writes one slot while the renderer reads the other.
+_Avoid_: Frame, page, back buffer
