@@ -1,6 +1,6 @@
 # Overview
 
-Oct 20, 2026 · @Niilo
+Oct 22, 2026 · @Niilo
 
 ## What this is
 
@@ -39,15 +39,17 @@ The physics core defined across these tabs is ahead of any shipping sailing game
 
 **v1 build order** (each step runs headless in `tool-validate` before the next starts)
 
-1. FFT ocean with foam, LOD and filtered shading; analytic CPU sampling of the same spectrum.
-2. Hull hydrostatics from mesh at heel, regression resistance, panel buoyancy; H-boat floats and drifts correctly.
+1. A CPU band of equal-energy wave components below the cut wavenumber with the FFT tail above it, foam, LOD and filtered shading; the hull feels exactly the waves it sees (ADR 0005).
+2. Hull hydrostatics from the baked section stacks at heel, regression resistance on the load condition's rest hydrostatics, panel buoyancy; H-boat floats and drifts correctly (ADR 0006, ADR 0009).
 3. Rig constraint graph and coarse cloth with polars; H-boat sails a polar within 5%.
-4. VLM and cross-flow blend; sternway and lying-ahull tests pass.
+4. VLM and cross-flow summed with per-surface stall weights; sternway and lying-ahull tests pass (ADR 0007).
 5. Wind field for the player's region, gust layer, turbulence-scaled polars.
 6. Suomen Joutsen: square-sail polars from VLM, yard bracing, box-hauling and tacking tests.
 7. Dispersive patch, pressure-patch wake, harbour reflection (visual layer).
 8. Deck water and spray for the player's boat; broach test.
 9. One schooner; gaff polars; scenario client with full parameter UI and replays.
+
+**Benchmark convention** (decided on the H-boat polar benchmark and scenario contract tickets, ADR 0010): wind is the certificate's true wind speed at 10 m with the logarithmic profile and roughness length z0 = 0.005 m; flat water, so the polars run fast against ORC's added resistance in waves and that bias is stated, not tuned away; seawater at 1025.3 kg/m³ with ITTC viscosity and ISA air; the H-boat load condition is the certificate's 1,869 kg with 300 kg of crew fixed at the ORC hiking position. Validation runs in two tiers, the quick tier on every push and the full tier on main.
 
 **Engine systems not yet designed** (needed by regattas, trading and battles; each is a system on top of existing contracts)
 

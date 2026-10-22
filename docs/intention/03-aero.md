@@ -1,16 +1,16 @@
 # Sail aerodynamics and rig
 
-Oct 20, 2026 · @Niilo
+Oct 22, 2026 · @Niilo
 
 ## Bottom line
 
-No sail has a mode. Every sail is a cloth mesh, every triangle gets aerodynamic force from its own local apparent wind through one ±180° polar, and every rope is a constraint. Aback, in irons, sternway under backed headsails, yard bracing and spinnaker collapse are then what the equations do, not special cases. The cost for a full tallship (\~30 sails, a few thousand cloth particles, a few hundred rope constraints) is about 1–2 ms per tick on GPU.
+No sail has a mode. Every sail is a cloth mesh, every triangle gets aerodynamic force from its own local apparent wind through one ±180° polar, and every rope is a constraint. Aback, in irons, sternway under backed headsails, yard bracing and spinnaker collapse are then what the equations do, not special cases. The authoritative sails and rig run on the CPU; the budget is under 2 ms per tick for a full-rigged ship's rig and sails and under 1 ms for the hero boat, and the coarse cloth is what sets it (ADR 0008).
 
 ## Sails: cloth plus per-panel aero
 
-**Cloth.** Each sail is an XPBD cloth of 10×10 to 20×20 quads with realistic areal mass. Corners attach to constraints (halyard, tack, clew/sheet, brace); edges carry bolt-rope and leech-line stiffness so leech tension and twist behave. Battens are stiffer strips in the mesh. Sails are simulated in the ship's local frame; only the net force and moment go to the hull rigid body.
+**Cloth.** Each sail's authoritative cloth is a coarse XPBD grid of 6 by 6 nodes (8 by 12 affordable for the hero rig) with realistic areal mass and structural and shear constraints only; bending constraints are dropped, since at sailcloth stiffness the sweep cannot hold them, and the 10×10 to 20×20 fine cloth is the visual upsample of the Separation of concerns tab (ADR 0008). Corners are rig nodes (halyard, tack, clew/sheet, brace); edges carry bolt-rope and leech-line stiffness so leech tension and twist behave. Battens are stiffer strips in the mesh. Sails are simulated in the ship's local frame; only the net force and moment go to the hull rigid body.
 
-**Aero per triangle.** For each triangle: apparent wind at its centroid (true wind from the wind field with a log height profile, minus the triangle's own velocity), angle of attack from the triangle normal, then pressure = ½ρV²·Cp(α, sail class). Integrate over the sail for the force on the cloth and on the rig.
+**Aero per triangle.** For each triangle, every substep: apparent wind at its centroid (true wind from the wind field with a log height profile, minus the triangle's own velocity), angle of attack from the triangle normal, then pressure = ½ρV²·Cp(α, sail class). The triangle's own velocity makes the force velocity dependent, so evaluating it once per tick diverges on flapping cloth (ADR 0008). Integrate over the sail for the force on the cloth and on the rig.
 
 **The polar.** One Cp(α) curve per sail class across the full ±180°: lift rising to its peak around 15–25°, a stall region, drag plateauing near 1.2–1.3 at 90°, and the mirror on the backwinded side. A backwinded sail therefore gives negative lift and reversed thrust with no code path for "aback". Wing versus push is the same curve read at different α; nothing switches. Polars are generated, not guessed: a vortex-lattice run on each sail's flying shape (mirrored at the deck, wake shed from the leech) gives the attached-flow part, and Fujiwara's NMRI wind-tunnel work shows this holds even for square sails with low aspect ratio and very large camber; the stalled and backwinded parts come from tunnel data. Coefficients are scaled down with local turbulence intensity from the gust layer, because tunnel tests in a simulated natural boundary layer measured lift 16–44% and drag 11–42% lower than in steady flow; without this everything is overpowered in gusts.
 
@@ -31,7 +31,7 @@ Spinnakers are the stress test: with no luff tension the cloth is held only by p
 
 ## Rigging as a constraint graph
 
-Masts, yards and every rope form one constraint graph solved with the sails; the Rigging tab holds the model. What matters here: sail corners attach to rig constraints, so cloth tension and rope tension share a solver; a running line is a single length constraint through its blocks, so hauling a brace or a sheet is a rest-length change and the yard or clew follows; backstay and runner tension bend a yacht mast and flatten the main, which is the tuning layer.
+Masts, yards and every rope form one constraint graph solved with the sails; the Rigging tab holds the model. What matters here: sail corners are rig nodes, so cloth tension and rope tension share a solver and the aero force is evaluated every substep (ADR 0008); a running line is a single length constraint through its blocks, so hauling a brace or a sheet is a rest-length change and the yard or clew follows; backstay and runner tension bend a yacht mast and flatten the main, which is the tuning layer.
 
 ## Wind input and sail-to-sail interaction
 
@@ -41,7 +41,7 @@ Sail-to-sail interaction is a cheap upstream model, not CFD: each sail casts a w
 
 ## Benchmarks as tests
 
-- [ ] H-boat polar: VMG upwind and speeds at 60°, 90°, 120° TWA at 8 and 16 kn true within \~5% of an ORC-style polar
+- [ ] H-boat polar: two benchmarks against the ORC 2026 certificates, main and jib against the non-spinnaker certificate at ten points within 5% as the gate for build step 3, spinnaker against the club certificate at four; three of the six fixed-angle points are spinnaker points, and a miss is reviewed as a whole before anything moves (ADR 0010)
 - [ ] Suomen Joutsen: \~14 kn best, poor pointing; tacking fails without backing the headsails, succeeds with them
 - [ ] Sternway: head to wind, yards braced square or jib backed; 1–2 kn astern, rudder sense reversed, no special case
 - [ ] Yard turning: brace haul rotates the yard until the lee brace is taut; sails fill or back accordingly
