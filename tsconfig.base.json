@@ -16,8 +16,10 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "paths": {
+      "@luovi/core/math": ["./packages/core/src/math/index.ts"],
       "@luovi/*": ["./packages/*/src/index.ts"]
     },
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "rewriteRelativeImportExtensions": true
   }
 }

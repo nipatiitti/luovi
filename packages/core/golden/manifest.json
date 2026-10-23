@@ -1,0 +1,155 @@
+{
+  "compile": "-O2 -ffp-contract=off -fno-builtin -fno-strict-aliasing -std=gnu89 -D_IEEE_LIBM -D__LITTLE_ENDIAN",
+  "fdlibm": {
+    "files": {
+      "e_acos.c": "bc9fbb24c214030604c0df4c811370f37d511e0c72580767d8c81bd68b0c3a5a",
+      "e_asin.c": "4ec96c4c7747df94911404b1577e404e13efc51e104f1934e72b536b61adc911",
+      "e_atan2.c": "61dbf9edc927468280ccde872ecfb7cb1ea7cbaf6e1b28e7021c968abe5f7c6e",
+      "e_rem_pio2.c": "3a08dd4a38f9f9fc9478a33ca05cb81a6566f1010ab14412e97cae091bede16b",
+      "e_sqrt.c": "2a6e784d1089eb6351df7e59037de4240d11a5c61967611732f81ad96fe869ce",
+      "fdlibm.h": "64113c472c2676499288bc35a821b0867916552930bc52c7445d2c50dddf0e71",
+      "k_cos.c": "841086c75288f3f9fef03bae2a9dc24e99c3cdb2035e170c69452013a7b5befc",
+      "k_rem_pio2.c": "5796209ea3fe1af88e22badeaed0f6a6aa923914e097e227c410527cb5815740",
+      "k_sin.c": "75d391f3c124806ce14893cd038ae5dd10663e40430ffa174d5fddcb33012167",
+      "k_tan.c": "9dfd4c84f7930da3184a6c425ce7901979c84088cf231c33a7edefc3e0f487c0",
+      "s_atan.c": "8583c253aed6318dee2a48135e3f3b1328d838a390372a69414ac41eb5ce5ce1",
+      "s_copysign.c": "459c18858c944a4e7062d38ab4dfb596edbe76706d24029c2dac766dcd2be3fd",
+      "s_cos.c": "bdcbea3c83b2d4aa521b9a5341f3e58b8cb9c8d326fcc4abb715f3704cf17799",
+      "s_fabs.c": "c6389f3e0472ec0157d648b3e4e80b405038acfaf3e85b961363ea483e3259f1",
+      "s_floor.c": "fbe8779a58d46879222ba6b390931b13118037c5123b8e89a73cf0231f643b4a",
+      "s_scalbn.c": "9ad1bb374fc2951ec086474c82373b45bccfdecd34d631974dccf8633f40d99e",
+      "s_sin.c": "4d5edb75368e4f8e0ac18682d3ae4b6944ba06801637cf0df6f378d6211f4c81",
+      "s_tan.c": "f86caed50cf19150e0be229469785ce937d8d9b37046541408bce146180ba685",
+      "w_sqrt.c": "be9c9416808e510ea08a8d1de3b746b1b7cad1e8b433f5f7ec02b6d00c2c72ed"
+    },
+    "source": "https://www.netlib.org/fdlibm/"
+  },
+  "functions": [
+    {
+      "domains": [
+        "uniform [-1, 1] x 3072",
+        "log-uniform magnitude [2^-60, 2^-1], both signs x 1024",
+        "edge cases x 31"
+      ],
+      "file": "acos.f64",
+      "inputs": 1,
+      "name": "acos",
+      "outputs": 1,
+      "records": 4127
+    },
+    {
+      "domains": [
+        "uniform [-1, 1] x 3072",
+        "log-uniform magnitude [2^-60, 2^-1], both signs x 1024",
+        "edge cases x 31"
+      ],
+      "file": "asin.f64",
+      "inputs": 1,
+      "name": "asin",
+      "outputs": 1,
+      "records": 4127
+    },
+    {
+      "domains": [
+        "uniform [-10, 10] x 2048",
+        "log-uniform magnitude [2^-60, 2^60], both signs x 2048",
+        "edge cases x 33"
+      ],
+      "file": "atan.f64",
+      "inputs": 1,
+      "name": "atan",
+      "outputs": 1,
+      "records": 4129
+    },
+    {
+      "domains": [
+        "uniform [-100, 100] x uniform [-100, 100] x 3072",
+        "log-uniform magnitude [2^-60, 2^60], both signs x log-uniform magnitude [2^-60, 2^60], both signs x 1024",
+        "edge cases x 169"
+      ],
+      "file": "atan2.f64",
+      "inputs": 2,
+      "name": "atan2",
+      "outputs": 1,
+      "records": 4265
+    },
+    {
+      "domains": [
+        "uniform [-10, 10] x 1536",
+        "uniform [-1000000, 1000000] x 1536",
+        "log-uniform magnitude [2^20, 2^1023], both signs x 1024",
+        "edge cases x 35"
+      ],
+      "file": "cos.f64",
+      "inputs": 1,
+      "name": "cos",
+      "outputs": 1,
+      "records": 4131
+    },
+    {
+      "domains": [
+        "uniform [-10, 10] x 1536",
+        "uniform [-1000000, 1000000] x 1536",
+        "log-uniform magnitude [2^20, 2^1023], both signs x 1024",
+        "edge cases x 35"
+      ],
+      "file": "rem_pio2.f64",
+      "inputs": 1,
+      "name": "rem_pio2",
+      "outputs": 3,
+      "records": 4131
+    },
+    {
+      "domains": [
+        "uniform [-10, 10] x integer [-1100, 1100] x 4096",
+        "edge cases x 252"
+      ],
+      "file": "scalbn.f64",
+      "inputs": 2,
+      "name": "scalbn",
+      "outputs": 1,
+      "records": 4348
+    },
+    {
+      "domains": [
+        "uniform [-10, 10] x 1536",
+        "uniform [-1000000, 1000000] x 1536",
+        "log-uniform magnitude [2^20, 2^1023], both signs x 1024",
+        "edge cases x 35"
+      ],
+      "file": "sin.f64",
+      "inputs": 1,
+      "name": "sin",
+      "outputs": 1,
+      "records": 4131
+    },
+    {
+      "domains": [
+        "uniform [-10, 10] x 1536",
+        "uniform [-1000000, 1000000] x 1536",
+        "log-uniform magnitude [2^20, 2^1023], both signs x 1024",
+        "edge cases x 35"
+      ],
+      "file": "sincos.f64",
+      "inputs": 1,
+      "name": "sincos",
+      "outputs": 2,
+      "records": 4131
+    },
+    {
+      "domains": [
+        "uniform [-1.5, 1.5] x 1024",
+        "uniform [-10, 10] x 1024",
+        "uniform [-1000000, 1000000] x 1024",
+        "log-uniform magnitude [2^20, 2^1023], both signs x 1024",
+        "edge cases x 35"
+      ],
+      "file": "tan.f64",
+      "inputs": 1,
+      "name": "tan",
+      "outputs": 1,
+      "records": 4131
+    }
+  ],
+  "version": 1
+}

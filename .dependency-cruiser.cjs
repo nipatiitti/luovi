@@ -52,6 +52,13 @@ module.exports = {
       from: { path: pkg(`${core}|${data}|${models}|${world}`) },
       to: { path: 'node_modules/(@webgpu|three|@babylonjs|pixi\\.js)' },
     },
+    {
+      name: 'validate-harness-has-no-node-deps',
+      severity: 'error',
+      comment: 'The harness and benchmarks also run in a browser page; file access comes through HarnessIo.',
+      from: { path: '^packages/tool-validate/src/(harness|benchmarks)/' },
+      to: { dependencyTypes: ['core'] },
+    },
   ],
   options: {
     tsConfig: { fileName: 'tsconfig.base.json' },
