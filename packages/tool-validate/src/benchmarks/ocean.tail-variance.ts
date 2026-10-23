@@ -15,11 +15,7 @@ import {
 } from '@luovi/sim-world'
 import type { Benchmark, Gate, Harness, Measurement } from '../harness/types.ts'
 import { bandIntegral } from './ocean.band-hs.ts'
-import light from './reference-seas/light.json' with { type: 'json' }
-import moderate from './reference-seas/moderate.json' with { type: 'json' }
-import storm from './reference-seas/storm.json' with { type: 'json' }
-
-const seas = { light, moderate, storm } as const
+import { measureEachSea, type ReferenceSea } from './reference-seas.ts'
 
 // The default rule gives every reference sea three cascades, so the gates can be listed statically.
 const CASCADES = 3
@@ -157,19 +153,12 @@ const measureSea = (harness: Harness, name: string, scenario: unknown): Measurem
   return { values, logs }
 }
 
-const measure = (harness: Harness): Measurement => {
-  const measurement: Measurement = { values: {}, logs: { streams: STREAMS } }
-  for (const [name, scenario] of Object.entries(seas)) {
-    const sea = measureSea(harness, name, scenario)
-    Object.assign(measurement.values, sea.values)
-    Object.assign(measurement.logs, sea.logs)
-  }
-  return measurement
-}
+const measure = (harness: Harness): Measurement =>
+  measureEachSea({ streams: STREAMS }, (name, scenario) => measureSea(harness, name, scenario))
 
 const varianceGate = (id: string): Gate => ({ id, unit: '1', kind: 'relative', target: 1, tolerance: 0.05 })
 
-const seaGates = (name: keyof typeof seas): Gate[] => [
+const seaGates = (name: ReferenceSea): Gate[] => [
   ...Array.from({ length: CASCADES }, (_, c) => varianceGate(`${name}.cascade${String(c)}`)),
   varianceGate(`${name}.total`),
   // Two generations from the same stream are bit-identical.

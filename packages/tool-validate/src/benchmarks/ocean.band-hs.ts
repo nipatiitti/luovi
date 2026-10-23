@@ -6,16 +6,7 @@
 import { abs, PI, sqrt, TWO_PI } from '@luovi/core/math'
 import { type SeaDescription, waveSpectrum } from '@luovi/sim-world'
 import type { Benchmark, Gate, Harness, Measurement } from '../harness/types.ts'
-import light from './reference-seas/light.json' with { type: 'json' }
-import moderate from './reference-seas/moderate.json' with { type: 'json' }
-import storm from './reference-seas/storm.json' with { type: 'json' }
-
-const seas = { light, moderate, storm } as const
-
-// The spec's sample: 64 by 64 cell centres over a 2 km square at the mean level, for one minute of ticks.
-const GRID_SIDE = 64
-const GRID_SPAN = 2000
-const TICKS = 3600
+import { GRID_TICKS, gridPoints, measureEachSea, type ReferenceSea } from './reference-seas.ts'
 
 // The polar trapezoid for m0_band: the k step resolves the JONSWAP peak (width about 0.14 k_p for sigma 0.07, since
 // omega goes as sqrt k) with a hundred points at a cut ratio of 3, and the spreading is smooth and periodic in theta,
@@ -44,20 +35,6 @@ export const bandIntegral = (sea: SeaDescription, kIntervals: number, thetaInter
   return sum * dk * dTheta
 }
 
-const gridPoints = (): Float64Array => {
-  const points = new Float64Array(GRID_SIDE * GRID_SIDE * 3)
-  const cell = GRID_SPAN / GRID_SIDE
-  for (let iy = 0; iy < GRID_SIDE; iy += 1) {
-    for (let ix = 0; ix < GRID_SIDE; ix += 1) {
-      const p = 3 * (iy * GRID_SIDE + ix)
-      points[p] = -GRID_SPAN / 2 + (ix + 0.5) * cell
-      points[p + 1] = -GRID_SPAN / 2 + (iy + 0.5) * cell
-      points[p + 2] = 0
-    }
-  }
-  return points
-}
-
 const measureSea = (harness: Harness, name: string, scenario: unknown, points: Float64Array): Measurement => {
   harness.load(scenario)
   const before = harness.timing
@@ -76,7 +53,7 @@ const measureSea = (harness: Harness, name: string, scenario: unknown, points: F
   // Summed per tick, then across ticks, so no partial sum mixes magnitudes far apart.
   let sum = 0
   let sumSquares = 0
-  for (let t = 0; t < TICKS; t += 1) {
+  for (let t = 0; t < GRID_TICKS; t += 1) {
     harness.step(1)
     harness.environment.water(harness.tick, points, out)
     let tickSum = 0
@@ -89,7 +66,7 @@ const measureSea = (harness: Harness, name: string, scenario: unknown, points: F
     sum += tickSum
     sumSquares += tickSquares
   }
-  const samples = count * TICKS
+  const samples = count * GRID_TICKS
   const mean = sum / samples
   // About the sample mean: the choppy surface at fixed world points sits below the mean level by about lambda sum k A^2 / 2.
   const variance = sumSquares / samples - mean * mean
@@ -130,20 +107,15 @@ const measureSea = (harness: Harness, name: string, scenario: unknown, points: F
 }
 
 const measure = (harness: Harness): Measurement => {
-  const points = gridPoints()
-  const measurement: Measurement = {
-    values: {},
-    logs: { researchMicrosecondsPer200Points: RESEARCH_MICROSECONDS, gridPoints: points.length / 3, ticks: TICKS },
-  }
-  for (const [name, scenario] of Object.entries(seas)) {
-    const sea = measureSea(harness, name, scenario, points)
-    Object.assign(measurement.values, sea.values)
-    Object.assign(measurement.logs, sea.logs)
-  }
-  return measurement
+  // At the mean level.
+  const points = gridPoints(0)
+  return measureEachSea(
+    { researchMicrosecondsPer200Points: RESEARCH_MICROSECONDS, gridPoints: points.length / 3, ticks: GRID_TICKS },
+    (name, scenario) => measureSea(harness, name, scenario, points),
+  )
 }
 
-const hsGate = (name: keyof typeof seas): Gate => ({
+const hsGate = (name: ReferenceSea): Gate => ({
   id: `${name}.hs`,
   unit: '1',
   kind: 'relative',
