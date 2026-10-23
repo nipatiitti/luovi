@@ -248,6 +248,7 @@ export const createAtmosphere = async (device: GPUDevice, constants: AtmosphereC
  *   and the transmittance that dims the point's own radiance.
  * - `sun_and_sky_irradiance(point, normal)`: direct sun and diffuse sky irradiance on a surface.
  * - `solar_radiance()`, `sun_direction()`.
+ * - `planet_radius()`, and `curvature_drop(from_eye)`: how far the planet's surface lies below the eye's horizontal plane.
  */
 export const atmosphereWgsl = (group: number): string => {
   const g = String(group)
@@ -364,6 +365,18 @@ fn sky_radiance_to_point(camera: vec3f, point: vec3f) -> AtmosphereRadiance {
 
 fn sun_and_sky_irradiance(point: vec3f, normal: vec3f) -> AtmosphereIrradiance {
   return sun_and_sky_irradiance_km(atmosphere_position(point), normal);
+}
+
+// The planet's radius in metres.
+fn planet_radius() -> f32 {
+  return 1000.0 * atmosphere.bottom_radius;
+}
+
+// How far the planet's surface lies below the eye's horizontal plane at a horizontal offset from the eye, m: the sphere
+// to second order, d^2 / 2R, off by (d / 2R)^2 of the drop, under a thousandth out to 400 km. Everything drawn on the
+// sea drops by it, so the sea and what sits on it end together at the true horizon.
+fn curvature_drop(from_eye: vec2f) -> f32 {
+  return dot(from_eye, from_eye) / (2.0 * planet_radius());
 }
 `
 }

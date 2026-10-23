@@ -31,7 +31,9 @@ struct Varying {
 fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) marker: u32) -> Varying {
   let corners = array<vec2f, 6>(vec2f(-1, -1), vec2f(1, -1), vec2f(1, 1), vec2f(-1, -1), vec2f(1, 1), vec2f(-1, 1));
   let corner = corners[index];
-  let centre = vec3f(positions[3u * marker], positions[3u * marker + 1u], positions[3u * marker + 2u]);
+  // Dropped by the planet's curvature as the drawn sea is, so a marker on the felt surface sits on the drawn one.
+  let felt = vec3f(positions[3u * marker], positions[3u * marker + 1u], positions[3u * marker + 2u]);
+  let centre = felt - vec3f(0.0, 0.0, curvature_drop(felt.xy - camera.eye.xy));
   let world = centre + (camera.right * corner.x + camera.up * corner.y) * MARKER_RADIUS;
   return Varying(camera.view_projection * vec4f(world, 1.0), centre, corner);
 }
