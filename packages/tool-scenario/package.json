@@ -3,20 +3,24 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@luovi/core": "workspace:*",
-    "@luovi/sim-world": "workspace:*",
+    "@luovi/data": "workspace:*",
     "@luovi/render-ocean": "workspace:*",
+    "@luovi/render-scene": "workspace:*",
     "@luovi/render-ship": "workspace:*",
-    "@luovi/render-scene": "workspace:*"
+    "@luovi/sim-world": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "4.0.0",
+    "@sveltejs/kit": "3.1.0",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "svelte": "5.57.2",
+    "vite": "8.3.4"
   }
 }

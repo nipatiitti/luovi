@@ -5,3 +5,5 @@ dist/
 .vite/
 *.log
 packages/tool-validate/report.json
+.svelte-kit/
+packages/tool-scenario/build/
