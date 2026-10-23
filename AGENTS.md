@@ -37,7 +37,7 @@ A grilling session (`/grilling`, a wayfinder ticket, any design decision put to 
 
 - An agent ends its slice with context under 200k tokens. If a slice will not fit, split it before starting.
 
-- A slice's benchmark is written by a second agent from the ticket's acceptance criteria, in parallel with the code. The implementer's brief names the benchmark its code must make pass; the benchmark author's brief names the public surface it may read. A ticket that carries a benchmark is therefore two briefs.
+- A ticket that carries a benchmark is one brief: the same agent writes the code and the benchmark module the ticket names, from the ticket's acceptance criteria. The sweeper is the independent check: it runs the benchmark and reads the gate against the ticket, and a gate loosened to make the implementer's own code pass is a finding.
 
 - A slice agent's own check is `pnpm check`: the tree compiles, lints and respects the package boundaries. Verification of behaviour belongs to the sweeper and the benchmarks.
 
