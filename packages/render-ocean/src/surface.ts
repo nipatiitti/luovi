@@ -635,7 +635,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     const weights = storage('weights', weightData.byteLength)
     const rings = storage('rings', ringData.byteLength)
     const fields = tail.setSea(sea, settings)
-    foam.setSea(sea?.breakingThreshold ?? null, settings, count, waves, phases, fields)
+    foam.setSea(sea?.breakingThreshold ?? null, settings, { count, waves, phases }, fields)
     const absorption = waterAbsorption(optics)
     uniformFloats.set(
       [

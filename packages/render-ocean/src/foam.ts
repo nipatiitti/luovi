@@ -147,19 +147,19 @@ export interface FoamFrame {
   readonly stamps: Float64Array | undefined
 }
 
+/** The band as the surface uploads it once per sea: the wave table and the per-frame phases, `count` of each. */
+export interface BandTables {
+  readonly count: number
+  readonly waves: GPUBuffer
+  readonly phases: GPUBuffer
+}
+
 export interface OceanFoam {
   /**
    * A new sea state or settings: sizes the buffer, binds the band's tables and the tail's fields, and forgets the old
    * foam. A null threshold is flat water, which never breaks.
    */
-  setSea(
-    threshold: number | null,
-    settings: RenderOceanSettings,
-    bandCount: number,
-    waves: GPUBuffer,
-    phases: GPUBuffer,
-    tail: TailFields,
-  ): void
+  setSea(threshold: number | null, settings: RenderOceanSettings, band: BandTables, tail: TailFields): void
   /** The frame's window and decay; returns where the surface samples the buffer. */
   prepare(frame: FoamFrame): FoamWindow
   /** The buffer written this frame, for the surface to bind; one of two that alternate. */
@@ -204,7 +204,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
     readonly views: readonly [GPUTextureView, GPUTextureView]
     /** groups[i] writes texture i and reads the other. */
     readonly groups: readonly [GPUBindGroup, GPUBindGroup]
-    readonly bandCount: number
+    readonly band: BandTables
     readonly tail: TailFields
     readonly resolution: number
   }
@@ -224,7 +224,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
   let last: { tick: number; window: readonly [number, number] } | undefined
 
   return {
-    setSea: (threshold, settings, bandCount, waves, phases, tail) => {
+    setSea: (threshold, settings, band, tail) => {
       const size = settings.foamBufferSize
       const reuse = state?.size === size ? state : undefined
       if (state !== undefined && reuse === undefined) for (const old of state.textures) old.destroy()
@@ -236,8 +236,8 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
           layout: pipeline.getBindGroupLayout(0),
           entries: [
             { binding: 0, resource: { buffer: uniform } },
-            { binding: 1, resource: { buffer: waves } },
-            { binding: 2, resource: { buffer: phases } },
+            { binding: 1, resource: { buffer: band.waves } },
+            { binding: 2, resource: { buffer: band.phases } },
             { binding: 3, resource: read },
             { binding: 4, resource: tail.derivatives },
             { binding: 5, resource: tail.moments },
@@ -252,7 +252,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
         textures,
         views,
         groups: [group(views[1]), group(views[0])],
-        bandCount,
+        band,
         tail,
         resolution: settings.cascadeRule.resolution,
       }
@@ -279,7 +279,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
         FOAM_WORD.corner,
       )
       floats[FOAM_WORD.threshold] = threshold ?? 0
-      words[FOAM_WORD.count] = state.bandCount
+      words[FOAM_WORD.count] = state.band.count
       words[FOAM_WORD.cascadeCount] = tail.count
       const stamps = frame.stamps ?? new Float64Array(0)
       const stampCount = stamps.length / 4
