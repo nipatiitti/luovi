@@ -17,7 +17,6 @@
     "skipLibCheck": true,
     "paths": {
       "@luovi/core/math": ["./packages/core/src/math/index.ts"],
-      "@luovi/tool-validate/reference-seas/*": ["./packages/tool-validate/src/benchmarks/reference-seas/*"],
       "@luovi/*": ["./packages/*/src/index.ts"]
     },
     "noEmitOnError": true,

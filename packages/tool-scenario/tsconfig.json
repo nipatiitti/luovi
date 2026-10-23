@@ -25,9 +25,6 @@
     },
     {
       "path": "../render-scene"
-    },
-    {
-      "path": "../tool-validate"
     }
   ]
 }

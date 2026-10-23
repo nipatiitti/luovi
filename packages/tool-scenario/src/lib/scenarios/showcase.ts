@@ -1,6 +1,6 @@
-import light from '@luovi/tool-validate/reference-seas/light.json' with { type: 'json' }
-import moderate from '@luovi/tool-validate/reference-seas/moderate.json' with { type: 'json' }
-import storm from '@luovi/tool-validate/reference-seas/storm.json' with { type: 'json' }
+import light from './reference-seas/light.json' with { type: 'json' }
+import moderate from './reference-seas/moderate.json' with { type: 'json' }
+import storm from './reference-seas/storm.json' with { type: 'json' }
 
 /** One entry of the bundled list; the document is loaded as any imported file is, through the Worker's validation. */
 export interface Showcase {
@@ -8,8 +8,9 @@ export interface Showcase {
   readonly document: unknown
 }
 
-// The reference seas are tool-validate's benchmark scenarios, bundled from there so the tool shows exactly the seas the
-// band and tail benchmarks gate and no second copy has to be kept in step by hand.
+// The reference seas are copies of tool-validate's (src/benchmarks/reference-seas), which are the ones the band and
+// tail benchmarks gate. A tool may not import another tool, so the showcase keeps its own; a change to a reference sea
+// is made in both directories.
 export const SHOWCASE: readonly Showcase[] = [
   { name: 'Light reference sea', document: light },
   { name: 'Moderate reference sea', document: moderate },

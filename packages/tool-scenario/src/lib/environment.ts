@@ -9,7 +9,7 @@ import {
   type Wind,
 } from '@luovi/core'
 import { jonswap } from '@luovi/data'
-import moderate from '@luovi/tool-validate/reference-seas/moderate.json' with { type: 'json' }
+import moderate from './scenarios/reference-seas/moderate.json' with { type: 'json' }
 
 // The live environment panel's model. The panel speaks knots and compass bearings, the contract east/north vectors in
 // m/s; every conversion happens in this file, at the boundary, so the blocks the panel sends are plain contract blocks.
