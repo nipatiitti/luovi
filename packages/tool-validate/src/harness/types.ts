@@ -1,3 +1,5 @@
+import type { EffectiveScenario, EnvironmentQuery, SeaDescription, StateLayout } from '@luovi/sim-world'
+
 // The benchmark contract (ADR 0010, spec #26): a module per id with static gates, measured
 // through the harness only. Gates are static so a reader sees every target without running.
 
@@ -45,13 +47,33 @@ export interface HarnessIo {
   readBinary: (url: URL) => Promise<ArrayBuffer>
 }
 
+/** What the harness has spent inside the world since the last load, by the injected clock. */
+export interface HarnessTiming {
+  readonly ticks: number
+  /** Inside World.step, ms. */
+  readonly stepMs: number
+  readonly waterCalls: number
+  /** Inside the environment query's water method, ms. */
+  readonly waterMs: number
+}
+
+/** sim-world's public surface and nothing else (ADR 0010); before the first load every world accessor throws. */
 export interface Harness {
-  /** Loads a scenario into a fresh world; throws ContractError on an invalid one. */
+  /** Loads a scenario into a fresh world and resets the timing; throws ContractError on an invalid one. */
   load(scenario: unknown): void
   step(ticks: number): void
+  readonly tick: number
+  /** The world's query, wrapped to time each call. */
+  readonly environment: EnvironmentQuery
+  readonly sea: SeaDescription | null
+  readonly state: Float64Array
+  readonly derived: Float64Array
+  readonly layout: StateLayout
+  readonly effectiveScenario: EffectiveScenario
   /** hashState over the world's state buffer. */
   hash(): number
   readBinary: (url: URL) => Promise<ArrayBuffer>
+  readonly timing: HarnessTiming
 }
 
 /** One benchmark's outcome on one engine. A value is null when missing or not finite. */

@@ -101,6 +101,9 @@ importers:
       '@luovi/core':
         specifier: workspace:*
         version: link:../core
+      '@luovi/data':
+        specifier: workspace:*
+        version: link:../data
       '@luovi/sim-hull':
         specifier: workspace:*
         version: link:../sim-hull
