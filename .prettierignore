@@ -3,5 +3,6 @@ node_modules/
 pnpm-lock.yaml
 *.tsbuildinfo
 packages/core/golden/
+.engines/
 .svelte-kit/
 packages/tool-scenario/build/

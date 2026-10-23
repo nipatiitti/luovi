@@ -77,6 +77,8 @@ const simRestrictions = [
 export default defineConfig(
   globalIgnores([
     '**/dist/**',
+    // The --engines page bundle.
+    'packages/tool-validate/.engines/**',
     '**/node_modules/**',
     'eslint.config.js',
     '.dependency-cruiser.cjs',

@@ -1,12 +1,13 @@
 // pnpm validate [--filter <prefix>] [--full] [--engines]
-// Runs the selected benchmarks in Node, prints one row per benchmark, gate and engine, writes
-// report.json, and exits 0 when every gate passes, 1 when one fails, 2 on a usage error.
+// Runs the selected benchmarks in Node, and under --engines the engine benchmarks also in Chromium, WebKit and
+// Firefox; prints one row per benchmark, gate and engine, writes report.json, and exits 0 when every gate passes,
+// 1 when one fails or an engine could not run, 2 on a usage error.
 
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { benchmarks } from './benchmarks/index.ts'
 import { judgeGate, runBenchmark } from './harness/run.ts'
-import type { Gate, HarnessIo } from './harness/types.ts'
+import type { Benchmark, Engine, Gate, HarnessIo, Run } from './harness/types.ts'
 import { type Report, reportUrl, writeReport } from './report.ts'
 
 const usage = 'usage: pnpm validate [--filter <prefix>] [--full] [--engines]'
@@ -26,7 +27,6 @@ const parseArgs = (args: readonly string[]): Options | string => {
     } else if (arg?.startsWith('--filter=') === true) options.filter = arg.slice('--filter='.length)
     else return `unknown argument ${String(arg)}`
   }
-  if (options.engines) return '--engines is not available until the browser runner lands (#31)'
   return options
 }
 
@@ -81,17 +81,40 @@ const main = async (): Promise<number> => {
   }
 
   const startedAt = new Date().toISOString()
-  const rows: string[][] = []
-  const errors: string[] = []
-  const report: Report = { version: 1, startedAt, options, engines: ['node'], pass: true, benchmarks: [] }
+  const runsById = new Map<string, Run[]>()
   for (const benchmark of selected) {
     const started = performance.now()
     const run = await runBenchmark(benchmark, nodeIo, 'node')
     run.logs.wallMs = performance.now() - started
-    if (run.error !== undefined) errors.push(`${benchmark.id}: ${run.error}`)
-    const runs = [run]
-    const gates = benchmark.gates.map((gate) => {
+    runsById.set(benchmark.id, [run])
+  }
+  const engines: Engine[] = ['node']
+  if (options.engines) {
+    const inBrowsers = selected.filter((b) => b.engines === true).map((b) => b.id)
+    if (inBrowsers.length === 0) console.log('--engines: no selected benchmark runs in the browser engines')
+    else {
+      // Loaded only here, so a Node-only run never starts Vite or Playwright.
+      const { runBrowsers } = await import('./engines/run-browsers.ts')
+      for (const { engine, runs } of await runBrowsers(inBrowsers)) {
+        engines.push(engine)
+        for (const [id, run] of runs) runsById.get(id)?.push(run)
+      }
+    }
+  }
+
+  const rows: string[][] = []
+  const errors: string[] = []
+  const notes: string[] = []
+  const report: Report = { version: 1, startedAt, options, engines, pass: true, benchmarks: [] }
+  const judge = (benchmark: Benchmark, runs: Run[]): Report['benchmarks'][number]['gates'] =>
+    benchmark.gates.map((gate) => {
       const results = judgeGate(gate, runs)
+      if (gate.kind === 'exact' && gate.target === undefined && runs.length === 1) {
+        // Agreement with itself is all a single engine can show; say so rather than let the PASS read as a comparison.
+        const note = `only ${results[0]?.engine ?? 'one engine'} ran it, so no engines were compared`
+        for (const run of runs) run.logs[`${gate.id}.agreement`] = note
+        notes.push(`${benchmark.id} ${gate.id}: ${note}`)
+      }
       for (const r of results) {
         rows.push([
           benchmark.id,
@@ -105,7 +128,12 @@ const main = async (): Promise<number> => {
       }
       return { ...gate, results, pass: results.every((r) => r.pass) }
     })
-    report.pass &&= gates.every((g) => g.pass)
+  for (const benchmark of selected) {
+    const runs = runsById.get(benchmark.id) ?? []
+    for (const run of runs) if (run.error !== undefined) errors.push(`${benchmark.id} on ${run.engine}: ${run.error}`)
+    const gates = judge(benchmark, runs)
+    // A run that threw has every gate null, which already fails; this also catches one that threw with no gates.
+    report.pass &&= gates.every((g) => g.pass) && runs.every((run) => run.error === undefined)
     report.benchmarks.push({
       id: benchmark.id,
       step: benchmark.step,
@@ -117,6 +145,7 @@ const main = async (): Promise<number> => {
   }
 
   printTable(rows)
+  for (const note of notes) console.log(`note: ${note}`)
   for (const error of errors) console.error(`error in ${error}`)
   await writeReport(report)
   console.log(`\n${report.pass ? 'PASS' : 'FAIL'}; report in ${fileURLToPath(reportUrl)}`)
