@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 import { parseContract } from './parse.ts'
-import { CurrentSchema, ScenarioSchema, SeaBlockSchema, WindSchema } from './scenario.ts'
+import { CurrentSchema, SCENARIO_VERSION, ScenarioSchema, SeaBlockSchema, WindSchema } from './scenario.ts'
 
 // Inputs and recordings share the scenario's version: a replay is the scenario plus the input stream re-simulated, so the
 // two cannot drift apart (ADR 0003).
@@ -40,7 +40,7 @@ export const InputSchema = inputSchemaWithTick(v.optional(tickSchema))
 export const AppliedInputSchema = inputSchemaWithTick(tickSchema)
 
 export const RecordingSchema = v.strictObject({
-  version: v.literal(1),
+  version: v.literal(SCENARIO_VERSION),
   /** The authored scenario, not the effective one: the inputs re-create every edit. */
   scenario: ScenarioSchema,
   inputs: v.array(AppliedInputSchema),

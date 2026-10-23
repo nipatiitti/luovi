@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import type { EffectiveScenario, SeaDescription } from '@luovi/core'
+  import { type EffectiveScenario, MAX_BAND_COMPONENTS, type SeaDescription } from '@luovi/core'
   import { jonswap } from '@luovi/data'
   import type { Camera } from '@luovi/render-scene'
   import { attachCameraControls } from '../lib/cameraControls.ts'
@@ -328,7 +328,7 @@
           <span>Sectors <output>{form.sea.sectors}</output></span>
           <input type="range" min="1" max="12" step="1" bind:value={form.sea.sectors} oninput={() => edit('sea')} />
         </label>
-        <p class="hint">Strips times sectors is at most 48: {form.sea.strips * form.sea.sectors} now.</p>
+        <p class="hint">Strips times sectors is at most {MAX_BAND_COMPONENTS}: {form.sea.strips * form.sea.sectors} now.</p>
         <label>
           <span>Choppiness <output>{form.sea.choppiness.toFixed(2)}</output></span>
           <input type="range" min="0" max="2" step="0.05" bind:value={form.sea.choppiness} oninput={() => edit('sea')} />

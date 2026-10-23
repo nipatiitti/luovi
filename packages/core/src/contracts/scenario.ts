@@ -6,6 +6,11 @@ import { parseContract } from './parse.ts'
 // empirical defaults and ranges (gamma, the Baltic water and air, the open-sea z0) come from data and are applied and
 // checked by sim-world, so no measured number lives here.
 
+/** The contract version; inputs and recordings carry the same one (input.ts says why). */
+export const SCENARIO_VERSION = 1
+/** The band is summed per query point every tick, so its component count is a CPU budget, not a free choice. */
+export const MAX_BAND_COMPONENTS = 48
+
 const finite = v.pipe(v.number(), v.finite())
 const positive = v.pipe(v.number(), v.finite(), v.gtValue(0))
 const integerAtLeast = (min: number) => v.pipe(v.number(), v.integer(), v.minValue(min))
@@ -51,9 +56,11 @@ export const SeaBlockSchema = v.pipe(
     /** Lambda before the contraction clamp; sim-world records the effective value. */
     choppiness: v.optional(v.pipe(v.number(), v.finite(), v.minValue(0)), 1),
   }),
-  // The band is summed per query point every tick, so its component count is a CPU budget, not a free choice.
   v.forward(
-    v.check((sea) => sea.strips * sea.sectors <= 48, 'Expected strips * sectors to be at most 48'),
+    v.check(
+      (sea) => sea.strips * sea.sectors <= MAX_BAND_COMPONENTS,
+      `Expected strips * sectors to be at most ${String(MAX_BAND_COMPONENTS)}`,
+    ),
     ['strips'],
   ),
 )
@@ -112,7 +119,7 @@ export const ShipInstanceSchema = v.strictObject({
 })
 
 export const ScenarioSchema = v.strictObject({
-  version: v.literal(1),
+  version: v.literal(SCENARIO_VERSION),
   seed: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff)),
   environment: EnvironmentSchema,
   settings: v.optional(SettingsSchema, {}),
