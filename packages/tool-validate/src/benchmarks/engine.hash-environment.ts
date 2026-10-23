@@ -2,7 +2,7 @@
 // tick by tick, digested with core's state hash. There is no committed expected value; the gate passes when Node and
 // every browser engine that ran it produced the same hash, so it proves agreement, not correctness.
 
-import { hashState } from '@luovi/core'
+import { hashState } from '@luovi/sim-world'
 import type { Benchmark, Harness, Measurement } from '../harness/types.ts'
 import moderate from './reference-seas/moderate.json' with { type: 'json' }
 

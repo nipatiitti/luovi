@@ -8,7 +8,7 @@ import {
   type SeaBlock,
   type Wind,
 } from '@luovi/core'
-import { jonswap } from '@luovi/data'
+import { effectiveSeaBlock } from '@luovi/sim-world'
 import moderate from './scenarios/reference-seas/moderate.json' with { type: 'json' }
 
 // The live environment panel's model. The panel speaks knots and compass bearings, the contract east/north vectors in
@@ -103,7 +103,7 @@ export interface EnvironmentForm {
 const seaWhenNone = (): EffectiveSeaBlock => {
   const { sea } = parseScenario(moderate).environment
   if (sea === undefined) throw new Error('The moderate reference sea has no sea block')
-  return { ...sea, gamma: sea.gamma ?? jonswap.gammaDefault.value }
+  return effectiveSeaBlock(sea)
 }
 
 /** The form a loaded effective scenario opens the panel with. */

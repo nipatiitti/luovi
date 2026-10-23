@@ -1,5 +1,4 @@
-import { hashState } from '@luovi/core'
-import { type EnvironmentQuery, loadWorld, type World } from '@luovi/sim-world'
+import { type EnvironmentQuery, hashState, loadWorld, type World } from '@luovi/sim-world'
 import type { Harness, HarnessIo } from './types.ts'
 
 /** The only Harness implementation, over sim-world's public surface. */
