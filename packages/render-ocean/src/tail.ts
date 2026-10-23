@@ -57,6 +57,7 @@ override OMEGA_STEP: f32;
 @group(0) @binding(2) var<storage, read_write> rows: array<vec4f>;
 @group(0) @binding(3) var displacement: texture_storage_2d_array<rgba16float, write>;
 @group(0) @binding(4) var derivatives: texture_storage_2d_array<rgba16float, write>;
+@group(0) @binding(5) var moments: texture_storage_2d_array<rgba16float, write>;
 
 const TAU: f32 = 6.28318530717958648;
 const PI: f32 = 3.14159265358979324;
@@ -177,16 +178,21 @@ fn columns_main(@builtin(local_invocation_id) local: vec3u, @builtin(workgroup_i
     let i = im[iy] * sign;
     textureStore(displacement, vec2u(ix, iy), c, vec4f(r.x, i.x, r.y, i.y));
     textureStore(derivatives, vec2u(ix, iy), c, vec4f(r.z, i.z, r.w, i.w));
+    // The slope's second moments, so the mips hold the covariance of the slopes each texel averages, not only their mean.
+    textureStore(moments, vec2u(ix, iy), c, vec4f(r.z * r.z, i.z * i.z, r.z * i.z, 0.0));
   }
 }
 `
 
-// A 2 by 2 box down the chain: every field is linear in the surface, so the mean is the field of the mean surface.
+// A 2 by 2 box down the chain: every field is linear in the surface, so the mean is the field of the mean surface, and
+// the mean of the second moments is the second moment over the texel's footprint.
 const mipWgsl = /* wgsl */ `
 @group(0) @binding(0) var source_a: texture_2d_array<f32>;
 @group(0) @binding(1) var source_b: texture_2d_array<f32>;
-@group(0) @binding(2) var target_a: texture_storage_2d_array<rgba16float, write>;
-@group(0) @binding(3) var target_b: texture_storage_2d_array<rgba16float, write>;
+@group(0) @binding(2) var source_c: texture_2d_array<f32>;
+@group(0) @binding(3) var target_a: texture_storage_2d_array<rgba16float, write>;
+@group(0) @binding(4) var target_b: texture_storage_2d_array<rgba16float, write>;
+@group(0) @binding(5) var target_c: texture_storage_2d_array<rgba16float, write>;
 
 @compute @workgroup_size(8, 8)
 fn mip_main(@builtin(global_invocation_id) id: vec3u) {
@@ -197,13 +203,16 @@ fn mip_main(@builtin(global_invocation_id) id: vec3u) {
   let layer = i32(id.z);
   var a = vec4f(0.0);
   var b = vec4f(0.0);
+  var m = vec4f(0.0);
   for (var j = 0; j < 4; j++) {
     let q = p + vec2i(j & 1, j >> 1);
     a += textureLoad(source_a, q, layer, 0);
     b += textureLoad(source_b, q, layer, 0);
+    m += textureLoad(source_c, q, layer, 0);
   }
   textureStore(target_a, id.xy, id.z, a * 0.25);
   textureStore(target_b, id.xy, id.z, b * 0.25);
+  textureStore(target_c, id.xy, id.z, m * 0.25);
 }
 `
 
@@ -219,6 +228,12 @@ export interface TailFields {
   readonly displacement: GPUTextureView
   /** (dh/dx, dh/dy, dDx/dx, dDy/dy) per cascade layer, mipmapped. */
   readonly derivatives: GPUTextureView
+  /**
+   * The slope's second moments (dh/dx^2, dh/dy^2, dh/dx dh/dy, 0) per cascade layer, mipmapped: a mip texel minus the
+   * square of the matching `derivatives` texel is the slope covariance over its footprint, and the last mip's is the
+   * cascade's whole.
+   */
+  readonly moments: GPUTextureView
 }
 
 export interface OceanTail {
@@ -315,7 +330,11 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
     const layout = sea === null ? undefined : layoutFor(sea, settings)
     if (sea === null || layout === undefined) {
       // The surface binds the fields whether or not a tail exists, so flat water gets a one-texel stand-in.
-      const textures = [fieldTexture('displacement', 1, 1), fieldTexture('derivatives', 1, 1)] as const
+      const textures = [
+        fieldTexture('displacement', 1, 1),
+        fieldTexture('derivatives', 1, 1),
+        fieldTexture('moments', 1, 1),
+      ] as const
       return {
         count: 0,
         resolution: 1,
@@ -330,6 +349,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
           longest: [],
           displacement: arrayView(textures[0]),
           derivatives: arrayView(textures[1]),
+          moments: arrayView(textures[2]),
         },
       }
     }
@@ -364,6 +384,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
 
     const displacement = fieldTexture('displacement', n, count)
     const derivatives = fieldTexture('derivatives', n, count)
+    const moments = fieldTexture('moments', n, count)
     const pipelines = fftPipelinesFor(n)
     const group = (pipeline: GPUComputePipeline, entries: readonly GPUBindingResource[]): GPUBindGroup =>
       device.createBindGroup({
@@ -380,21 +401,24 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         { binding: 2, resource: { buffer: rows } },
         { binding: 3, resource: arrayView(displacement, 0) },
         { binding: 4, resource: arrayView(derivatives, 0) },
+        { binding: 5, resource: arrayView(moments, 0) },
       ],
     })
     const mipGroups = Array.from({ length: displacement.mipLevelCount - 1 }, (_, level) =>
       group(mipPipeline, [
         arrayView(displacement, level),
         arrayView(derivatives, level),
+        arrayView(moments, level),
         arrayView(displacement, level + 1),
         arrayView(derivatives, level + 1),
+        arrayView(moments, level + 1),
       ]),
     )
     return {
       count,
       resolution: n,
       buffers: [h0Buffer, rows],
-      textures: [displacement, derivatives],
+      textures: [displacement, derivatives, moments],
       rowsGroup,
       columnsGroup,
       mipGroups,
@@ -404,6 +428,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         longest: layout.kInner.map((k) => (2 * Math.PI) / k),
         displacement: arrayView(displacement),
         derivatives: arrayView(derivatives),
+        moments: arrayView(moments),
       },
     }
   }
