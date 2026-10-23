@@ -1,7 +1,6 @@
 import {
   type AppliedInput,
   ContractError,
-  type ContractName,
   type EffectiveEnvironment,
   type EffectiveScenario,
   type EnvironmentQuery,
@@ -16,7 +15,14 @@ import {
 } from '@luovi/core'
 import { standardGravity } from '@luovi/data'
 import { bandPhases, buildSea, createEnvironmentQuery } from '@luovi/sim-ocean'
-import { effectiveScenario as withDefaults, effectiveSeaBlock, effectiveWind } from './effective.ts'
+import {
+  type BlockSource,
+  effectiveScenario as withDefaults,
+  effectiveSeaBlock,
+  effectiveWind,
+  INPUT_VALUE,
+  SCENARIO_SEA,
+} from './effective.ts'
 
 /** One loaded scenario: the integer tick, the state buffer and the environment the force modules will query. */
 export interface World {
@@ -54,15 +60,14 @@ const buildOrRefuse = (
   environment: EffectiveEnvironment,
   gravity: number,
   seed: number,
-  contract: ContractName,
-  path: string,
+  source: BlockSource,
 ): SeaDescription | null => {
   const { sea, depth } = environment
   if (sea === undefined) return null
   try {
     return buildSea(sea, depth, gravity, seed)
   } catch (error) {
-    if (error instanceof RangeError) throw new ContractError(contract, path, error.message)
+    if (error instanceof RangeError) throw new ContractError(source.contract, source.path, error.message)
     throw error
   }
 }
@@ -75,7 +80,7 @@ const replaceBlock = (environment: EffectiveEnvironment, input: Extract<Input, {
       return {
         ...rest,
         ...(current === undefined ? {} : { current }),
-        ...(input.value === null ? {} : { sea: effectiveSeaBlock(input.value, { contract: 'input', path: 'value' }) }),
+        ...(input.value === null ? {} : { sea: effectiveSeaBlock(input.value, INPUT_VALUE) }),
       }
     case 'wind':
       return { ...environment, wind: effectiveWind(input.value) }
@@ -111,7 +116,7 @@ export const loadWorld = (document: unknown): World => {
   }
   const gravity = standardGravity.value
   let effective = withDefaults(scenario)
-  let sea = buildOrRefuse(effective.environment, gravity, scenario.seed, 'scenario', 'environment.sea')
+  let sea = buildOrRefuse(effective.environment, gravity, scenario.seed, SCENARIO_SEA)
   let environment = createEnvironmentQuery(effective.environment, sea, gravity)
   let phases = new Float64Array(sea?.components.count ?? 0)
   const layout = layoutFor([], effective.settings)
@@ -167,10 +172,13 @@ export const loadWorld = (document: unknown): World => {
     const replace = (base: EffectiveEnvironment): EffectiveEnvironment => replaceBlock(base, input)
     // Built now against the current environment so a refused sea is refused on arrival, not at its tick; the sea reads
     // only its own block, the scenario's depth and the seed, none of which another input can change.
-    const next = replace(effective.environment)
     const entry: Scheduled =
       input.block === 'sea'
-        ? { input: stamped, environment: replace, sea: buildOrRefuse(next, gravity, effective.seed, 'input', 'value') }
+        ? {
+            input: stamped,
+            environment: replace,
+            sea: buildOrRefuse(replace(effective.environment), gravity, effective.seed, INPUT_VALUE),
+          }
         : { input: stamped, environment: replace }
     scheduled.push(entry)
     return stamped

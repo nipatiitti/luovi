@@ -19,7 +19,9 @@ export interface BlockSource {
   readonly path: string
 }
 
-const SCENARIO_SEA: BlockSource = { contract: 'scenario', path: 'environment.sea' }
+export const SCENARIO_SEA: BlockSource = { contract: 'scenario', path: 'environment.sea' }
+/** A block carried by an environment input, whose value is the whole block. */
+export const INPUT_VALUE: BlockSource = { contract: 'input', path: 'value' }
 
 /** Fills gamma from data and range-checks it; a live sea input passes through here exactly as a loaded one does. */
 export const effectiveSeaBlock = (sea: SeaBlock, source: BlockSource = SCENARIO_SEA): EffectiveSeaBlock => {
