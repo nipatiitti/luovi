@@ -37,7 +37,7 @@ export interface Atmosphere {
 
 const VISIBLE = GPUShaderStage.FRAGMENT | GPUShaderStage.COMPUTE | GPUShaderStage.VERTEX
 
-export const createAtmosphereLayout = (device: GPUDevice): GPUBindGroupLayout =>
+const createAtmosphereLayout = (device: GPUDevice): GPUBindGroupLayout =>
   createBindGroupLayout(device, 'atmosphere', VISIBLE, [
     { uniform: true },
     { texture: 'unfilterable-float' },

@@ -5,7 +5,7 @@
 export type Vec3 = readonly [number, number, number]
 
 /** 50 degrees, the vertical field of view of every scene view. */
-export const VERTICAL_FIELD_OF_VIEW = (50 * Math.PI) / 180
+const VERTICAL_FIELD_OF_VIEW = (50 * Math.PI) / 180
 
 /** m. Reverse-Z float depth keeps precision at any near distance, so the near plane sits just in front of the eye. */
 export const NEAR_PLANE = 0.1

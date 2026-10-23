@@ -1,6 +1,4 @@
-export { bandWeights, type Clipmap, clipmapFor, type Ring, surfacePhases } from './clipmap.ts'
-export { type IndexRange, type RingMesh, ringMesh } from './mesh.ts'
-export { defaultRenderOceanSettings, NO_DEBUG, type OceanDebug, type RenderOceanSettings } from './settings.ts'
+export { NO_DEBUG, type OceanDebug, type RenderOceanSettings, defaultRenderOceanSettings } from './settings.ts'
 export { MAX_FOAM_STAMPS } from './foam.ts'
 export { createOceanSurface, type OceanFrame, type OceanSurface, type OceanTarget } from './surface.ts'
 export { type Covariance, type OceanOptics } from './shading.ts'

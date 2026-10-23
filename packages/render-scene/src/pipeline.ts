@@ -73,7 +73,7 @@ export const createComputePipeline = (
   })
 
 /** Vertex stage of a triangle covering the viewport; `ndc` runs from -1 to 1 with y up. */
-export const fullscreenVertexWgsl = /* wgsl */ `
+const fullscreenVertexWgsl = /* wgsl */ `
 struct FullscreenVarying {
   @builtin(position) position: vec4f,
   @location(0) ndc: vec2f,
