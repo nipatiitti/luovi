@@ -86,6 +86,9 @@ importers:
       '@luovi/core':
         specifier: workspace:*
         version: link:../core
+      '@luovi/data':
+        specifier: workspace:*
+        version: link:../data
 
   packages/sim-rig:
     dependencies:
