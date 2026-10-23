@@ -8,8 +8,11 @@ import type { RenderOceanSettings } from './settings.ts'
 
 /**
  * Rings drawn flat beyond the displacing ones: the "flat disc at mean level" of the spec, built from rings so its inner
- * edge shares the last displacing ring's vertices. Three doublings put its edge eight times the displaced radius out,
- * past the horizon of any eye below about a hundred metres; beyond it the sky pass's planet ground shows.
+ * edge shares the last displacing ring's vertices. Three doublings put its edge eight times the displaced radius out:
+ * at least 32 km, and at least 2048 eye heights, which passes the geometric horizon sqrt(2 R h) of every eye above
+ * about 3 m (and 32 km passes it below). The surface shader drops every vertex by the planet's curvature, so the drawn
+ * sea ends at that horizon and whatever lies beyond it is hidden behind the nearer sea; the sky's planet ground is
+ * reached only by rays that miss the disc.
  */
 const FLAT_RINGS = 3
 

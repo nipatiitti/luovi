@@ -47,7 +47,7 @@ export interface LayerTarget {
   readonly format: GPUTextureFormat
   readonly sampleCount: number
   readonly depthFormat: GPUTextureFormat
-  /** Declares the camera at group 0 and the atmosphere at group 1. */
+  /** Declares the camera at group 0 and the atmosphere at group 1, which also holds the planet's radius. */
   readonly sceneWgsl: string
   readonly sceneLayouts: readonly GPUBindGroupLayout[]
 }

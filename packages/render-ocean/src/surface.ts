@@ -32,8 +32,8 @@ export interface OceanTarget {
   /**
    * WGSL that declares `camera` (with a world `eye`) at group 0 and the atmosphere at group 1, with
    * `sky_radiance(position, ray)` and `sky_radiance_to_point(eye, point)` returning `radiance` and `transmittance`,
-   * `sun_and_sky_irradiance(point, normal)` returning `sun` and `sky`, `sun_direction()` and
-   * `atmosphere.sun_angular_radius`.
+   * `sun_and_sky_irradiance(point, normal)` returning `sun` and `sky`, `sun_direction()`,
+   * `atmosphere.sun_angular_radius` and `atmosphere.bottom_radius` (the planet's radius, km).
    */
   readonly sceneWgsl: string
   /** The layouts of groups 0 and 1 in that order. */
@@ -192,6 +192,13 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
   let odd = grid - 2.0 * floor(grid * 0.5);
   let cell = grid - odd * morph;
   let position = ring.centre + cell * ring.spacing;
+  // The planet's curvature, as a drop below the eye's tangent plane: the sphere to second order, off by (d / 2R)^2 of
+  // the drop, under a thousandth out to 400 km. It ends the drawn sea at the true horizon, dipping
+  // sqrt(2 h / R) below eye level, where a flat plane would run up to eye level; the rings beyond lie under it, hidden
+  // by the nearer sea. Measured from the eye, not the world origin, so the sea under the eye stays the simulation's
+  // flat sea.
+  let from_eye = position - ocean.eye.xy;
+  let planet_radius = 1000.0 * atmosphere.bottom_radius;
 
   var height = 0.0;
   var shift = vec2f(0.0);
@@ -244,6 +251,8 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
   if (ring.carry > 0.0) {
     unresolved = mix(unresolved, rings[slot + 1u].unresolved.xyz, morph);
   }
+  height -= dot(from_eye, from_eye) / (2.0 * planet_radius);
+  slope -= from_eye / planet_radius;
   let relative = vec3f(position + shift, height);
   let between = sky_radiance_to_point(camera.eye, vec3f(ocean.origin + relative.xy, relative.z));
   return Varying(
