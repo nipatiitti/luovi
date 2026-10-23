@@ -108,6 +108,12 @@ export default defineConfig(
         'setInterval',
         'setImmediate',
         'queueMicrotask',
+        // A global object reaches Math (and everything else banned here) as a property, which the
+        // Math selectors cannot see.
+        ...['globalThis', 'global', 'self'].map((name) => ({
+          name,
+          message: 'The global object escapes the simulation restrictions; import what you need.',
+        })),
       ],
       'no-restricted-syntax': ['error', ...simRestrictions, noBareMath],
     },
