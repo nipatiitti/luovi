@@ -16,8 +16,6 @@ export type Gate =
    */
   | { id: string; unit: string; kind: 'exact'; target?: number }
 
-export type GateKind = Gate['kind']
-
 export interface Measurement {
   /** One value per gate id; a missing, NaN or infinite value fails its gate. */
   values: Record<string, number>
@@ -47,7 +45,7 @@ export interface HarnessIo {
   readBinary: (url: URL) => Promise<ArrayBuffer>
 }
 
-/** What the harness has spent inside the world since the last load, by the injected clock. */
+/** What the harness has spent inside its worlds, summed over every load, by the injected clock. */
 export interface HarnessTiming {
   readonly ticks: number
   /** Inside World.step, ms. */

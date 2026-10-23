@@ -18,17 +18,17 @@ export interface RingMesh {
 }
 
 /**
- * Every cell is split along the same diagonal, from (i, j) to (i + 1, j + 1). The morph collapses each odd vertex onto
- * the even one below it, which turns every second cell of a 2 by 2 block into that block's coarse cell, split along the
- * same diagonal as the ring outside, so a fully morphed ring and the next ring draw identical triangles.
- */
-/**
  * Cells are listed in square blocks rather than whole rows, so the vertices a triangle shares with its recent neighbours
  * are still in the GPU's post-transform cache and the band sum runs about once per vertex. Sixteen measured about a fifth
  * cheaper than whole rows on an M1 Pro, with eight and four no better.
  */
 const block = 16
 
+/**
+ * Every cell is split along the same diagonal, from (i, j) to (i + 1, j + 1). The morph collapses each odd vertex onto
+ * the even one below it, which turns every second cell of a 2 by 2 block into that block's coarse cell, split along the
+ * same diagonal as the ring outside, so a fully morphed ring and the next ring draw identical triangles.
+ */
 const pushCell = (out: number[], side: number, i: number, j: number): void => {
   const a = j * side + i
   const b = a + 1
@@ -63,11 +63,12 @@ export const ringMesh = (cells: number): RingMesh => {
   const variants = [undefined, ...[-1, 0, 1].flatMap((dy) => [-1, 0, 1].map((dx) => [dx, dy] as const))].map(grid)
   const indices = new Uint32Array(variants.reduce((total, variant) => total + variant.length, 0))
   const ranges: IndexRange[] = []
-  variants.reduce((first, variant) => {
+  let first = 0
+  for (const variant of variants) {
     indices.set(variant, first)
     ranges.push({ first, count: variant.length })
-    return first + variant.length
-  }, 0)
+    first += variant.length
+  }
   const [full, ...holed] = ranges
   if (full === undefined) throw new Error('unreachable: the variant list is never empty')
   return {
