@@ -1,12 +1,5 @@
 import type { SeaDescription } from '@luovi/core'
-import {
-  balticOptics,
-  brunetonAtmosphere,
-  coxMunk,
-  foamDecayTime,
-  foamReflectance,
-  openSeaRoughnessLength,
-} from '@luovi/data'
+import { balticOptics, brunetonAtmosphere, coxMunk, foamDecayTime, foamReflectance } from '@luovi/data'
 import { createOceanSurface, type OceanDebug } from '@luovi/render-ocean'
 import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
 
@@ -15,6 +8,8 @@ export interface ViewerFrame {
   readonly settings: RenderSettings
   /** The loaded sea, null for flat water; a new object means a new sea state and a new upload. */
   readonly sea: SeaDescription | null
+  /** m, the effective scenario's roughness length, for the sea's Cox and Munk floor. */
+  readonly roughnessLength: number
   /** The published slot's tick the sea is drawn at. */
   readonly tick: number
   readonly oceanDebug: OceanDebug
@@ -44,7 +39,6 @@ export const startViewer = async (
   const renderer = await createSceneRenderer(gpu, canvas, brunetonAtmosphere)
   const ocean = createOceanSurface(renderer.layerTarget, {
     coxMunk,
-    roughnessLength: openSeaRoughnessLength,
     water: balticOptics,
     foamReflectance,
     foamDecayTime,
@@ -75,7 +69,7 @@ export const startViewer = async (
       crest: ocean.crest,
       sea: {
         prepare: (view) => {
-          ocean.prepare({ ...view, tick: next.tick, debug: next.oceanDebug })
+          ocean.prepare({ ...view, tick: next.tick, roughnessLength: next.roughnessLength, debug: next.oceanDebug })
         },
         compute: {
           fft: (pass) => {

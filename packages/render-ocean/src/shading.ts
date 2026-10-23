@@ -7,12 +7,10 @@ import { type SeaDescription, windProfile } from '@luovi/sim-world'
 
 /**
  * The optical and foam constants the shading reads. Renderers cannot import `data`, so the tool passes its tables here:
- * `coxMunk`, `openSeaRoughnessLength`, `balticOptics`, `foamReflectance` and `foamDecayTime`.
+ * `coxMunk`, `balticOptics`, `foamReflectance` and `foamDecayTime`.
  */
 export interface OceanOptics {
   readonly coxMunk: CoxMunkTable
-  /** m, the log profile's z0 that carries the sea's U10 to the Cox and Munk anemometer height. */
-  readonly roughnessLength: CitedValue
   readonly water: WaterOpticsTable
   /** Lambertian reflectances of foam: fresh at injection, thin as it fades, and the lifetime average for far coverage. */
   readonly foamReflectance: {
@@ -79,18 +77,15 @@ export const unresolvedBandCovariance = (
 }
 
 /**
- * The Cox and Munk 1954 clean-surface slope covariance at the sea's generating wind: upwind along the waves' mean
- * direction and crosswind across it, the wind carried from 10 m to the fits' anemometer height by the log profile.
+ * The Cox and Munk 1954 clean-surface slope covariance at the sea's generating wind, the wind carried from 10 m to the
+ * fit's anemometer height by the log profile with the scenario's roughness length `z0` (m). The spec's floor is the
+ * total fit, which carries no direction, so the covariance is isotropic: half the total on each axis.
  */
-export const coxMunkCovariance = (sea: SeaDescription | null, optics: OceanOptics): Covariance => {
+export const coxMunkCovariance = (sea: SeaDescription | null, z0: number, coxMunk: CoxMunkTable): Covariance => {
   if (sea === null) return [0, 0, 0]
-  const { coxMunk } = optics
-  const wind = sea.spectrum.windSpeed * windProfile(optics.roughnessLength.value)(coxMunk.windHeight.value)
-  const upwind = coxMunk.upwindIntercept.value + coxMunk.upwindSlope.value * wind
-  const crosswind = coxMunk.crosswindIntercept.value + coxMunk.crosswindSlope.value * wind
-  const c = Math.cos(sea.spectrum.meanDirection)
-  const s = Math.sin(sea.spectrum.meanDirection)
-  return [upwind * c * c + crosswind * s * s, upwind * s * s + crosswind * c * c, (upwind - crosswind) * c * s]
+  const wind = sea.spectrum.windSpeed * windProfile(z0)(coxMunk.windHeight.value)
+  const half = 0.5 * (coxMunk.intercept.value + coxMunk.slope.value * wind)
+  return [half, half, 0]
 }
 
 /** m^-1 per channel: pure water plus CDOM, a_ref exp(-S (lambda - lambda_ref)). */

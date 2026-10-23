@@ -60,14 +60,10 @@ export interface WaterOpticsTable {
   readonly backscattering: CitedValue
 }
 
-/** Mean square slope = intercept + slope U, U in m/s at windHeight; total, upwind and crosswind components. */
+/** Total mean square slope = intercept + slope U, U in m/s at windHeight. */
 export interface CoxMunkTable {
   readonly intercept: CitedValue
   readonly slope: CitedValue
-  readonly upwindIntercept: CitedValue
-  readonly upwindSlope: CitedValue
-  readonly crosswindIntercept: CitedValue
-  readonly crosswindSlope: CitedValue
   /** m above the mean sea level */
   readonly windHeight: CitedValue
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import type { EffectiveScenario, SeaDescription } from '@luovi/core'
+  import { openSeaRoughnessLength } from '@luovi/data'
   import type { Camera } from '@luovi/render-scene'
   import { attachCameraControls } from '../lib/cameraControls.ts'
   import EnvironmentPanel from '../lib/EnvironmentPanel.svelte'
@@ -186,6 +187,8 @@
               camera: controls.camera,
             },
             sea,
+            // Before the first load there is no sea, and the floor it would set is zero whatever z0 is.
+            roughnessLength: effective?.environment.wind.z0.value ?? openSeaRoughnessLength.value,
             tick: slot?.tick ?? 0,
             oceanDebug: { band, cascades, wireframe, foam },
             markers: slot?.markers ?? noMarkers,

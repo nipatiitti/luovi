@@ -56,6 +56,8 @@ export interface OceanFrame {
   readonly tick: number
   /** World eye position, m, f64. */
   readonly eye: readonly [number, number, number]
+  /** m, the scenario's effective roughness length z0, which carries the sea's U10 to the Cox and Munk floor's height. */
+  readonly roughnessLength: number
   /** The frame's view-projection for positions measured from `origin` (world m), so the GPU never sees a large coordinate. */
   viewProjectionFrom(origin: readonly [number, number, number]): Float32Array<ArrayBuffer>
   readonly debug: OceanDebug
@@ -120,6 +122,7 @@ const OCEAN_WORD = (() => {
     cascadeCount: 25,
     cascades: 28,
     shading,
+    coxMunk: shading + 4,
     foamWindow: foam,
     /** foam_sample.z: the threshold, then the lifetime, fresh and thin reflectances. */
     foamThreshold: foam + 6,
@@ -644,7 +647,10 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       [
         ...bandSlopeCovariance(sea),
         optics.water.refractiveIndex.value,
-        ...coxMunkCovariance(sea, optics),
+        // The Cox and Munk floor, written per frame from the frame's roughness length.
+        0,
+        0,
+        0,
         optics.water.backscattering.value,
         ...absorption,
         0,
@@ -749,6 +755,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       uniformFloats.set([frame.eye[0] - x0, frame.eye[1] - y0, frame.eye[2]], OCEAN_WORD.eye)
       uniformWords[OCEAN_WORD.count] = sea?.components.count ?? 0
       uniformFloats.set([x0, y0, settings.ringCells], OCEAN_WORD.origin)
+      uniformFloats.set(coxMunkCovariance(sea, frame.roughnessLength, optics.coxMunk), OCEAN_WORD.coxMunk)
       uniformWords[OCEAN_WORD.wireframe] = frame.debug.wireframe ? 1 : 0
       uniformWords[OCEAN_WORD.band] = frame.debug.band ? 1 : 0
       uniformWords[OCEAN_WORD.cascadeCount] = state.tail.count
