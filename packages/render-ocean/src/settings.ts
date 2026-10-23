@@ -40,15 +40,14 @@ export const NO_DEBUG: OceanDebug = { band: true, cascades: [], wireframe: false
 
 /**
  * The spec's defaults (#26 "render-ocean", decided by #23): eight rings of 128 cells from 0.25 m, a 1024^2 foam buffer
- * at 0.5 m, and the cascades the default rule derives from the sea's cut wavenumber. Flat water has no cut, so its
- * cascades keep the rule's minimum count at zero choppiness.
+ * at 0.5 m, and the cascades the default rule derives from the sea's cut wavenumber. Flat water, and a sea whose cut
+ * tile the rule cannot lay out, keep the rule's minimum count at zero choppiness.
  */
 export const defaultRenderOceanSettings = (sea: SeaDescription | null): RenderOceanSettings => ({
   cascadeRule: DEFAULT_CASCADE_RULE,
   cascadeChoppiness:
-    sea === null
-      ? Array.from({ length: DEFAULT_CASCADE_RULE.minCascades }, () => 0)
-      : defaultCascadeLayout(sea, DEFAULT_CASCADE_RULE).choppiness,
+    (sea === null ? undefined : defaultCascadeLayout(sea, DEFAULT_CASCADE_RULE)?.choppiness) ??
+    Array.from({ length: DEFAULT_CASCADE_RULE.minCascades }, () => 0),
   ringCount: 8,
   ringCells: 128,
   innerSpacing: 0.25,

@@ -69,19 +69,17 @@ const ruleTiles = (t0: number, rule: CascadeRule): number[] => {
 
 /**
  * The default layout for a sea: tiles from the cut wavenumber by `rule`, each cascade owning the waves of at least
- * periodsPerTile periods on its tile up to the next cascade's, the last out to its Nyquist circle. Throws RangeError when
- * cascade 0's tile is not above the floor, where the rule has no layout.
+ * periodsPerTile periods on its tile up to the next cascade's, the last out to its Nyquist circle. None when cascade 0's
+ * tile is not above the floor: the rule has no layout there, and the sea is drawn by its band alone.
  */
 export const defaultCascadeLayout = (
   sea: Pick<SeaDescription, 'cutWavenumber' | 'block'>,
   rule: CascadeRule = DEFAULT_CASCADE_RULE,
-): CascadeLayout => {
+): CascadeLayout | undefined => {
   const { periodsPerTile, floorTile, resolution } = rule
   const cut = sea.cutWavenumber
   const t0 = (periodsPerTile * TWO_PI) / cut
-  if (!(t0 > floorTile)) {
-    throw new RangeError(`The cut tile ${String(t0)} m is not above the floor tile ${String(floorTile)} m`)
-  }
+  if (!(t0 > floorTile)) return undefined
   const tiles = ruleTiles(t0, rule)
   const kInner = tiles.map((tile, c) => (c === 0 ? cut : (periodsPerTile * TWO_PI) / tile))
   const lastTile = tiles[tiles.length - 1] ?? t0

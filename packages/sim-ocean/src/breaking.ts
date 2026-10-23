@@ -51,19 +51,6 @@ const cascadeVariance = (sea: SpectrumSource, layout: CascadeLayout, c: number):
 }
 
 /**
- * The tail's layout under the default rule and the scenario's unclamped lambda, as the renderer evolves it unless the
- * host overrides it; none when the cut tile does not clear the rule's floor, where the renderer draws the band alone.
- */
-const defaultLayout = (sea: BreakingSource): CascadeLayout | undefined => {
-  try {
-    return defaultCascadeLayout(sea)
-  } catch (error) {
-    if (error instanceof RangeError) return undefined
-    throw error
-  }
-}
-
-/**
  * The variance of div D over the whole sea: each band component's -lambda A k cos(theta) adds (lambda A k)^2 / 2 at the
  * band's clamped lambda, and each cascade lambda_c^2 times the integral of k^2 F over its annulus. Band and cascades share
  * no wave, and distinct waves are uncorrelated, so the variances add.
@@ -75,7 +62,8 @@ export const jacobianVariance = (sea: BreakingSource): number => {
     const slope = (amplitude[i] ?? 0) * (k[i] ?? 0)
     band += 0.5 * slope * slope
   }
-  const layout = defaultLayout(sea)
+  // The default rule's layout at the scenario's unclamped lambda, as the renderer evolves it unless the host overrides it.
+  const layout = defaultCascadeLayout(sea)
   let tail = 0
   if (layout !== undefined) for (let c = 0; c < layout.count; c += 1) tail += cascadeVariance(sea, layout, c)
   return sea.choppiness * sea.choppiness * band + tail

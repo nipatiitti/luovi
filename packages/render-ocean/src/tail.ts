@@ -257,13 +257,9 @@ export interface OceanTail {
  * the sea the simulation feels.
  */
 const layoutFor = (sea: SeaDescription, settings: RenderOceanSettings): CascadeLayout | undefined => {
-  try {
-    const layout = defaultCascadeLayout(sea, settings.cascadeRule)
-    return { ...layout, choppiness: layout.tiles.map((_, c) => settings.cascadeChoppiness[c] ?? sea.block.choppiness) }
-  } catch (error) {
-    if (error instanceof RangeError) return undefined
-    throw error
-  }
+  const layout = defaultCascadeLayout(sea, settings.cascadeRule)
+  if (layout === undefined) return undefined
+  return { ...layout, choppiness: layout.tiles.map((_, c) => settings.cascadeChoppiness[c] ?? sea.block.choppiness) }
 }
 
 /** Throws RangeError for a lattice the workgroup transform cannot hold: one thread per butterfly, 16 KiB of storage. */

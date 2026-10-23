@@ -110,9 +110,9 @@ const measureSea = (harness: Harness, name: string, scenario: unknown): Measurem
   const sea = harness.sea
   if (sea === null) throw new Error(`${name}: the reference sea loaded as flat water`)
   const layout = defaultCascadeLayout(sea)
-  if (layout.count !== CASCADES) {
+  if (layout?.count !== CASCADES) {
     throw new Error(
-      `${name}: the default layout has ${String(layout.count)} cascades, the gates expect ${String(CASCADES)}`,
+      `${name}: the default layout has ${String(layout?.count ?? 0)} cascades, the gates expect ${String(CASCADES)}`,
     )
   }
 
