@@ -1,7 +1,6 @@
-import { parseInput } from '@luovi/core'
+import type { AppliedInput } from '@luovi/core'
 import { loadWorld, type World } from '@luovi/sim-world'
 import { pace, untilNextTick } from './clock.ts'
-import { createInputQueue, type InputQueue } from './inputs.ts'
 import { type ProbeGrid, probeCount, probePoints } from './probe.ts'
 import type { FromWorker, ToWorker } from './protocol.ts'
 import { createSlotBuffer, type SlotLayout, slotLayoutFor, type SlotWriter, slotWriter } from './slots.ts'
@@ -19,7 +18,6 @@ interface Session {
   readonly points: Float64Array
   /** Stride 4 per probe point, as the environment query's water() writes it. */
   readonly water: Float64Array
-  readonly inputs: InputQueue
 }
 
 const post = (message: FromWorker): void => {
@@ -51,14 +49,27 @@ const publish = (current: Session): void => {
   writer.publish(world.tick)
 }
 
+// The page draws from the effective scenario and the sea description it last received, so after the tick an edit lands on
+// it gets both; the sea, which is the large part, only when a sea input was among them. The renderer uploads it on
+// receipt, a frame or so after the slot that first shows the new surface, and that mismatch is accepted (ADR 0003).
+const announce = (world: World, applied: readonly AppliedInput[]): void => {
+  const seaChanged = applied.some((input) => input.kind === 'environment' && input.block === 'sea')
+  post({
+    kind: 'environment',
+    tick: world.tick,
+    effectiveScenario: world.effectiveScenario,
+    applied,
+    ...(seaChanged ? { sea: world.sea } : {}),
+  })
+}
+
 const runTick = (current: Session): void => {
   const start = performance.now()
-  // sim-world takes no inputs before ships exist (step 2); until then the stamped inputs are only logged.
-  current.inputs.take(current.world.tick + 1)
-  current.world.step()
+  const applied = current.world.step()
   publish(current)
   tickTime += performance.now() - start
   tickCount += 1
+  if (applied.length > 0) announce(current.world, applied)
 }
 
 const sendStatus = (now: number): void => {
@@ -117,7 +128,6 @@ const load = (scenario: unknown, probe: ProbeGrid): void => {
     writer: slotWriter(buffer, slot),
     points: probePoints(probe),
     water: new Float64Array(4 * slot.probeLength),
-    inputs: createInputQueue(),
   }
   running = false
   stopTimer()
@@ -159,7 +169,7 @@ const handle = (message: ToWorker): void => {
     case 'input':
       if (session === undefined) return
       try {
-        session.inputs.push(parseInput(message.input), session.world.tick + 1)
+        session.world.applyInput(message.input)
       } catch (error) {
         post({ kind: 'error', message: errorText(error) })
       }

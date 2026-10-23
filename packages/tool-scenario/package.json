@@ -16,7 +16,8 @@
     "@luovi/render-ocean": "workspace:*",
     "@luovi/render-scene": "workspace:*",
     "@luovi/render-ship": "workspace:*",
-    "@luovi/sim-world": "workspace:*"
+    "@luovi/sim-world": "workspace:*",
+    "@luovi/tool-validate": "workspace:*"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "4.0.0",

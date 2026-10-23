@@ -1,4 +1,4 @@
-import type { EffectiveScenario, Input, SeaDescription, StateLayout } from '@luovi/core'
+import type { AppliedInput, EffectiveScenario, Input, SeaDescription, StateLayout } from '@luovi/core'
 import type { ProbeGrid } from './probe.ts'
 import type { SlotLayout } from './slots.ts'
 
@@ -29,6 +29,17 @@ export type FromWorker =
       readonly effectiveScenario: EffectiveScenario
       /** Definition hash per ship definition id; empty until ships load in step 2. */
       readonly definitionHashes: Readonly<Record<string, number>>
+    }
+  /** Sent after the tick at which one or more environment inputs were applied. */
+  | {
+      readonly kind: 'environment'
+      /** The tick the inputs were applied at, the first slot that shows them. */
+      readonly tick: number
+      readonly effectiveScenario: EffectiveScenario
+      /** The inputs applied at that tick, each stamped with it. */
+      readonly applied: readonly AppliedInput[]
+      /** The rebuilt sea, null for flat water; absent when no sea input was among them, so the renderer keeps its own. */
+      readonly sea?: SeaDescription | null
     }
   /** A load or an input the Worker refused; the previous world, if any, keeps running. */
   | { readonly kind: 'error'; readonly message: string }

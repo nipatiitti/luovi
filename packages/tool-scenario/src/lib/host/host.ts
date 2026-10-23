@@ -6,6 +6,8 @@ import { type SlotReader, slotReader } from './slots.ts'
 /** What the page shows of a load: the Worker's answer without the buffer, which only the reader touches. */
 export type Loaded = Omit<Extract<FromWorker, { kind: 'loaded' }>, 'kind' | 'buffer'>
 
+export type EnvironmentEdit = Omit<Extract<FromWorker, { kind: 'environment' }>, 'kind'>
+
 export type Status = Omit<Extract<FromWorker, { kind: 'status' }>, 'kind'>
 
 /** The newest slot as one frame reads it, copied out of the shared buffer. */
@@ -21,6 +23,8 @@ export interface Frame {
 
 export interface HostEvents {
   loaded(loaded: Loaded): void
+  /** Environment inputs landed at a tick; `sea` is present only when the sea was rebuilt. */
+  environment(edit: EnvironmentEdit): void
   error(message: string): void
   status(status: Status): void
 }
@@ -64,6 +68,11 @@ export const startHost = (events: HostEvents): Host => {
           markers: new Float32Array(3 * probeCount(loaded.probe)),
         }
         events.loaded(loaded)
+        return
+      }
+      case 'environment': {
+        const { tick, effectiveScenario, applied } = message
+        events.environment({ tick, effectiveScenario, applied, ...('sea' in message ? { sea: message.sea } : {}) })
         return
       }
       case 'error':

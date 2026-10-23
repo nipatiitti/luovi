@@ -134,6 +134,9 @@ importers:
       '@luovi/sim-world':
         specifier: workspace:*
         version: link:../sim-world
+      '@luovi/tool-validate':
+        specifier: workspace:*
+        version: link:../tool-validate
     devDependencies:
       '@sveltejs/adapter-static':
         specifier: 4.0.0

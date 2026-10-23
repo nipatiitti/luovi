@@ -1,11 +1,22 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import type { SeaDescription } from '@luovi/core'
+  import type { EffectiveScenario, SeaDescription } from '@luovi/core'
+  import { jonswap } from '@luovi/data'
   import type { Camera } from '@luovi/render-scene'
   import { attachCameraControls } from '../lib/cameraControls.ts'
+  import {
+    type Block,
+    createBlockSender,
+    currentBlock,
+    type EnvironmentForm,
+    formFor,
+    scenarioFile,
+    seaBlock,
+    windBlock,
+  } from '../lib/environment.ts'
   import { type Host, startHost } from '../lib/host/host.ts'
   import { formatHash, formatMsPerTick, readScenarioFile, SPEEDS } from '../lib/runBar.ts'
-  import referenceSea from '../lib/scenarios/reference-moderate.json'
+  import { SHOWCASE } from '../lib/scenarios/showcase.ts'
   import { isolationProblem } from '../lib/isolation.ts'
   import { degrees, initialSettings, toDegrees } from '../lib/settings.ts'
   import { startViewer, type Viewer } from '../lib/viewer.ts'
@@ -31,14 +42,39 @@
   let hash = $state<number | undefined>(undefined)
   let msPerTick = $state<number | undefined>(undefined)
   let speed = $state(1)
-  let scenarioName = $state('Moderate reference sea')
-  let pendingName = 'Moderate reference sea'
-  let loadError = $state<string | undefined>(undefined)
+  const firstShowcase = SHOWCASE[1] ?? SHOWCASE[0]
+  let showcase = $state(firstShowcase?.name ?? '')
+  let scenarioName = $state(firstShowcase?.name ?? 'No scenario')
+  // The name of the load in flight, shown once the Worker accepts it.
+  let pendingName = ''
+  let problem = $state<string | undefined>(undefined)
   const noMarkers = new Float32Array(0)
   // The loaded world's sea; the renderer uploads a new one when this changes identity.
   let sea: SeaDescription | null = null
 
+  // The live environment. The form opens from each load's effective scenario and is not overwritten by the Worker's
+  // echo of an edit, which would fight a slider mid-drag; the echoed effective scenario is what an export writes.
+  let effective = $state<EffectiveScenario | undefined>(undefined)
+  let form = $state<EnvironmentForm | undefined>(undefined)
+  let lastApplied = $state<string | undefined>(undefined)
+  const blocks = createBlockSender((input) => host?.send(input))
+
+  const edit = (block: Block) => {
+    if (form === undefined || effective === undefined) return
+    switch (block) {
+      case 'wind':
+        blocks.edit({ kind: 'environment', block, value: windBlock(form.wind, effective.environment.wind.z0) })
+        return
+      case 'sea':
+        blocks.edit({ kind: 'environment', block, value: seaBlock(form.sea) })
+        return
+      case 'current':
+        blocks.edit({ kind: 'environment', block, value: currentBlock(form.current) })
+    }
+  }
+
   const readFrame = () => {
+    blocks.flush()
     const frame = host?.frame()
     if (frame !== undefined) {
       tick = frame.tick
@@ -49,8 +85,14 @@
 
   const load = (name: string, document: unknown) => {
     pendingName = name
+    blocks.clear()
     host?.load(document)
     host?.play()
+  }
+
+  const onShowcase = () => {
+    const entry = SHOWCASE.find((candidate) => candidate.name === showcase)
+    if (entry !== undefined) load(entry.name, entry.document)
   }
 
   const onFile = async (event: Event) => {
@@ -58,9 +100,26 @@
     const file = input instanceof HTMLInputElement ? input.files?.[0] : undefined
     if (file === undefined) return
     const read = await readScenarioFile(file)
-    if ('problem' in read) loadError = read.problem
+    if ('problem' in read) problem = read.problem
     else load(file.name, read.document)
     if (input instanceof HTMLInputElement) input.value = ''
+  }
+
+  // Depth and seed sit outside the three live blocks, so they take a reload: the effective scenario with both, from tick 0.
+  const reload = () => {
+    if (effective === undefined || form === undefined) return
+    const { depth, seed } = form
+    load(scenarioName, { ...effective, seed, environment: { ...effective.environment, depth } })
+  }
+
+  const exportScenario = () => {
+    if (effective === undefined) return
+    const url = URL.createObjectURL(scenarioFile(effective))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${scenarioName.replace(/[.]json$/, '').replace(/[^A-Za-z0-9]+/g, '-')}-tick-${String(tick ?? 0)}.json`
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   onMount(() => {
@@ -69,11 +128,20 @@
     const simulation = startHost({
       loaded: (loaded) => {
         sea = loaded.sea
-        loadError = undefined
+        effective = loaded.effectiveScenario
+        form = formFor(loaded.effectiveScenario)
+        problem = undefined
+        lastApplied = undefined
         scenarioName = pendingName
       },
+      environment: (change) => {
+        if ('sea' in change) sea = change.sea ?? null
+        effective = change.effectiveScenario
+        problem = undefined
+        lastApplied = `${change.applied.map((input) => input.kind === 'environment' ? input.block : input.control).join(', ')} at tick ${String(change.tick)}`
+      },
       error: (message) => {
-        loadError = message
+        problem = message
       },
       status: (status) => {
         running = status.running
@@ -81,7 +149,7 @@
       },
     })
     host = simulation
-    load(pendingName, referenceSea)
+    if (firstShowcase !== undefined) load(firstShowcase.name, firstShowcase.document)
     const controls = attachCameraControls(canvas, initialSettings.camera)
     let viewer: Viewer | undefined
     let stopped = false
@@ -166,14 +234,116 @@
       <dd data-readout="hash">{hash === undefined ? 'not loaded' : formatHash(hash)}</dd>
       <dt>Worker per tick</dt>
       <dd data-readout="ms">{formatMsPerTick(msPerTick)}</dd>
+      <dt>Last edit</dt>
+      <dd data-readout="applied">{lastApplied ?? 'none yet'}</dd>
     </dl>
+    {#if problem !== undefined}
+      <p class="error" data-readout="load-error">{problem}</p>
+    {/if}
+
+    <h1>Scenario</h1>
     <label>
-      <span>Load a scenario file</span>
+      <span>Showcase</span>
+      <select bind:value={showcase} onchange={onShowcase} data-control="showcase">
+        {#each SHOWCASE as entry (entry.name)}
+          <option value={entry.name}>{entry.name}</option>
+        {/each}
+      </select>
+    </label>
+    <label>
+      <span>Import a scenario file</span>
       <input type="file" accept=".json,application/json" onchange={onFile} />
     </label>
-    {#if loadError !== undefined}
-      <p class="error" data-readout="load-error">{loadError}</p>
+    <div class="buttons">
+      <button onclick={exportScenario} disabled={effective === undefined} data-control="export">Export effective scenario</button>
+    </div>
+    {#if form !== undefined}
+      <label>
+        <span>Depth in metres</span>
+        <input type="number" min="1" step="1" bind:value={form.depth} data-control="depth" />
+      </label>
+      <label>
+        <span>Seed</span>
+        <input type="number" min="0" max="4294967295" step="1" bind:value={form.seed} data-control="seed" />
+      </label>
+      <div class="buttons">
+        <button onclick={reload} data-control="reload">Reload from tick 0</button>
+      </div>
+      <p class="hint">Depth and seed apply on reload. Wind, sea and current apply live.</p>
+
+      <h1>Wind</h1>
+      <label>
+        <span>Speed at 10 m <output>{form.wind.knots.toFixed(1)} kn</output></span>
+        <input type="range" min="0" max="60" step="0.1" bind:value={form.wind.knots} oninput={() => edit('wind')} />
+      </label>
+      <label>
+        <span>From <output>{form.wind.from}°</output></span>
+        <input type="range" min="0" max="359" step="1" bind:value={form.wind.from} oninput={() => edit('wind')} />
+      </label>
+      <label>
+        <span>Roughness length <output>{form.wind.roughness} mm</output></span>
+        <input type="number" min="0.001" step="0.01" bind:value={form.wind.roughness} oninput={() => edit('wind')} />
+      </label>
+
+      <h1>Sea</h1>
+      <label class="toggle">
+        <input type="checkbox" bind:checked={form.sea.on} onchange={() => edit('sea')} data-control="sea-on" />
+        <span>Waves (off is flat water)</span>
+      </label>
+      {#if form.sea.on}
+        <label>
+          <span>Generating wind <output>{form.sea.knots.toFixed(1)} kn</output></span>
+          <input type="range" min="1" max="60" step="0.1" bind:value={form.sea.knots} oninput={() => edit('sea')} data-control="sea-knots" />
+        </label>
+        <label>
+          <span>From <output>{form.sea.from}°</output></span>
+          <input type="range" min="0" max="359" step="1" bind:value={form.sea.from} oninput={() => edit('sea')} />
+        </label>
+        <label>
+          <span>Fetch <output>{form.sea.fetch} km</output></span>
+          <input type="range" min="1" max="500" step="1" bind:value={form.sea.fetch} oninput={() => edit('sea')} data-control="sea-fetch" />
+        </label>
+        <label>
+          <span>Peak enhancement <output>{form.sea.gamma.toFixed(1)}</output></span>
+          <input
+            type="range"
+            min={jonswap.gammaMin.value}
+            max={jonswap.gammaMax.value}
+            step="0.1"
+            bind:value={form.sea.gamma}
+            oninput={() => edit('sea')}
+          />
+        </label>
+        <label>
+          <span>Cut ratio <output>{form.sea.cutRatio.toFixed(1)}</output></span>
+          <input type="range" min="1.1" max="10" step="0.1" bind:value={form.sea.cutRatio} oninput={() => edit('sea')} />
+        </label>
+        <label>
+          <span>Strips <output>{form.sea.strips}</output></span>
+          <input type="range" min="1" max="16" step="1" bind:value={form.sea.strips} oninput={() => edit('sea')} />
+        </label>
+        <label>
+          <span>Sectors <output>{form.sea.sectors}</output></span>
+          <input type="range" min="1" max="12" step="1" bind:value={form.sea.sectors} oninput={() => edit('sea')} />
+        </label>
+        <p class="hint">Strips times sectors is at most 48: {form.sea.strips * form.sea.sectors} now.</p>
+        <label>
+          <span>Choppiness <output>{form.sea.choppiness.toFixed(2)}</output></span>
+          <input type="range" min="0" max="2" step="0.05" bind:value={form.sea.choppiness} oninput={() => edit('sea')} />
+        </label>
+      {/if}
+
+      <h1>Current</h1>
+      <label>
+        <span>Speed <output>{form.current.knots.toFixed(1)} kn</output></span>
+        <input type="range" min="0" max="6" step="0.1" bind:value={form.current.knots} oninput={() => edit('current')} />
+      </label>
+      <label>
+        <span>Sets toward <output>{form.current.toward}°</output></span>
+        <input type="range" min="0" max="359" step="1" bind:value={form.current.toward} oninput={() => edit('current')} />
+      </label>
     {/if}
+
     <h1>Scene</h1>
     {#if failure !== undefined}
       <p class="error">{failure}</p>
@@ -250,6 +420,8 @@
     backdrop-filter: blur(6px);
     display: grid;
     gap: 10px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
   }
   h1 {
     font-size: 14px;
