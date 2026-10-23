@@ -63,6 +63,8 @@ export interface SceneContent {
   readonly sea?: SceneLayer
   /** xyz per marker in world metres. */
   readonly markers: Float32Array<ArrayBuffer>
+  /** The highest the sea's surface can reach, m above mean level; the eye stays above it. Absent: flat water. */
+  readonly crest?: number
 }
 
 /**
@@ -135,7 +137,7 @@ export const createSceneRenderer = async (
       const width = Math.max(1, canvas.width)
       const height = Math.max(1, canvas.height)
       const hdr = targetFor(width, height)
-      const pose = cameraPose(settings.camera)
+      const pose = cameraPose(settings.camera, content.crest)
       const aspect = width / height
       camera.write(cameraUniform(pose, aspect))
       content.sea?.prepare({

@@ -72,6 +72,7 @@ export const startViewer = async (
     }
     renderer.render(next.settings, {
       markers: next.markers,
+      crest: ocean.crest,
       sea: {
         prepare: (view) => {
           ocean.prepare({ ...view, tick: next.tick, debug: next.oceanDebug })

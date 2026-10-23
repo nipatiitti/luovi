@@ -21,6 +21,9 @@ export interface CameraControls {
 // pose's own eye clamp keeps that level eye a near plane above the surface.
 const clampOrbitPitch = (pitch: number): number => Math.min(0, clampPitch(pitch))
 
+const clampOrbitDistance = (distance: number): number =>
+  Math.min(ORBIT_DISTANCE.max, Math.max(ORBIT_DISTANCE.min, distance))
+
 const toFree = (camera: Camera): Camera => {
   if (camera.mode === 'free') return camera
   return { mode: 'free', position: cameraPose(camera).eye, yaw: camera.yaw, pitch: camera.pitch }
@@ -29,7 +32,7 @@ const toFree = (camera: Camera): Camera => {
 const toOrbit = (camera: Camera): Camera => {
   if (camera.mode === 'orbit') return camera
   const [x, y, z] = camera.position
-  const distance = Math.min(ORBIT_DISTANCE.max, Math.max(ORBIT_DISTANCE.min, Math.hypot(x, y, z)))
+  const distance = clampOrbitDistance(Math.hypot(x, y, z))
   // The orbit looks at the origin, so its view direction is the eye's direction reversed.
   return {
     mode: 'orbit',
@@ -74,7 +77,7 @@ export const attachCameraControls = (element: HTMLElement, initial: Camera): Cam
     event.preventDefault()
     if (camera.mode !== 'orbit') return
     const distance = camera.distance * Math.exp(event.deltaY * ZOOM_PER_WHEEL_UNIT)
-    camera = { ...camera, distance: Math.min(ORBIT_DISTANCE.max, Math.max(ORBIT_DISTANCE.min, distance)) }
+    camera = { ...camera, distance: clampOrbitDistance(distance) }
   }
   const onKeyDown = (event: KeyboardEvent): void => {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return

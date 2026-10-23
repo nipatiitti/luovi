@@ -56,12 +56,11 @@ const normalize = (a: Vec3): Vec3 => {
 export const clampPitch = (pitch: number): number => Math.max(-1.55, Math.min(1.55, pitch))
 
 /**
- * Keeps the eye a near-plane distance above z = 0, so the near plane never cuts the mean sea surface. This is the
- * stand-in for "above the band" until the renderer has the band's crest height.
+ * The camera's pose, its eye kept a near-plane distance above `crest`, the highest the sea can reach (m above mean level,
+ * 0 for flat water), so the near plane never cuts a wave and the eye never looks at the sea from below.
  */
-const clampEye = (eye: Vec3): Vec3 => [eye[0], eye[1], Math.max(eye[2], NEAR_PLANE)]
-
-export const cameraPose = (camera: Camera): CameraPose => {
+export const cameraPose = (camera: Camera, crest = 0): CameraPose => {
+  const clampEye = (eye: Vec3): Vec3 => [eye[0], eye[1], Math.max(eye[2], crest + NEAR_PLANE)]
   const forward = forwardOf(camera.yaw, clampPitch(camera.pitch))
   const right = normalize(cross(forward, [0, 0, 1]))
   const up = cross(right, forward)

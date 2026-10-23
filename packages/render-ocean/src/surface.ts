@@ -76,6 +76,11 @@ export interface OceanSurface {
   readonly settings: RenderOceanSettings
   /** Tail cascades of the current sea, 0 for flat water; the panel offers a toggle per cascade. */
   readonly cascadeCount: number
+  /**
+   * m above mean level: the band's amplitudes summed, which no crest of the band exceeds, since the choppy displacement
+   * moves water sideways and never higher. 0 for flat water.
+   */
+  readonly crest: number
   /** The frame's CPU work and uploads: the clipmap, the per-ring band and cascade weights, the N phases, the tail's time. */
   prepare(frame: OceanFrame): void
   /** The tail's evolution, FFT and mips into an open compute pass, before the surface draws. */
@@ -588,6 +593,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
   interface State {
     readonly sea: SeaDescription | null
     readonly settings: RenderOceanSettings
+    readonly crest: number
     readonly mesh: RingMesh
     readonly indices: GPUBuffer
     readonly waves: GPUBuffer
@@ -677,6 +683,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     return {
       sea,
       settings,
+      crest: sea?.components.amplitude.reduce((sum, a) => sum + a, 0) ?? 0,
       mesh,
       indices,
       waves,
@@ -706,6 +713,9 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     },
     get cascadeCount() {
       return state.tail.count
+    },
+    get crest() {
+      return state.crest
     },
     prepare: (frame) => {
       const { sea, settings } = state
