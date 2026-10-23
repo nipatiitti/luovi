@@ -8,7 +8,15 @@ export const runBenchmark = async (benchmark: Benchmark, io: HarnessIo, engine: 
   try {
     if (benchmark.scenario !== null) harness.load(benchmark.scenario)
     const measurement = await benchmark.measure(harness)
-    const logs = { ...measurement.logs }
+    // Timing is logged for every benchmark and gated by none: it measures the machine as much as the code.
+    const { ticks, stepMs, waterCalls, waterMs } = harness.timing
+    const logs: Record<string, number | string> = {
+      ...measurement.logs,
+      'timing.ticks': ticks,
+      'timing.stepMs': stepMs,
+      'timing.waterCalls': waterCalls,
+      'timing.waterMs': waterMs,
+    }
     const values: Record<string, number | null> = {}
     for (const gate of benchmark.gates) {
       const value = measurement.values[gate.id]

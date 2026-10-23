@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "seed": 1,
+  "environment": {
+    "wind": { "vector10m": [20, 0] },
+    "depth": 80,
+    "sea": { "generatingWind": [20, 0], "fetch": 300000 }
+  },
+  "ships": []
+}
