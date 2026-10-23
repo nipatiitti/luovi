@@ -29,7 +29,7 @@ const RESEARCH_MICROSECONDS = 147
 const RESEARCH_POINTS = 200
 
 /** m0 below k_s: the trapezoid in k over [0, k_s] times the periodic trapezoid in theta over the full circle. */
-const bandIntegral = (sea: SeaDescription, kIntervals: number, thetaIntervals: number): number => {
+export const bandIntegral = (sea: SeaDescription, kIntervals: number, thetaIntervals: number): number => {
   const spectrum = waveSpectrum(sea)
   const dk = sea.cutWavenumber / kIntervals
   const dTheta = TWO_PI / thetaIntervals
