@@ -1,9 +1,9 @@
 // GPU timestamps around named passes. Readback is asynchronous and lags a few frames; a frame whose readback buffer
 // is still mapped simply records nothing, so timing never stalls the frame loop.
 
-export interface PassTimestamps {
-  /** The timestamp writes for the pass at `index` in the names list. */
-  writesFor(index: number): GPURenderPassTimestampWrites
+export interface PassTimestamps<Name extends string = string> {
+  /** The timestamp writes for the named pass. */
+  writesFor(name: Name): GPURenderPassTimestampWrites
   /** Resolve this frame's queries; call once per frame after every timed pass is encoded. */
   resolve(encoder: GPUCommandEncoder): void
   /** Call after submit. Updates `latest` when the readback lands. */
@@ -13,11 +13,11 @@ export interface PassTimestamps {
 }
 
 /** Undefined when the device lacks `timestamp-query`: the caller shows no GPU timings rather than wrong ones. */
-export const createPassTimestamps = (
+export const createPassTimestamps = <Name extends string>(
   device: GPUDevice,
   enabled: boolean,
-  names: readonly string[],
-): PassTimestamps | undefined => {
+  names: readonly Name[],
+): PassTimestamps<Name> | undefined => {
   if (!enabled) return undefined
   const count = names.length * 2
   const querySet = device.createQuerySet({ label: 'pass timestamps', type: 'timestamp', count })
@@ -48,7 +48,10 @@ export const createPassTimestamps = (
   }
 
   return {
-    writesFor: (index) => ({ querySet, beginningOfPassWriteIndex: 2 * index, endOfPassWriteIndex: 2 * index + 1 }),
+    writesFor: (name) => {
+      const index = names.indexOf(name)
+      return { querySet, beginningOfPassWriteIndex: 2 * index, endOfPassWriteIndex: 2 * index + 1 }
+    },
     resolve: (encoder) => {
       encoder.resolveQuerySet(querySet, 0, count, resolveBuffer, 0)
       copied = !reading

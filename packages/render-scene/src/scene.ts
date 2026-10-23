@@ -15,6 +15,7 @@ import { createTonemapPass } from './tonemap.ts'
  * budget lines (#23: FFT with post and mips, foam, surface draw) read one by one.
  */
 const PASSES = ['ocean FFT', 'ocean foam', 'ocean surface', 'scene', 'tonemap'] as const
+type PassName = (typeof PASSES)[number]
 
 /** The camera as a layer sees it for one frame. */
 export interface LayerView {
@@ -95,7 +96,7 @@ export const createSceneRenderer = async (
   const sky = createSkyPass(device, cameraLayout, atmosphere)
   const markers = createMarkerPass(device, cameraLayout, atmosphere)
   const tonemap = createTonemapPass(device, gpu.canvasFormat)
-  const timestamps: PassTimestamps | undefined = createPassTimestamps(device, gpu.timestampQuery, PASSES)
+  const timestamps: PassTimestamps<PassName> | undefined = createPassTimestamps(device, gpu.timestampQuery, PASSES)
 
   // White balance on the Sun: dividing by its spectrum normalised to a mean of one makes direct sunlight neutral.
   const [s0, s1, s2] = constants.solarIrradiance.value
@@ -148,11 +149,11 @@ export const createSceneRenderer = async (
       const encoder = device.createCommandEncoder({ label: 'frame' })
       // Compute passes run even with nothing to encode, so every timed pass exists in every frame.
       const computes = [
-        [PASSES[0], content.sea?.compute?.fft],
-        [PASSES[1], content.sea?.compute?.foam],
+        ['ocean FFT', content.sea?.compute?.fft],
+        ['ocean foam', content.sea?.compute?.foam],
       ] as const
-      computes.forEach(([label, encode], index) => {
-        const writes = timestamps?.writesFor(index)
+      computes.forEach(([label, encode]) => {
+        const writes = timestamps?.writesFor(label)
         const pass = encoder.beginComputePass({ label, ...(writes && { timestampWrites: writes }) })
         encode?.(pass)
         pass.end()
@@ -160,17 +161,17 @@ export const createSceneRenderer = async (
       // The sea clears the target and draws first, alone, so its timestamp is the surface draw and nothing else. The
       // sky then fills only what is still at the far plane, and the markers depth-test against the sea.
       const seaPass = encoder.beginRenderPass(
-        hdrPassDescriptor(hdr, 'ocean surface', { first: true, last: false }, timestamps?.writesFor(2)),
+        hdrPassDescriptor(hdr, 'ocean surface', { first: true, last: false }, timestamps?.writesFor('ocean surface')),
       )
       content.sea?.draw(seaPass, sceneGroups)
       seaPass.end()
       const scenePass = encoder.beginRenderPass(
-        hdrPassDescriptor(hdr, 'scene', { first: false, last: true }, timestamps?.writesFor(3)),
+        hdrPassDescriptor(hdr, 'scene', { first: false, last: true }, timestamps?.writesFor('scene')),
       )
       sky.draw(scenePass, cameraGroup)
       markers.draw(scenePass, cameraGroup)
       scenePass.end()
-      const toneWrites = timestamps?.writesFor(4)
+      const toneWrites = timestamps?.writesFor('tonemap')
       const tonePass = encoder.beginRenderPass({
         label: 'tonemap',
         colorAttachments: [
