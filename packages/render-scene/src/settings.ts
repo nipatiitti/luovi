@@ -7,7 +7,7 @@ import type { Camera, Vec3 } from './camera.ts'
 export interface RenderSettings {
   /** Height of the Sun's centre above the horizon. */
   readonly sunElevation: number
-  /** Compass bearing towards the Sun, clockwise from north. */
+  /** Direction towards the Sun in the horizontal plane, counter-clockwise from east as the camera's yaw. */
   readonly sunAzimuth: number
   /**
    * Exposure value in photographic stops: the tone curve sees radiance (W m^-2 sr^-1 nm^-1) times 2^-EV, balanced so
@@ -17,9 +17,9 @@ export interface RenderSettings {
   readonly camera: Camera
 }
 
-/** World-frame unit vector towards the Sun: east is x, north is y, so a compass bearing b points at (sin b, cos b). */
+/** World-frame unit vector towards the Sun: east is x, north is y, z up. */
 export const sunDirection = (elevation: number, azimuth: number): Vec3 => [
-  Math.cos(elevation) * Math.sin(azimuth),
   Math.cos(elevation) * Math.cos(azimuth),
+  Math.cos(elevation) * Math.sin(azimuth),
   Math.sin(elevation),
 ]

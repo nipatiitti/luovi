@@ -16,14 +16,15 @@
   } from '../lib/environment.ts'
   import { type Host, startHost } from '../lib/host/host.ts'
   import { formatHash, formatMsPerTick, readScenarioFile, SPEEDS } from '../lib/runBar.ts'
-  import { SHOWCASE } from '../lib/scenarios/showcase.ts'
+  import { OPENING_SHOWCASE, SHOWCASE } from '../lib/scenarios/showcase.ts'
   import { isolationProblem } from '../lib/isolation.ts'
-  import { degrees, initialSettings, toDegrees } from '../lib/settings.ts'
+  import { azimuthOf, bearingOf, toDegrees, toRadians } from '../lib/angles.ts'
+  import { initialSettings } from '../lib/settings.ts'
   import { startViewer, type Viewer } from '../lib/viewer.ts'
 
   // The panel works in degrees and compass bearings; the render settings it builds are radians.
   let sunElevation = $state(Math.round(toDegrees(initialSettings.sunElevation)))
-  let sunAzimuth = $state(Math.round(toDegrees(initialSettings.sunAzimuth)))
+  let sunBearing = $state(Math.round(bearingOf(initialSettings.sunAzimuth)))
   let exposureValue = $state(initialSettings.exposureValue)
   let cameraMode = $state<Camera['mode']>(initialSettings.camera.mode)
   let band = $state(true)
@@ -43,9 +44,8 @@
   let hash = $state<number | undefined>(undefined)
   let msPerTick = $state<number | undefined>(undefined)
   let speed = $state(1)
-  const firstShowcase = SHOWCASE[1] ?? SHOWCASE[0]
-  let showcase = $state(firstShowcase?.name ?? '')
-  let scenarioName = $state(firstShowcase?.name ?? 'No scenario')
+  let showcase = $state(OPENING_SHOWCASE.name)
+  let scenarioName = $state(OPENING_SHOWCASE.name)
   // The name of the load in flight, shown once the Worker accepts it.
   let pendingName = ''
   let problem = $state<string | undefined>(undefined)
@@ -151,7 +151,7 @@
       },
     })
     host = simulation
-    if (firstShowcase !== undefined) load(firstShowcase.name, firstShowcase.document)
+    load(OPENING_SHOWCASE.name, OPENING_SHOWCASE.document)
     const controls = attachCameraControls(canvas, initialSettings.camera)
     let viewer: Viewer | undefined
     let stopped = false
@@ -180,8 +180,8 @@
           const slot = readFrame()
           return {
             settings: {
-              sunElevation: degrees(sunElevation),
-              sunAzimuth: degrees(sunAzimuth),
+              sunElevation: toRadians(sunElevation),
+              sunAzimuth: azimuthOf(sunBearing),
               exposureValue,
               camera: controls.camera,
             },
@@ -355,8 +355,8 @@
       <input type="range" min="-10" max="90" step="1" bind:value={sunElevation} />
     </label>
     <label>
-      <span>Sun bearing <output>{sunAzimuth}°</output></span>
-      <input type="range" min="0" max="359" step="1" bind:value={sunAzimuth} />
+      <span>Sun bearing <output>{sunBearing}°</output></span>
+      <input type="range" min="0" max="359" step="1" bind:value={sunBearing} />
     </label>
     <label>
       <span>Exposure value <output>{exposureValue.toFixed(1)} EV</output></span>

@@ -9,6 +9,7 @@ import {
   type Wind,
 } from '@luovi/core'
 import { effectiveSeaBlock } from '@luovi/sim-world'
+import { bearing, toDegrees, toRadians } from './angles.ts'
 import moderate from './scenarios/reference-seas/moderate.json' with { type: 'json' }
 
 // The live environment panel's model. The panel speaks knots and compass bearings, the contract east/north vectors in
@@ -17,10 +18,6 @@ import moderate from './scenarios/reference-seas/moderate.json' with { type: 'js
 /** m/s per knot, exact: the international nautical mile is 1852 m. */
 const KNOT = 1852 / 3600
 
-const toRadians = (degrees: number): number => (degrees * Math.PI) / 180
-const toDegrees = (radians: number): number => (radians * 180) / Math.PI
-/** A bearing in [0, 360). */
-const bearing = (degrees: number): number => ((degrees % 360) + 360) % 360
 const round = (value: number, places: number): number => Number(value.toFixed(places))
 
 /** Speed and the compass bearing a vector points toward. */
