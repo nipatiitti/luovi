@@ -1,4 +1,4 @@
-import type { SeaDescription, SpectrumParameters } from '@luovi/core'
+import type { SeaDescription } from '@luovi/core'
 import { atanh, cosh, exp, pow, powInt, PI, remainder, sqrt, tanh, TWO_PI } from '@luovi/core/math'
 import { donelanBanner, jonswap, tma } from '@luovi/data'
 import { dispersionFrequency, groupVelocity } from './dispersion.ts'
@@ -7,13 +7,8 @@ import { dispersionFrequency, groupVelocity } from './dispersion.ts'
 // D(omega, theta) (d omega / d k) / k. The build integrates and inverts these same functions, so the band and every
 // benchmark that integrates waveSpectrum read one formula.
 
-/** What evaluating F needs; a built sea carries all of it. */
-export interface SpectrumModel {
-  readonly spectrum: SpectrumParameters
-  readonly depth: number
-  readonly gravity: number
-  readonly peakWavenumber: number
-}
+/** What evaluating F reads of a sea description, so the build can evaluate the spectrum before the description exists. */
+export type SpectrumSource = Pick<SeaDescription, 'spectrum' | 'depth' | 'gravity' | 'peakWavenumber'>
 
 // 5/4 is algebra, not a fit: it is the value that puts the maximum of omega^-5 exp(-c (omega_p / omega)^4) at omega_p.
 const PEAK_SHAPE = 1.25
@@ -46,7 +41,7 @@ const depthFactor = (omega: number, depth: number, gravity: number): number => {
 }
 
 /** S(omega) Phi(omega, d), the JONSWAP-TMA frequency density, m^2 s; m0 = its integral over omega. */
-export const frequencyDensity = (model: SpectrumModel, omega: number): number => {
+export const frequencyDensity = (model: SpectrumSource, omega: number): number => {
   if (omega <= 0) return 0
   const { alpha, peakFrequency, gamma } = model.spectrum
   // Testing the exponential first keeps omega^-5 from overflowing at tiny omega, where the product is zero anyway.
@@ -63,7 +58,7 @@ export const frequencyDensity = (model: SpectrumModel, omega: number): number =>
  * The Donelan-Banner width beta at frequency omega and wavenumber k. Banner's branch reads k / k_p, Donelan's
  * omega / omega_p (ADR 0005 amendment); between and beyond them the published floor.
  */
-export const spreadingWidth = (model: SpectrumModel, omega: number, k: number): number => {
+export const spreadingWidth = (model: SpectrumSource, omega: number, k: number): number => {
   const kRatio = k / model.peakWavenumber
   if (kRatio > bannerThreshold) return pow(10, bannerOffset + bannerScale * pow(kRatio, bannerRate))
   const ratio = omega / model.spectrum.peakFrequency
@@ -95,27 +90,17 @@ export interface WaveSpectrum {
   frequency(k: number): number
 }
 
-/** What waveSpectrum reads of a sea description, so the build can evaluate the spectrum before the description exists. */
-export type SpectrumSource = Pick<SeaDescription, 'spectrum' | 'depth' | 'gravity' | 'peakWavenumber'>
-
 export const waveSpectrum = (sea: SpectrumSource): WaveSpectrum => {
-  const model: SpectrumModel = {
-    spectrum: sea.spectrum,
-    depth: sea.depth,
-    gravity: sea.gravity,
-    peakWavenumber: sea.peakWavenumber,
-  }
   const { depth, gravity } = sea
   // One expression behind both methods, so the directional density can never drift from the omnidirectional one.
-  const density = (k: number, omega: number): number =>
-    frequencyDensity(model, omega) * groupVelocity(k, depth, gravity)
+  const density = (k: number, omega: number): number => frequencyDensity(sea, omega) * groupVelocity(k, depth, gravity)
   return {
     omnidirectional: (k) => (k <= 0 ? 0 : density(k, dispersionFrequency(k, depth, gravity))),
     directional: (k, theta) => {
       if (k <= 0) return 0
       const omega = dispersionFrequency(k, depth, gravity)
       const delta = remainder(theta - sea.spectrum.meanDirection, TWO_PI)
-      return (density(k, omega) / k) * spreading(spreadingWidth(model, omega, k), delta)
+      return (density(k, omega) / k) * spreading(spreadingWidth(sea, omega, k), delta)
     },
     frequency: (k) => dispersionFrequency(k, depth, gravity),
   }

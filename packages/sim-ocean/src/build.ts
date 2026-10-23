@@ -4,7 +4,7 @@ import { atan2, hypot, pow, sincos, sqrt, TWO_PI } from '@luovi/core/math'
 import { jonswap, piersonMoskowitz } from '@luovi/data'
 import { breakingThreshold } from './breaking.ts'
 import { dispersionFrequency, dispersionWavenumber } from './dispersion.ts'
-import { frequencyDensity, type SpectrumModel, spreadingQuantile, spreadingWidth } from './spectrum.ts'
+import { frequencyDensity, type SpectrumSource, spreadingQuantile, spreadingWidth } from './spectrum.ts'
 
 // The sea-state build (ADR 0005, #4 resolution section 2, #8): N = strips x sectors components of equal variance below
 // the cut, each placed at seeded quantiles inside its cell, with the fixed amplitude sqrt(2 m0_band / N).
@@ -51,7 +51,7 @@ const spectrumParameters = (block: EffectiveSeaBlock, gravity: number): Spectrum
 }
 
 /** cumulative[j] = trapezoid integral of S Phi from 0 to j step. */
-const cumulativeVariance = (model: SpectrumModel, step: number): Float64Array => {
+const cumulativeVariance = (model: SpectrumSource, step: number): Float64Array => {
   const cumulative = new Float64Array(INTEGRAL_INTERVALS + 1)
   let previous = 0
   for (let j = 1; j <= INTEGRAL_INTERVALS; j += 1) {
@@ -92,7 +92,7 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
   const spectrum = spectrumParameters(block, gravity)
   const peakWavenumber = dispersionWavenumber(spectrum.peakFrequency, depth, gravity)
   const cutWavenumber = block.cutRatio * peakWavenumber
-  const model: SpectrumModel = { spectrum, depth, gravity, peakWavenumber }
+  const model: SpectrumSource = { spectrum, depth, gravity, peakWavenumber }
 
   const step = dispersionFrequency(cutWavenumber, depth, gravity) / INTEGRAL_INTERVALS
   const cumulative = cumulativeVariance(model, step)
