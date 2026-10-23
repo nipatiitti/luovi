@@ -64,13 +64,13 @@
     if (form === undefined || effective === undefined) return
     switch (block) {
       case 'wind':
-        blocks.edit({ kind: 'environment', block, value: windBlock(form.wind, effective.environment.wind.z0) })
+        blocks.edit({ kind: 'environment', block, value: windBlock(form.wind, effective.environment.wind) })
         return
       case 'sea':
-        blocks.edit({ kind: 'environment', block, value: seaBlock(form.sea) })
+        blocks.edit({ kind: 'environment', block, value: seaBlock(form.sea, effective.environment.sea) })
         return
       case 'current':
-        blocks.edit({ kind: 'environment', block, value: currentBlock(form.current) })
+        blocks.edit({ kind: 'environment', block, value: currentBlock(form.current, effective.environment.current) })
     }
   }
 

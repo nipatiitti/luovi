@@ -42,6 +42,25 @@ const fromWind = (vector10m: readonly [number, number]): { knots: number; from: 
 }
 const windVector = (knots: number, from: number): [number, number] => vector(knots, from + 180)
 
+// The form shows a loaded vector rounded, so rebuilding it from the form would turn the first edit of any field in its
+// block into a change of that vector too (12 m/s comes back as 11.987). The loaded vector is kept while the form still
+// shows its rounded speed and bearing, and the form's own is sent once either of those differs.
+const keptWind = (knots: number, from: number, loaded: readonly [number, number]): [number, number] => {
+  const shown = fromWind(loaded)
+  return shown.knots === knots && shown.from === from ? [loaded[0], loaded[1]] : windVector(knots, from)
+}
+const keptCurrent = (
+  knots: number,
+  toward: number,
+  loaded: readonly [number, number] | undefined,
+): [number, number] => {
+  if (loaded === undefined) return vector(knots, toward)
+  const shown = polar(loaded)
+  return shown.knots === knots && shown.toward === toward ? [loaded[0], loaded[1]] : vector(knots, toward)
+}
+/** km to one decimal, as the form shows a fetch. */
+const fetchShown = (metres: number): number => round(metres / 1000, 1)
+
 export interface WindForm {
   knots: number
   /** Compass degrees the wind blows from. */
@@ -97,7 +116,7 @@ export const formFor = (scenario: EffectiveScenario): EnvironmentForm => {
     sea: {
       on: scenario.environment.sea !== undefined,
       ...fromWind(sea.generatingWind),
-      fetch: round(sea.fetch / 1000, 1),
+      fetch: fetchShown(sea.fetch),
       gamma: sea.gamma,
       cutRatio: sea.cutRatio,
       strips: sea.strips,
@@ -111,32 +130,34 @@ export const formFor = (scenario: EffectiveScenario): EnvironmentForm => {
 }
 
 /**
- * The wind block for the form. The loaded roughness length keeps its citation while the form leaves it alone; a value
- * typed by hand is the person's estimate and says so.
+ * The wind block for the form, from the block in effect. The loaded roughness length keeps its citation while the form
+ * leaves it alone; a value typed by hand is the person's estimate and says so.
  */
-export const windBlock = (form: WindForm, loaded: CitedValue): Wind => ({
-  vector10m: windVector(form.knots, form.from),
+export const windBlock = (form: WindForm, loaded: { vector10m: readonly [number, number]; z0: CitedValue }): Wind => ({
+  vector10m: keptWind(form.knots, form.from, loaded.vector10m),
   z0:
-    form.roughness === round(loaded.value * 1000, 3)
-      ? loaded
+    form.roughness === round(loaded.z0.value * 1000, 3)
+      ? loaded.z0
       : { value: form.roughness / 1000, src: 'Estimate: set by hand in the scenario tool' },
 })
 
-export const seaBlock = (form: SeaForm): SeaBlock | null =>
-  form.on
-    ? {
-        generatingWind: windVector(form.knots, form.from),
-        fetch: form.fetch * 1000,
-        gamma: form.gamma,
-        cutRatio: form.cutRatio,
-        strips: form.strips,
-        sectors: form.sectors,
-        choppiness: form.choppiness,
-      }
-    : null
+/** The sea block for the form, from the sea in effect, or the one a sea toggled on starts from when there is none. */
+export const seaBlock = (form: SeaForm, inEffect: EffectiveSeaBlock | undefined): SeaBlock | null => {
+  if (!form.on) return null
+  const loaded = inEffect ?? seaWhenNone()
+  return {
+    generatingWind: keptWind(form.knots, form.from, loaded.generatingWind),
+    fetch: form.fetch === fetchShown(loaded.fetch) ? loaded.fetch : form.fetch * 1000,
+    gamma: form.gamma,
+    cutRatio: form.cutRatio,
+    strips: form.strips,
+    sectors: form.sectors,
+    choppiness: form.choppiness,
+  }
+}
 
-export const currentBlock = (form: CurrentForm): Current | null =>
-  form.knots > 0 ? { vector: vector(form.knots, form.toward) } : null
+export const currentBlock = (form: CurrentForm, inEffect: Current | undefined): Current | null =>
+  form.knots > 0 ? { vector: keptCurrent(form.knots, form.toward, inEffect?.vector) } : null
 
 type EnvironmentInput = Extract<Input, { kind: 'environment' }>
 export type Block = EnvironmentInput['block']
