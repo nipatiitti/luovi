@@ -119,6 +119,9 @@ const measureSea = (harness: Harness, name: string, scenario: unknown, points: F
       [`${name}.choppiness`]: sea.choppiness,
       [`${name}.choppinessAuthored`]: sea.block.choppiness,
       [`${name}.contraction`]: sea.contraction,
+      // The foam's solved breaking threshold and the coverage it aims at, logged so a sea-state build reports both.
+      [`${name}.breakingThreshold`]: sea.breakingThreshold,
+      [`${name}.targetCoverage`]: sea.targetCoverage,
       [`${name}.msPerTick`]: (stepMs + waterMs) / ticks,
       [`${name}.microsecondsPerWaterCall`]: microsecondsPerCall,
       [`${name}.microsecondsPer200Points`]: (microsecondsPerCall * RESEARCH_POINTS) / count,

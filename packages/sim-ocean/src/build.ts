@@ -2,6 +2,7 @@ import type { EffectiveSeaBlock, SeaDescription, SpectrumParameters } from '@luo
 import { createRng } from '@luovi/core'
 import { atan2, hypot, pow, sincos, sqrt, TWO_PI } from '@luovi/core/math'
 import { jonswap, piersonMoskowitz } from '@luovi/data'
+import { breakingThreshold } from './breaking.ts'
 import { dispersionFrequency, dispersionWavenumber } from './dispersion.ts'
 import { frequencyDensity, type SpectrumModel, spreadingQuantile, spreadingWidth } from './spectrum.ts'
 
@@ -80,8 +81,8 @@ const frequencyQuantile = (cumulative: Float64Array, step: number, target: numbe
 
 /**
  * Builds the band of one sea. block: the sea block with every default and gamma applied; depth m; gravity m/s^2, the
- * cited value; seed the scenario's u32 seed, whose ocean.band fork places the components. Throws RangeError on a sea it
- * cannot build.
+ * cited value; seed the scenario's u32 seed, whose ocean.band fork places the components. The breaking threshold is
+ * solved last, from the band just built and the tail's spectrum (breaking.ts). Throws RangeError on a sea it cannot build.
  */
 export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: number, seed: number): SeaDescription => {
   if (!(depth > 0 && depth < Infinity))
@@ -138,7 +139,7 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
   // bound / s * s can round one ulp above the bound; step lambda down until the recorded K honours it exactly.
   while (choppiness * slopeSum > CONTRACTION_BOUND) choppiness *= 1 - Number.EPSILON
 
-  return {
+  const built = {
     seed,
     block,
     depth,
@@ -151,4 +152,5 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
     bandVariance,
     components: { count, kx, ky, k, omega, amplitude: new Float64Array(count).fill(amplitude), phase },
   }
+  return { ...built, ...breakingThreshold(built) }
 }

@@ -95,7 +95,10 @@ export interface WaveSpectrum {
   frequency(k: number): number
 }
 
-export const waveSpectrum = (sea: SeaDescription): WaveSpectrum => {
+/** What waveSpectrum reads of a sea description, so the build can evaluate the spectrum before the description exists. */
+export type SpectrumSource = Pick<SeaDescription, 'spectrum' | 'depth' | 'gravity' | 'peakWavenumber'>
+
+export const waveSpectrum = (sea: SpectrumSource): WaveSpectrum => {
   const model: SpectrumModel = {
     spectrum: sea.spectrum,
     depth: sea.depth,

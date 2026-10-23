@@ -1,5 +1,6 @@
 import type { SeaDescription } from '@luovi/sim-world'
 import { bandWeights, cascadeWeights, type Clipmap, clipmapFor, surfacePhases } from './clipmap.ts'
+import { coverageWgsl, createOceanFoam, waveWgsl } from './foam.ts'
 import { type RingMesh, ringMesh } from './mesh.ts'
 import { defaultRenderOceanSettings, type OceanDebug, type RenderOceanSettings } from './settings.ts'
 import {
@@ -49,6 +50,12 @@ export interface OceanFrame {
   /** The frame's view-projection for positions measured from `origin` (world m), so the GPU never sees a large coordinate. */
   viewProjectionFrom(origin: readonly [number, number, number]): Float32Array<ArrayBuffer>
   readonly debug: OceanDebug
+  /**
+   * Foam stamps for the frame: world x, y, radius (m) and density per stamp, at most MAX_FOAM_STAMPS. None are sent yet; hull
+   * contact from render-ship sends them at step 2. They land at undisplaced positions, where the buffer stores foam, so
+   * a sender holding a displaced point inverts the displacement first.
+   */
+  readonly foamStamps?: Float64Array
 }
 
 export interface OceanSurface {
@@ -64,8 +71,11 @@ export interface OceanSurface {
   prepare(frame: OceanFrame): void
   /** The tail's evolution, FFT and mips into an open compute pass, before the surface draws. */
   encodeTail(pass: GPUComputePassEncoder): void
-  /** The foam buffer's passes (#37); encodes nothing yet, so its timing reads as the empty pass's cost. */
-  encodeFoam(pass: GPUComputePassEncoder): void
+  /**
+   * The foam buffer's update as one render pass of its own, carrying `timestampWrites`; the pass exists in every frame,
+   * empty when foam is off, so the foam's timing always has its line.
+   */
+  encodeFoam(encoder: GPUCommandEncoder, timestampWrites: GPURenderPassTimestampWrites | undefined): void
   /** Encodes the surface into an open scene pass; `sceneGroups` are the bind groups for `sceneLayouts`. */
   draw(pass: GPURenderPassEncoder, sceneGroups: readonly GPUBindGroup[]): void
   destroy(): void
@@ -80,14 +90,25 @@ const WAVE_FLOATS = 8
 const RING_FLOATS = 16
 /**
  * Bytes of the `Ocean` uniform: view-projection, eye, count, origin, cells, wireframe, flags, a vec4 per cascade, then
- * the band covariance with the refractive index, the Cox and Munk covariance with the backscattering, the absorption.
+ * the band covariance with the refractive index, the Cox and Munk covariance with the backscattering, the absorption,
+ * then the foam window, its sampling offset with the threshold, and the foam reflectances.
  */
-const OCEAN_UNIFORM_BYTES = 112 + 16 * MAX_CASCADES + 48
+const OCEAN_UNIFORM_BYTES = 112 + 16 * MAX_CASCADES + 48 + 48
 /** Float index of the shading constants in the `Ocean` uniform. */
 const SHADING_FLOATS = 28 + 4 * MAX_CASCADES
+/** Float index of the foam constants in the `Ocean` uniform. */
+const FOAM_FLOATS = SHADING_FLOATS + 12
+
+/**
+ * Where across the foam buffer's half-width the near buffer starts handing over to the far coverage: the blend runs over
+ * the buffer's outer quarter (#23 resolution), so the buffer's newest edge texels never show.
+ */
+const FOAM_BLEND_START = 0.75
 
 const surfaceWgsl = (sceneWgsl: string): string => /* wgsl */ `
 ${sceneWgsl}
+${waveWgsl}
+${coverageWgsl}
 
 struct Ocean {
   view_projection: mat4x4f,
@@ -107,17 +128,12 @@ struct Ocean {
   cox_munk: vec4f,
   // Absorption of the water per channel, 1/m.
   absorption: vec4f,
-}
-
-struct Wave {
-  k: vec2f,
-  amplitude: f32,
-  // lambda A / |k|: the horizontal displacement is -lambda k_hat A sin(theta), the Gerstner sign the query uses.
-  displacement: f32,
-  // omega, for the surface velocity the foam pass advects by (#37); phases already carry it for the draw.
-  frequency: f32,
-  _pad0: f32,
-  _pad1: vec2f,
+  // The foam buffer's first corner from the origin (m), its side (m), and 1 when foam is drawn.
+  foam_window: vec4f,
+  // The origin modulo the buffer's side (m), the breaking threshold, and the lifetime-average foam reflectance.
+  foam_sample: vec4f,
+  // Foam reflectance fresh and thin.
+  foam_albedo: vec4f,
 }
 
 struct Ring {
@@ -129,7 +145,7 @@ struct Ring {
   _pad: vec2f,
   // How much of each cascade's displacement the ring carries, cascade 0 first.
   cascades: vec4f,
-  // The slope covariance (xx, yy, xy) of the band displacement this ring does not carry.
+  // The slope covariance (xx, yy, xy) of the band displacement this ring does not carry, and its divergence's variance.
   unresolved: vec4f,
 }
 
@@ -142,8 +158,10 @@ struct Ring {
 @group(2) @binding(5) var displacement: texture_2d_array<f32>;
 @group(2) @binding(6) var derivatives: texture_2d_array<f32>;
 @group(2) @binding(7) var tail_sampler: sampler;
-// The slopes' second moments per cascade layer: (sx^2, sy^2, sx sy, 0).
+// The second moments per cascade layer: (sx^2, sy^2, sx sy, div^2).
 @group(2) @binding(8) var moments: texture_2d_array<f32>;
+// Near-field foam density, indexed by undisplaced position (foam.ts).
+@group(2) @binding(9) var foam: texture_2d<f32>;
 
 const TAU: f32 = 6.28318530717958648;
 
@@ -163,8 +181,10 @@ struct Varying {
   @location(6) in_scatter: vec3f,
   // The undisplaced position after the morph, measured from the clipmap origin: where the tail's fields are sampled.
   @location(7) lagrangian: vec2f,
-  // The band's slope covariance the ring flattened, morphed with the ring's band weights.
-  @location(8) unresolved: vec3f,
+  // The band's slope covariance and divergence variance the ring flattened, morphed with the ring's band weights.
+  @location(8) unresolved: vec4f,
+  // The divergence of the band displacement the vertex carries: the resolved part of the far foam's Jacobian.
+  @location(9) band_divergence: f32,
 }
 
 // Where cascade c samples the point x from the clipmap origin.
@@ -204,6 +224,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
   var shift = vec2f(0.0);
   var slope = vec2f(0.0);
   var stretch = vec3f(0.0); // d(shift.x)/dx, d(shift.x)/dy = d(shift.y)/dx, d(shift.y)/dy
+  var band_divergence = 0.0;
   // Rings are ordered by carry, so a ring that carries nothing also morphs towards a ring that carries nothing.
   if (ring.carry > 0.0 && ocean.band != 0u) {
     let row = slot * ocean.count;
@@ -226,6 +247,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       shift -= d * s * wave.k;
       slope -= a * s * wave.k;
       stretch -= d * c * vec3f(wave.k.x * wave.k.x, wave.k.x * wave.k.y, wave.k.y * wave.k.y);
+      band_divergence -= d * c * dot(wave.k, wave.k);
     }
   }
   if (ring.carry > 0.0) {
@@ -247,9 +269,9 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       stretch += weight * vec3f(derivative.z, field.w, derivative.w);
     }
   }
-  var unresolved = ring.unresolved.xyz;
+  var unresolved = ring.unresolved;
   if (ring.carry > 0.0) {
-    unresolved = mix(unresolved, rings[slot + 1u].unresolved.xyz, morph);
+    unresolved = mix(unresolved, rings[slot + 1u].unresolved, morph);
   }
   height -= dot(from_eye, from_eye) / (2.0 * planet_radius);
   slope -= from_eye / planet_radius;
@@ -266,6 +288,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
     between.radiance,
     position,
     unresolved,
+    band_divergence,
   );
 }
 
@@ -349,21 +372,32 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
   // Munk's. Cascades switched off and an undrawn band leave theirs to the floor.
   var drawn = vec3f(0.0);
   if (ocean.band != 0u) {
-    variance += in.unresolved;
+    variance += in.unresolved.xyz;
     drawn += ocean.band_covariance.xyz;
   }
+  // The far foam's linearised Jacobian over the pixel's footprint, from the whole sea whatever the debug toggles draw: the
+  // band's carried divergence exactly and what the ring flattened as variance, each cascade's filtered mean and variance.
+  var jacobian = 1.0 + in.band_divergence;
+  var jacobian_variance = in.unresolved.w;
   let whole = i32(textureNumLevels(moments)) - 1;
   for (var c = 0u; c < ocean.cascade_count; c++) {
+    let uv = tail_uv(c, in.lagrangian);
+    let derivative = textureSample(derivatives, tail_sampler, uv, c);
+    let second = textureSample(moments, tail_sampler, uv, c);
+    let divergence = derivative.z + derivative.w;
+    jacobian += divergence;
+    jacobian_variance += max(second.w - divergence * divergence, 0.0);
     if (ocean.cascades[c].w != 0.0) {
-      let uv = tail_uv(c, in.lagrangian);
-      let mean = textureSample(derivatives, tail_sampler, uv, c).xy;
-      let second = textureSample(moments, tail_sampler, uv, c).xyz;
+      let mean = derivative.xy;
       slope += mean;
-      variance += second - vec3f(mean * mean, mean.x * mean.y);
+      variance += second.xyz - vec3f(mean * mean, mean.x * mean.y);
       let tile_mean = textureLoad(derivatives, vec2i(0), c, whole).xy;
       drawn += textureLoad(moments, vec2i(0), c, whole).xyz - vec3f(tile_mean * tile_mean, tile_mean.x * tile_mean.y);
     }
   }
+  // The near buffer, sampled before any branch since sampling needs uniform control flow.
+  let window = ocean.foam_window;
+  let density = textureSample(foam, tail_sampler, (in.lagrangian + ocean.foam_sample.xy) / window.z).r;
   let sigma = clamp_covariance(variance) + clamp_covariance(ocean.cox_munk.xyz - drawn);
   let surface = cross(vec3f(in.tangent_x.xy, slope.x), vec3f(in.tangent_y.xy, slope.y));
   // The pixel's mean slope: the drawn surface's, horizontal stretch included.
@@ -444,7 +478,22 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
   // Out through the surface, the radiance diluted by n^2 as the cone widens.
   let body = below * (1.0 - reflectance) / (n * n);
 
-  var color = (reflected + glitter + body) * in.transmittance + in.in_scatter;
+  // Foam covers a fraction of the pixel and scatters as a Lambertian surface lit through the mean facet. The near
+  // buffer's density is that fraction, its reflectance falling from fresh to thin with it; the far coverage is the
+  // filtered Jacobian's tail below the threshold at the lifetime average. Over the buffer's outer quarter one hands over
+  // to the other.
+  var water = reflected + glitter + body;
+  if (window.w != 0.0) {
+    let across = abs((in.lagrangian - window.xy) / window.z * 2.0 - 1.0);
+    let near = 1.0 - clamp((max(across.x, across.y) - ${String(FOAM_BLEND_START)}) / ${String(1 - FOAM_BLEND_START)}, 0.0, 1.0);
+    let far = coverage_below(ocean.foam_sample.z, jacobian, jacobian_variance);
+    let near_albedo = mix(ocean.foam_albedo.y, ocean.foam_albedo.x, density);
+    let cover = mix(far, density, near);
+    let albedo_cover = mix(far * ocean.foam_sample.w, density * near_albedo, near);
+    water = water * (1.0 - cover) + albedo_cover * (light.sun + light.sky) / ${String(Math.PI)};
+  }
+
+  var color = water * in.transmittance + in.in_scatter;
 
   // The wireframe as lines one pixel wide along every cell edge, faded where the cells crowd closer than four pixels.
   let footprint = fwidth(in.cell);
@@ -477,6 +526,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       { binding: 6, visibility: both, texture: fieldTexture },
       { binding: 7, visibility: both, sampler: { type: 'filtering' } },
       { binding: 8, visibility: GPUShaderStage.FRAGMENT, texture: fieldTexture },
+      { binding: 9, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
     ],
   })
   const tail = createOceanTail(device)
@@ -492,6 +542,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     mipmapFilter: 'linear',
     maxAnisotropy: 4,
   })
+  const foam = createOceanFoam(device, optics.foamDecayTime.value, tailSampler)
   const module = device.createShaderModule({ label, code: surfaceWgsl(target.sceneWgsl) })
   const pipeline = device.createRenderPipeline({
     label,
@@ -522,7 +573,8 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     readonly weights: GPUBuffer
     readonly rings: GPUBuffer
     readonly tail: TailFields
-    readonly group: GPUBindGroup
+    /** groups[i] samples foam buffer i. */
+    readonly groups: readonly [GPUBindGroup, GPUBindGroup]
     readonly phaseScratch: Float64Array
     readonly phaseData: Float32Array<ArrayBuffer>
     readonly weightData: Float32Array<ArrayBuffer>
@@ -562,6 +614,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     const weights = storage('weights', weightData.byteLength)
     const rings = storage('rings', ringData.byteLength)
     const fields = tail.setSea(sea, settings)
+    foam.setSea(sea?.breakingThreshold ?? null, settings, count, waves, phases, fields)
     const absorption = waterAbsorption(optics)
     uniformFloats.set(
       [
@@ -574,20 +627,32 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       ],
       SHADING_FLOATS,
     )
-    const group = device.createBindGroup({
-      label,
-      layout,
-      entries: [
-        ...[uniform, waves, phases, weights, rings].map((resource, binding) => ({
-          binding,
-          resource: { buffer: resource },
-        })),
-        { binding: 5, resource: fields.displacement },
-        { binding: 6, resource: fields.derivatives },
-        { binding: 7, resource: tailSampler },
-        { binding: 8, resource: fields.moments },
+    const { foamReflectance } = optics
+    uniformFloats.set(
+      [
+        sea?.breakingThreshold ?? 0,
+        foamReflectance.lifetime.value,
+        foamReflectance.fresh.value,
+        foamReflectance.thin.value,
       ],
-    })
+      FOAM_FLOATS + 6,
+    )
+    const group = (foamView: GPUTextureView): GPUBindGroup =>
+      device.createBindGroup({
+        label,
+        layout,
+        entries: [
+          ...[uniform, waves, phases, weights, rings].map((resource, binding) => ({
+            binding,
+            resource: { buffer: resource },
+          })),
+          { binding: 5, resource: fields.displacement },
+          { binding: 6, resource: fields.derivatives },
+          { binding: 7, resource: tailSampler },
+          { binding: 8, resource: fields.moments },
+          { binding: 9, resource: foamView },
+        ],
+      })
     return {
       sea,
       settings,
@@ -598,7 +663,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       weights,
       rings,
       tail: fields,
-      group,
+      groups: [group(foam.views[0]), group(foam.views[1])],
       phaseScratch: new Float64Array(count),
       phaseData,
       weightData,
@@ -665,17 +730,29 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
         const offset = (x: number): number => (((x % tile) + tile) % tile) + texel / 2
         uniformFloats.set([tile, offset(x0), offset(y0), frame.debug.cascades[c] === false ? 0 : 1], 28 + 4 * c)
       })
+      const window = foam.prepare({
+        tick: frame.tick,
+        eye: frame.eye,
+        origin: clipmap.origin,
+        enabled: frame.debug.foam,
+        stamps: frame.foamStamps,
+      })
+      uniformFloats.set(
+        [...window.corner, window.extent, frame.debug.foam && sea !== null ? 1 : 0, ...window.offset],
+        FOAM_FLOATS,
+      )
       device.queue.writeBuffer(uniform, 0, uniformData)
       tail.prepare(frame.tick)
     },
     encodeTail: (pass) => {
       tail.encode(pass)
     },
-    encodeFoam: () => {
-      // Nothing yet: the pass exists so the panel's timings already have the slot foam will fill.
+    encodeFoam: (encoder, timestampWrites) => {
+      foam.encode(encoder, timestampWrites)
     },
     draw: (pass, sceneGroups) => {
-      const { clipmap, mesh, indices, group } = state
+      const { clipmap, mesh, indices } = state
+      const group = state.groups[foam.current]
       if (clipmap === undefined) return
       pass.setPipeline(pipeline)
       sceneGroups.forEach((sceneGroup, index) => {
@@ -692,6 +769,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     destroy: () => {
       for (const old of [uniform, state.indices, state.waves, state.phases, state.weights, state.rings]) old.destroy()
       tail.destroy()
+      foam.destroy()
     },
   }
 }

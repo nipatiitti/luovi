@@ -38,6 +38,17 @@ export interface SeaDescription {
   readonly contraction: number
   /** m0_band, m^2, the value the amplitudes were set from. */
   readonly bandVariance: number
+  /**
+   * The whitecap coverage the foam aims at, a fraction of the surface: the cited coverage law at the generating wind's
+   * speed, held to the law's fitted wind range.
+   */
+  readonly targetCoverage: number
+  /**
+   * The breaking threshold: the value of the surface Jacobian below which a point counts as breaking. With the
+   * Jacobian linearised to J = 1 + div D, whose mean is 1 and whose variance sums the band's components and the tail's
+   * spectrum under the default cascade layout and lambda, the fraction of a Gaussian J below it is targetCoverage.
+   */
+  readonly breakingThreshold: number
   readonly components: WaveComponents
 }
 

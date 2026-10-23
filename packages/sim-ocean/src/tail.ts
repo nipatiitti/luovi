@@ -72,7 +72,10 @@ const ruleTiles = (t0: number, rule: CascadeRule): number[] => {
  * periodsPerTile periods on its tile up to the next cascade's, the last out to its Nyquist circle. Throws RangeError when
  * cascade 0's tile is not above the floor, where the rule has no layout.
  */
-export const defaultCascadeLayout = (sea: SeaDescription, rule: CascadeRule = DEFAULT_CASCADE_RULE): CascadeLayout => {
+export const defaultCascadeLayout = (
+  sea: Pick<SeaDescription, 'cutWavenumber' | 'block'>,
+  rule: CascadeRule = DEFAULT_CASCADE_RULE,
+): CascadeLayout => {
   const { periodsPerTile, floorTile, resolution } = rule
   const cut = sea.cutWavenumber
   const t0 = (periodsPerTile * TWO_PI) / cut

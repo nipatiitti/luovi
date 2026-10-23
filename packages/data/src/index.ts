@@ -8,3 +8,10 @@ export { tma, type TmaTable } from './shared/tma.ts'
 export { balticWater, type WaterTable } from './shared/water.ts'
 export { brunetonAtmosphere, type AtmosphereTable, type Rgb } from './shared/atmosphere.ts'
 export { balticOptics, type WaterOpticsTable } from './shared/optics.ts'
+export {
+  foamDecayTime,
+  foamReflectance,
+  whitecapCoverage,
+  type FoamReflectanceTable,
+  type WhitecapCoverageTable,
+} from './shared/foam.ts'
