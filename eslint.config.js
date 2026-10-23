@@ -75,7 +75,21 @@ const simRestrictions = [
 ]
 
 export default defineConfig(
-  globalIgnores(['**/dist/**', '**/.engines/**', '**/node_modules/**', 'eslint.config.js', '.dependency-cruiser.cjs']),
+  globalIgnores([
+    '**/dist/**',
+    // The --engines page bundle.
+    'packages/tool-validate/.engines/**',
+    '**/node_modules/**',
+    'eslint.config.js',
+    '.dependency-cruiser.cjs',
+    // SvelteKit's generated types and build output, and the tool's Vite config, which no tsconfig covers.
+    'packages/tool-scenario/.svelte-kit/**',
+    'packages/tool-scenario/build/**',
+    'packages/tool-scenario/vite.config.js',
+    // Svelte components stay out of lint rather than pulling in a Svelte parser; their logic lives in linted .ts
+    // modules beside them, so a component is markup, bindings and calls.
+    '**/*.svelte',
+  ]),
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
