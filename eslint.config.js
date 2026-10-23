@@ -75,7 +75,7 @@ const simRestrictions = [
 ]
 
 export default defineConfig(
-  globalIgnores(['**/dist/**', '**/node_modules/**', 'eslint.config.js', '.dependency-cruiser.cjs']),
+  globalIgnores(['**/dist/**', '**/.engines/**', '**/node_modules/**', 'eslint.config.js', '.dependency-cruiser.cjs']),
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,

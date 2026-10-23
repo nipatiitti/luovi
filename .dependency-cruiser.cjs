@@ -63,7 +63,7 @@ module.exports = {
   options: {
     tsConfig: { fileName: 'tsconfig.base.json' },
     tsPreCompilationDeps: true,
-    exclude: { path: 'node_modules|/dist/' },
+    exclude: { path: 'node_modules|/dist/|/[.]engines/' },
     enhancedResolveOptions: {
       exportsFields: ['exports'],
       conditionNames: ['import', 'types', 'default'],
