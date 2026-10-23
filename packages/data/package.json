@@ -11,5 +11,8 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "@luovi/core": "workspace:*"
+  }
 }
