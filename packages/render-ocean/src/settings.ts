@@ -24,13 +24,15 @@ export interface RenderOceanSettings {
 
 /** What the debug panel can switch off or overlay; not render settings, since they show the machinery, not the sea. */
 export interface OceanDebug {
-  /** Draw the band alone, without the tail's cascades. Until the tail exists (#35) the band is all there is. */
-  readonly bandOnly: boolean
+  /** Draw the band; off with one cascade on shows that cascade alone. */
+  readonly band: boolean
+  /** Draw tail cascade c, cascade 0 first; a missing entry draws it. */
+  readonly cascades: readonly boolean[]
   /** Overlay every ring's cells, tinted by ring, so the snapping and the morph can be watched. */
   readonly wireframe: boolean
 }
 
-export const NO_DEBUG: OceanDebug = { bandOnly: false, wireframe: false }
+export const NO_DEBUG: OceanDebug = { band: true, cascades: [], wireframe: false }
 
 /**
  * The spec's defaults (#26 "render-ocean", decided by #23): eight rings of 128 cells from 0.25 m, a 1024^2 foam buffer

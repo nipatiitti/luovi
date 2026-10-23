@@ -1,11 +1,13 @@
 import type { SeaDescription } from '@luovi/sim-world'
-import { bandWeights, type Clipmap, clipmapFor, surfacePhases } from './clipmap.ts'
+import { bandWeights, cascadeWeights, type Clipmap, clipmapFor, surfacePhases } from './clipmap.ts'
 import { type RingMesh, ringMesh } from './mesh.ts'
 import { defaultRenderOceanSettings, type OceanDebug, type RenderOceanSettings } from './settings.ts'
+import { createOceanTail, MAX_CASCADES, type TailFields } from './tail.ts'
 
 // The sea surface draw: every ring of the clipmap as one indexed draw of the shared ring mesh, the band summed per vertex
-// (ADR 0011). render-ocean may not import render-scene (both are renderers), so the frame's target formats, the camera
-// and atmosphere WGSL and their bind group layouts come in as arguments.
+// and the tail's cascades sampled where the ring resolves them (ADR 0011). render-ocean may not import render-scene (both
+// are renderers), so the frame's target formats, the camera and atmosphere WGSL and their bind group layouts come in as
+// arguments.
 
 /** What the scene renderer lends the sea: its device, target formats and the WGSL and layouts of its shared groups. */
 export interface OceanTarget {
@@ -41,8 +43,14 @@ export interface OceanSurface {
    */
   setSea(sea: SeaDescription | null, settings?: RenderOceanSettings): void
   readonly settings: RenderOceanSettings
-  /** The frame's CPU work and uploads: the clipmap, the per-ring band weights and the N phases. */
+  /** Tail cascades of the current sea, 0 for flat water; the panel offers a toggle per cascade. */
+  readonly cascadeCount: number
+  /** The frame's CPU work and uploads: the clipmap, the per-ring band and cascade weights, the N phases, the tail's time. */
   prepare(frame: OceanFrame): void
+  /** The tail's evolution, FFT and mips into an open compute pass, before the surface draws. */
+  encodeTail(pass: GPUComputePassEncoder): void
+  /** The foam buffer's passes (#37); encodes nothing yet, so its timing reads as the empty pass's cost. */
+  encodeFoam(pass: GPUComputePassEncoder): void
   /** Encodes the surface into an open scene pass; `sceneGroups` are the bind groups for `sceneLayouts`. */
   draw(pass: GPURenderPassEncoder, sceneGroups: readonly GPUBindGroup[]): void
   destroy(): void
@@ -50,10 +58,10 @@ export interface OceanSurface {
 
 /** Floats per component in the wave table: kx, ky, amplitude, lambda A / k, omega, then padding to 32 bytes. */
 const WAVE_FLOATS = 8
-/** Floats per ring: centre x and y from the origin, spacing, carry, height morph, level, padding. */
-const RING_FLOATS = 8
-/** Bytes of the `Ocean` uniform: view-projection, eye, count, origin, cells, wireframe. */
-const OCEAN_UNIFORM_BYTES = 96
+/** Floats per ring: centre x and y from the origin, spacing, carry, height morph, level, padding, cascade weights. */
+const RING_FLOATS = 12
+/** Bytes of the `Ocean` uniform: view-projection, eye, count, origin, cells, wireframe, flags, a vec4 per cascade. */
+const OCEAN_UNIFORM_BYTES = 112 + 16 * MAX_CASCADES
 
 const surfaceWgsl = (sceneWgsl: string): string => /* wgsl */ `
 ${sceneWgsl}
@@ -65,6 +73,11 @@ struct Ocean {
   origin: vec2f,
   cells: f32,
   wireframe: u32,
+  band: u32,
+  cascade_count: u32,
+  _pad: vec2u,
+  // Per cascade: tile L (m), the clipmap origin modulo L plus half a texel (m), and 1 when the debug panel draws it.
+  cascades: array<vec4f, ${String(MAX_CASCADES)}>,
 }
 
 struct Wave {
@@ -85,6 +98,8 @@ struct Ring {
   height_morph: f32,
   level: f32,
   _pad: vec2f,
+  // How much of each cascade's displacement the ring carries, cascade 0 first.
+  cascades: vec4f,
 }
 
 @group(2) @binding(0) var<uniform> ocean: Ocean;
@@ -92,6 +107,10 @@ struct Ring {
 @group(2) @binding(2) var<storage, read> phases: array<f32>;
 @group(2) @binding(3) var<storage, read> weights: array<f32>;
 @group(2) @binding(4) var<storage, read> rings: array<Ring>;
+// The tail's fields, a layer per cascade (see tail.ts): (Dx, Dy, h, dDx/dy) and (dh/dx, dh/dy, dDx/dx, dDy/dy).
+@group(2) @binding(5) var displacement: texture_2d_array<f32>;
+@group(2) @binding(6) var derivatives: texture_2d_array<f32>;
+@group(2) @binding(7) var tail_sampler: sampler;
 
 const TAU: f32 = 6.28318530717958648;
 
@@ -109,6 +128,14 @@ struct Varying {
   // Aerial perspective between the eye and the vertex, which varies over hundreds of metres, so per vertex.
   @location(5) transmittance: vec3f,
   @location(6) in_scatter: vec3f,
+  // The undisplaced position after the morph, measured from the clipmap origin: where the tail's fields are sampled.
+  @location(7) lagrangian: vec2f,
+}
+
+// Where cascade c samples the point x from the clipmap origin.
+fn tail_uv(c: u32, x: vec2f) -> vec2f {
+  let cascade = ocean.cascades[c];
+  return (x + cascade.yz) / cascade.x;
 }
 
 @vertex
@@ -136,7 +163,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
   var slope = vec2f(0.0);
   var stretch = vec3f(0.0); // d(shift.x)/dx, d(shift.x)/dy = d(shift.y)/dx, d(shift.y)/dy
   // Rings are ordered by carry, so a ring that carries nothing also morphs towards a ring that carries nothing.
-  if (ring.carry > 0.0) {
+  if (ring.carry > 0.0 && ocean.band != 0u) {
     let row = slot * ocean.count;
     for (var i = 0u; i < ocean.count; i++) {
       // The morph also blends the band weights towards the next ring's, so a vertex that lands on the next ring
@@ -159,6 +186,25 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       stretch -= d * c * vec3f(wave.k.x * wave.k.x, wave.k.x * wave.k.y, wave.k.y * wave.k.y);
     }
   }
+  if (ring.carry > 0.0) {
+    let carried = mix(ring.cascades, rings[slot + 1u].cascades, morph);
+    let texels = f32(textureDimensions(displacement).x);
+    for (var c = 0u; c < ocean.cascade_count; c++) {
+      let weight = carried[c] * ocean.cascades[c].w;
+      if (weight == 0.0) {
+        continue;
+      }
+      // The mip whose texel matches the ring's spacing: the waves a ring cannot carry average out instead of aliasing.
+      let lod = max(0.0, log2(mix(1.0, 2.0, morph) * ring.spacing * texels / ocean.cascades[c].x));
+      let uv = tail_uv(c, position);
+      let field = textureSampleLevel(displacement, tail_sampler, uv, c, lod);
+      let derivative = textureSampleLevel(derivatives, tail_sampler, uv, c, lod);
+      height += weight * field.z;
+      shift += weight * field.xy;
+      // The stretch of the displacement the vertex carries, at the same filter, so the normal belongs to the drawn mesh.
+      stretch += weight * vec3f(derivative.z, field.w, derivative.w);
+    }
+  }
   let relative = vec3f(position + shift, height);
   let between = sky_radiance_to_point(camera.eye, vec3f(ocean.origin + relative.xy, relative.z));
   return Varying(
@@ -170,6 +216,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
     ring.level,
     between.transmittance,
     between.radiance,
+    position,
   );
 }
 
@@ -178,13 +225,23 @@ const RING_TINTS = array<vec3f, 2>(vec3f(0.1, 0.9, 1.0), vec3f(1.0, 0.2, 0.8));
 
 @fragment
 fn fragment_main(in: Varying) -> @location(0) vec4f {
-  let normal = normalize(cross(in.tangent_x, in.tangent_y));
+  // Every cascade's slope per pixel through the hardware filter, so detail finer than the mesh still shades. Only the
+  // slope: the horizontal stretch came with the displacement the vertex carried.
+  var slope = vec2f(in.tangent_x.z, in.tangent_y.z);
+  for (var c = 0u; c < ocean.cascade_count; c++) {
+    if (ocean.cascades[c].w != 0.0) {
+      slope += textureSample(derivatives, tail_sampler, tail_uv(c, in.lagrangian), c).xy;
+    }
+  }
+  let normal = normalize(cross(vec3f(in.tangent_x.xy, slope.x), vec3f(in.tangent_y.xy, slope.y)));
   let world = vec3f(ocean.origin + in.relative.xy, in.relative.z);
   let view = normalize(in.relative - ocean.eye);
   // Placeholder shade until water shading lands (#36): a mirror for the sky along the normal. A reflected ray that dips
-  // under the horizon would see the sea itself, which this shade cannot draw, so it is held to the horizon.
+  // under the horizon would see the sea itself, which this shade cannot draw, so it is held just above the horizon: from a
+  // point at or under mean level a ray exactly along it already meets the planet's ground in the atmosphere's tables,
+  // which reads black, and the tail's per-pixel slopes tilt many grazing reflections that far.
   let mirror = reflect(view, normal);
-  let ray = normalize(vec3f(mirror.xy, max(mirror.z, 0.0)));
+  let ray = normalize(vec3f(mirror.xy, max(mirror.z, 0.01)));
   let sky = sky_radiance(world, ray);
   var color = sky.radiance * in.transmittance + in.in_scatter;
 
@@ -203,16 +260,34 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
 export const createOceanSurface = (target: OceanTarget): OceanSurface => {
   const { device } = target
   const label = 'ocean surface'
+  const both = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT
+  const fieldTexture = { sampleType: 'float', viewDimension: '2d-array' } as const
   const layout = device.createBindGroupLayout({
     label,
     entries: [
-      { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+      { binding: 0, visibility: both, buffer: { type: 'uniform' } },
       ...[1, 2, 3, 4].map((binding) => ({
         binding,
         visibility: GPUShaderStage.VERTEX,
         buffer: { type: 'read-only-storage' as const },
       })),
+      { binding: 5, visibility: both, texture: fieldTexture },
+      { binding: 6, visibility: both, texture: fieldTexture },
+      { binding: 7, visibility: both, sampler: { type: 'filtering' } },
     ],
+  })
+  const tail = createOceanTail(device)
+  // The tail tiles repeat. Some anisotropy keeps their slopes from blurring at grazing angles; on an M1 Pro at 1440p four
+  // taps cost the surface about 0.3 ms over trilinear and sixteen about 1 ms, and the slope variance the filter averages
+  // away is what the per-cascade moments return as roughness (#36).
+  const tailSampler = device.createSampler({
+    label: `${label} tail`,
+    addressModeU: 'repeat',
+    addressModeV: 'repeat',
+    magFilter: 'linear',
+    minFilter: 'linear',
+    mipmapFilter: 'linear',
+    maxAnisotropy: 4,
   })
   const module = device.createShaderModule({ label, code: surfaceWgsl(target.sceneWgsl) })
   const pipeline = device.createRenderPipeline({
@@ -243,11 +318,13 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
     readonly phases: GPUBuffer
     readonly weights: GPUBuffer
     readonly rings: GPUBuffer
+    readonly tail: TailFields
     readonly group: GPUBindGroup
     readonly phaseScratch: Float64Array
     readonly phaseData: Float32Array<ArrayBuffer>
     readonly weightData: Float32Array<ArrayBuffer>
     readonly ringData: Float32Array<ArrayBuffer>
+    readonly cascadeData: Float32Array
     clipmap: Clipmap | undefined
   }
 
@@ -280,13 +357,19 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
     const phases = storage('phases', phaseData.byteLength)
     const weights = storage('weights', weightData.byteLength)
     const rings = storage('rings', ringData.byteLength)
+    const fields = tail.setSea(sea, settings)
     const group = device.createBindGroup({
       label,
       layout,
-      entries: [uniform, waves, phases, weights, rings].map((resource, binding) => ({
-        binding,
-        resource: { buffer: resource },
-      })),
+      entries: [
+        ...[uniform, waves, phases, weights, rings].map((resource, binding) => ({
+          binding,
+          resource: { buffer: resource },
+        })),
+        { binding: 5, resource: fields.displacement },
+        { binding: 6, resource: fields.derivatives },
+        { binding: 7, resource: tailSampler },
+      ],
     })
     return {
       sea,
@@ -297,11 +380,13 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
       phases,
       weights,
       rings,
+      tail: fields,
       group,
       phaseScratch: new Float64Array(count),
       phaseData,
       weightData,
       ringData,
+      cascadeData: new Float32Array(ringTotal * 4),
       clipmap: undefined,
     }
   }
@@ -315,6 +400,9 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
     get settings() {
       return state.settings
     },
+    get cascadeCount() {
+      return state.tail.count
+    },
     prepare: (frame) => {
       const { sea, settings } = state
       const clipmap = clipmapFor(settings, frame.eye)
@@ -327,7 +415,9 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
       }
       bandWeights(sea, clipmap, state.weightData)
       device.queue.writeBuffer(state.weights, 0, state.weightData)
+      cascadeWeights(state.tail.longest, clipmap, state.cascadeData)
       clipmap.rings.forEach((ring, slot) => {
+        state.ringData.set(state.cascadeData.subarray(slot * 4, slot * 4 + 4), slot * RING_FLOATS + 8)
         state.ringData.set(
           [
             ring.centre[0] - x0,
@@ -347,7 +437,22 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
       uniformWords[19] = sea?.components.count ?? 0
       uniformFloats.set([x0, y0, settings.ringCells], 20)
       uniformWords[23] = frame.debug.wireframe ? 1 : 0
+      uniformWords[24] = frame.debug.band ? 1 : 0
+      uniformWords[25] = state.tail.count
+      state.tail.tiles.forEach((tile, c) => {
+        // The origin modulo the tile in f64, so the f32 lookup never sees a large coordinate; texel i holds x = i L / N.
+        const texel = tile / settings.cascadeRule.resolution
+        const offset = (x: number): number => (((x % tile) + tile) % tile) + texel / 2
+        uniformFloats.set([tile, offset(x0), offset(y0), frame.debug.cascades[c] === false ? 0 : 1], 28 + 4 * c)
+      })
       device.queue.writeBuffer(uniform, 0, uniformData)
+      tail.prepare(frame.tick)
+    },
+    encodeTail: (pass) => {
+      tail.encode(pass)
+    },
+    encodeFoam: () => {
+      // Nothing yet: the pass exists so the panel's timings already have the slot foam will fill.
     },
     draw: (pass, sceneGroups) => {
       const { clipmap, mesh, indices, group } = state
@@ -366,6 +471,7 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
     },
     destroy: () => {
       for (const old of [uniform, state.indices, state.waves, state.phases, state.weights, state.rings]) old.destroy()
+      tail.destroy()
     },
   }
 }

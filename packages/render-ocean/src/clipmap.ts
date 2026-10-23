@@ -121,3 +121,19 @@ export const surfacePhases = (
     out[i] = remainder((scratch[i] ?? 0) + (kx[i] ?? 0) * origin[0] + (ky[i] ?? 0) * origin[1], TWO_PI)
   }
 }
+
+/**
+ * How much of each tail cascade each ring displaces, a vec4 per ring, cascade 0 first; `longest` is each cascade's
+ * longest wavelength in m. ADR 0011's rule for cascades: a cascade displaces where its longest wave spans at least eight
+ * spacings, here over the band's smoothstep family stretched one doubling upwards from eight, so it emerges only past
+ * the threshold and the light sea's cascade 1 (about six spacings on the innermost ring) stays flat as the decision
+ * states. Waves shorter than a ring resolves inside a displacing cascade are filtered by the texture's mips.
+ */
+export const cascadeWeights = (longest: readonly number[], clipmap: Clipmap, out: Float32Array): void => {
+  out.fill(0)
+  clipmap.rings.forEach((ring, slot) => {
+    longest.forEach((wavelength, c) => {
+      out[slot * 4 + c] = ring.carry * smoothstep(8, 16, wavelength / ring.spacing)
+    })
+  })
+}

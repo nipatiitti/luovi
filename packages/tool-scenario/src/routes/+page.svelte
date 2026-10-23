@@ -15,7 +15,9 @@
   let sunAzimuth = $state(Math.round(toDegrees(initialSettings.sunAzimuth)))
   let exposureValue = $state(initialSettings.exposureValue)
   let cameraMode = $state<Camera['mode']>(initialSettings.camera.mode)
-  let bandOnly = $state(false)
+  let band = $state(true)
+  // A toggle per tail cascade of the drawn sea; a cascade with no entry yet is drawn.
+  let cascades = $state<boolean[]>([])
   let wireframe = $state(false)
   let refusal = $state<string | undefined>(undefined)
   let failure = $state<string | undefined>(undefined)
@@ -93,6 +95,8 @@
     poll = requestAnimationFrame(pollFrame)
     const timer = setInterval(() => {
       const latest = viewer?.timings
+      const count = viewer?.cascadeCount ?? 0
+      if (count !== cascades.length) cascades = Array.from({ length: count }, (_, c) => cascades[c] ?? true)
       timings =
         latest === undefined
           ? undefined
@@ -113,7 +117,7 @@
             },
             sea,
             tick: slot?.tick ?? 0,
-            oceanDebug: { bandOnly, wireframe },
+            oceanDebug: { band, cascades, wireframe },
             markers: slot?.markers ?? noMarkers,
           }
         })
@@ -199,9 +203,15 @@
         : 'Drag to look. W, A, S and D fly, Q and E sink and climb, Shift goes faster.'}
     </p>
     <label class="toggle">
-      <input type="checkbox" bind:checked={bandOnly} />
-      <span>Band only</span>
+      <input type="checkbox" bind:checked={band} />
+      <span>Band</span>
     </label>
+    {#each cascades as _, c (c)}
+      <label class="toggle">
+        <input type="checkbox" bind:checked={cascades[c]} />
+        <span>Cascade {c}</span>
+      </label>
+    {/each}
     <label class="toggle">
       <input type="checkbox" bind:checked={wireframe} />
       <span>Wireframe rings</span>

@@ -18,6 +18,8 @@ export interface ViewerFrame {
 export interface Viewer {
   /** GPU milliseconds per pass, absent without `timestamp-query`. */
   readonly timings: ReadonlyMap<string, number> | undefined
+  /** Tail cascades of the sea being drawn, one debug toggle each. */
+  readonly cascadeCount: number
   stop(): void
 }
 
@@ -61,6 +63,14 @@ export const startViewer = async (
         prepare: (view) => {
           ocean.prepare({ ...view, tick: next.tick, debug: next.oceanDebug })
         },
+        compute: {
+          fft: (pass) => {
+            ocean.encodeTail(pass)
+          },
+          foam: (pass) => {
+            ocean.encodeFoam(pass)
+          },
+        },
         draw: (pass, sceneGroups) => {
           ocean.draw(pass, sceneGroups)
         },
@@ -73,6 +83,9 @@ export const startViewer = async (
   return {
     get timings() {
       return renderer.timings
+    },
+    get cascadeCount() {
+      return ocean.cascadeCount
     },
     stop: () => {
       cancelAnimationFrame(handle)

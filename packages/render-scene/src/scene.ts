@@ -10,8 +10,11 @@ import { createPassTimestamps, type PassTimestamps } from './timestamps.ts'
 import { createHdrTarget, DEPTH_FORMAT, HDR_FORMAT, type HdrTarget, hdrPassDescriptor, MSAA_SAMPLES } from './target.ts'
 import { createTonemapPass } from './tonemap.ts'
 
-/** Timed passes, in frame order: the sea surface has a pass of its own so its GPU cost reads on its own. */
-const PASSES = ['ocean surface', 'scene', 'tonemap'] as const
+/**
+ * Timed passes, in frame order. The sea's compute work and its surface each have a pass of their own so the ocean's
+ * budget lines (#23: FFT with post and mips, foam, surface draw) read one by one.
+ */
+const PASSES = ['ocean FFT', 'ocean foam', 'ocean surface', 'scene', 'tonemap'] as const
 
 /** The camera as a layer sees it for one frame. */
 export interface LayerView {
@@ -28,6 +31,11 @@ export interface LayerView {
 export interface SceneLayer {
   /** The frame's uploads, before any pass is encoded. */
   prepare(view: LayerView): void
+  /** The layer's compute work that the draw reads, such as the sea's FFT, each in its own timed compute pass. */
+  readonly compute?: {
+    readonly fft: (pass: GPUComputePassEncoder) => void
+    readonly foam: (pass: GPUComputePassEncoder) => void
+  }
   /** Draws into an open scene pass; `sceneGroups` are the bind groups of `LayerTarget.sceneLayouts`. */
   draw(pass: GPURenderPassEncoder, sceneGroups: readonly GPUBindGroup[]): void
 }
@@ -138,20 +146,31 @@ export const createSceneRenderer = async (
       markers.setPositions(content.markers)
 
       const encoder = device.createCommandEncoder({ label: 'frame' })
+      // Compute passes run even with nothing to encode, so every timed pass exists in every frame.
+      const computes = [
+        [PASSES[0], content.sea?.compute?.fft],
+        [PASSES[1], content.sea?.compute?.foam],
+      ] as const
+      computes.forEach(([label, encode], index) => {
+        const writes = timestamps?.writesFor(index)
+        const pass = encoder.beginComputePass({ label, ...(writes && { timestampWrites: writes }) })
+        encode?.(pass)
+        pass.end()
+      })
       // The sea clears the target and draws first, alone, so its timestamp is the surface draw and nothing else. The
       // sky then fills only what is still at the far plane, and the markers depth-test against the sea.
       const seaPass = encoder.beginRenderPass(
-        hdrPassDescriptor(hdr, 'ocean surface', { first: true, last: false }, timestamps?.writesFor(0)),
+        hdrPassDescriptor(hdr, 'ocean surface', { first: true, last: false }, timestamps?.writesFor(2)),
       )
       content.sea?.draw(seaPass, sceneGroups)
       seaPass.end()
       const scenePass = encoder.beginRenderPass(
-        hdrPassDescriptor(hdr, 'scene', { first: false, last: true }, timestamps?.writesFor(1)),
+        hdrPassDescriptor(hdr, 'scene', { first: false, last: true }, timestamps?.writesFor(3)),
       )
       sky.draw(scenePass, cameraGroup)
       markers.draw(scenePass, cameraGroup)
       scenePass.end()
-      const toneWrites = timestamps?.writesFor(2)
+      const toneWrites = timestamps?.writesFor(4)
       const tonePass = encoder.beginRenderPass({
         label: 'tonemap',
         colorAttachments: [
