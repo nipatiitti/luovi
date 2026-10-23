@@ -1,5 +1,5 @@
 import type { SeaDescription } from '@luovi/core'
-import { brunetonAtmosphere } from '@luovi/data'
+import { balticOptics, brunetonAtmosphere, coxMunk, openSeaRoughnessLength } from '@luovi/data'
 import { createOceanSurface, type OceanDebug } from '@luovi/render-ocean'
 import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
 
@@ -35,7 +35,11 @@ export const startViewer = async (
 ): Promise<Viewer> => {
   const gpu = await acquireGpu()
   const renderer = await createSceneRenderer(gpu, canvas, brunetonAtmosphere)
-  const ocean = createOceanSurface(renderer.layerTarget)
+  const ocean = createOceanSurface(renderer.layerTarget, {
+    coxMunk,
+    roughnessLength: openSeaRoughnessLength,
+    water: balticOptics,
+  })
   const limit = gpu.device.limits.maxTextureDimension2D
 
   const resize = new ResizeObserver(([entry]) => {

@@ -2,12 +2,25 @@ import type { SeaDescription } from '@luovi/sim-world'
 import { bandWeights, cascadeWeights, type Clipmap, clipmapFor, surfacePhases } from './clipmap.ts'
 import { type RingMesh, ringMesh } from './mesh.ts'
 import { defaultRenderOceanSettings, type OceanDebug, type RenderOceanSettings } from './settings.ts'
+import {
+  bandSlopeCovariance,
+  coxMunkCovariance,
+  type OceanOptics,
+  unresolvedBandCovariance,
+  waterAbsorption,
+} from './shading.ts'
 import { createOceanTail, MAX_CASCADES, type TailFields } from './tail.ts'
 
 // The sea surface draw: every ring of the clipmap as one indexed draw of the shared ring mesh, the band summed per vertex
 // and the tail's cascades sampled where the ring resolves them (ADR 0011). render-ocean may not import render-scene (both
 // are renderers), so the frame's target formats, the camera and atmosphere WGSL and their bind group layouts come in as
 // arguments.
+//
+// Shading (#36) filters every slope the pixel cannot resolve into one Gaussian slope distribution per pixel: its mean is
+// the drawn surface's slope, its covariance the cascades' slope covariance over the pixel's footprint (from the moment
+// mips), the band's displacement the ring does not carry, and a floor that tops the drawn variance up to Cox and Munk's
+// at the generating wind. Whatever is not drawn, a band the ring flattened or a cascade switched off, so joins the
+// roughness and the sea's total slope variance, and with it its mean brightness, stays put.
 
 /** What the scene renderer lends the sea: its device, target formats and the WGSL and layouts of its shared groups. */
 export interface OceanTarget {
@@ -18,7 +31,9 @@ export interface OceanTarget {
   readonly depthFormat: GPUTextureFormat
   /**
    * WGSL that declares `camera` (with a world `eye`) at group 0 and the atmosphere at group 1, with
-   * `sky_radiance(position, ray)` and `sky_radiance_to_point(eye, point)` returning `radiance` and `transmittance`.
+   * `sky_radiance(position, ray)` and `sky_radiance_to_point(eye, point)` returning `radiance` and `transmittance`,
+   * `sun_and_sky_irradiance(point, normal)` returning `sun` and `sky`, `sun_direction()` and
+   * `atmosphere.sun_angular_radius`.
    */
   readonly sceneWgsl: string
   /** The layouts of groups 0 and 1 in that order. */
@@ -58,10 +73,18 @@ export interface OceanSurface {
 
 /** Floats per component in the wave table: kx, ky, amplitude, lambda A / k, omega, then padding to 32 bytes. */
 const WAVE_FLOATS = 8
-/** Floats per ring: centre x and y from the origin, spacing, carry, height morph, level, padding, cascade weights. */
-const RING_FLOATS = 12
-/** Bytes of the `Ocean` uniform: view-projection, eye, count, origin, cells, wireframe, flags, a vec4 per cascade. */
-const OCEAN_UNIFORM_BYTES = 112 + 16 * MAX_CASCADES
+/**
+ * Floats per ring: centre x and y from the origin, spacing, carry, height morph, level, padding, cascade weights, the
+ * band's unresolved slope covariance and padding.
+ */
+const RING_FLOATS = 16
+/**
+ * Bytes of the `Ocean` uniform: view-projection, eye, count, origin, cells, wireframe, flags, a vec4 per cascade, then
+ * the band covariance with the refractive index, the Cox and Munk covariance with the backscattering, the absorption.
+ */
+const OCEAN_UNIFORM_BYTES = 112 + 16 * MAX_CASCADES + 48
+/** Float index of the shading constants in the `Ocean` uniform. */
+const SHADING_FLOATS = 28 + 4 * MAX_CASCADES
 
 const surfaceWgsl = (sceneWgsl: string): string => /* wgsl */ `
 ${sceneWgsl}
@@ -78,6 +101,12 @@ struct Ocean {
   _pad: vec2u,
   // Per cascade: tile L (m), the clipmap origin modulo L plus half a texel (m), and 1 when the debug panel draws it.
   cascades: array<vec4f, ${String(MAX_CASCADES)}>,
+  // The band's exact slope covariance (xx, yy, xy) and the water's refractive index.
+  band_covariance: vec4f,
+  // Cox and Munk's slope covariance at the generating wind (xx, yy, xy) and the water's backscattering, 1/m.
+  cox_munk: vec4f,
+  // Absorption of the water per channel, 1/m.
+  absorption: vec4f,
 }
 
 struct Wave {
@@ -100,6 +129,8 @@ struct Ring {
   _pad: vec2f,
   // How much of each cascade's displacement the ring carries, cascade 0 first.
   cascades: vec4f,
+  // The slope covariance (xx, yy, xy) of the band displacement this ring does not carry.
+  unresolved: vec4f,
 }
 
 @group(2) @binding(0) var<uniform> ocean: Ocean;
@@ -111,6 +142,8 @@ struct Ring {
 @group(2) @binding(5) var displacement: texture_2d_array<f32>;
 @group(2) @binding(6) var derivatives: texture_2d_array<f32>;
 @group(2) @binding(7) var tail_sampler: sampler;
+// The slopes' second moments per cascade layer: (sx^2, sy^2, sx sy, 0).
+@group(2) @binding(8) var moments: texture_2d_array<f32>;
 
 const TAU: f32 = 6.28318530717958648;
 
@@ -130,6 +163,8 @@ struct Varying {
   @location(6) in_scatter: vec3f,
   // The undisplaced position after the morph, measured from the clipmap origin: where the tail's fields are sampled.
   @location(7) lagrangian: vec2f,
+  // The band's slope covariance the ring flattened, morphed with the ring's band weights.
+  @location(8) unresolved: vec3f,
 }
 
 // Where cascade c samples the point x from the clipmap origin.
@@ -205,6 +240,10 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       stretch += weight * vec3f(derivative.z, field.w, derivative.w);
     }
   }
+  var unresolved = ring.unresolved.xyz;
+  if (ring.carry > 0.0) {
+    unresolved = mix(unresolved, rings[slot + 1u].unresolved.xyz, morph);
+  }
   let relative = vec3f(position + shift, height);
   let between = sky_radiance_to_point(camera.eye, vec3f(ocean.origin + relative.xy, relative.z));
   return Varying(
@@ -217,33 +256,186 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
     between.transmittance,
     between.radiance,
     position,
+    unresolved,
   );
 }
 
 // Tints for the wireframe overlay, alternating by ring level so each ring's extent reads against its neighbours.
 const RING_TINTS = array<vec3f, 2>(vec3f(0.1, 0.9, 1.0), vec3f(1.0, 0.2, 0.8));
 
+// Symmetric 2 by 2 matrices travel as (xx, yy, xy). The nearest positive semi-definite one: negative eigenvalues to 0.
+fn clamp_covariance(m: vec3f) -> vec3f {
+  let centre = 0.5 * (m.x + m.y);
+  let deviation = vec2f(0.5 * (m.x - m.y), m.z);
+  let radius = length(deviation);
+  let high = max(centre + radius, 0.0);
+  let low = max(centre - radius, 0.0);
+  let axis = select(vec2f(1.0, 0.0), deviation / radius, radius > 0.0);
+  let mean = 0.5 * (high + low);
+  let spread = 0.5 * (high - low);
+  return vec3f(mean + spread * axis.x, mean - spread * axis.x, spread * axis.y);
+}
+
+// The Gaussian slope density with the given mean slope and covariance s, at slope zeta.
+fn slope_density(zeta: vec2f, mean: vec2f, s: vec3f) -> f32 {
+  let det = s.x * s.y - s.z * s.z;
+  let d = zeta - mean;
+  let q = (s.y * d.x * d.x - 2.0 * s.z * d.x * d.y + s.x * d.y * d.y) / det;
+  return exp(-0.5 * q) / (TAU * sqrt(det));
+}
+
+// Smith's masking term for a Gaussian slope distribution seen from direction w (away from the surface). Along w's
+// azimuth the slopes are Gaussian with the projected variance; a facet is edge-on where its slope there equals cot of
+// w's zenith angle, measured from the mean slope. The rational form is Walter, Marschner, Li and Torrance 2007 (EGSR,
+// eq. 27), their fit to Beckmann's Lambda in a = cot / (sqrt 2 sigma): an algorithm constant, not data.
+fn smith_lambda(w: vec3f, mean: vec2f, s: vec3f) -> f32 {
+  let horizontal = length(w.xy);
+  if (horizontal == 0.0) {
+    return 0.0;
+  }
+  let along = w.xy / horizontal;
+  let variance = s.x * along.x * along.x + 2.0 * s.z * along.x * along.y + s.y * along.y * along.y;
+  let a = max((w.z / horizontal - dot(mean, along)) / sqrt(2.0 * max(variance, 1e-12)), 1e-3);
+  if (a >= 1.6) {
+    return 0.0;
+  }
+  return (1.0 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
+}
+
+// Unpolarised Fresnel reflectance of a dielectric of relative index n at incidence cosine c (Cook and Torrance 1982).
+fn fresnel(cosine: f32, n: f32) -> f32 {
+  let c = clamp(cosine, 0.0, 1.0);
+  let g = sqrt(n * n - 1.0 + c * c);
+  let a = (g - c) / (g + c);
+  let b = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
+  return 0.5 * a * a * (1.0 + b * b);
+}
+
+// The cosine from the normal of a ray refracted into the water, by Snell.
+fn refracted_cosine(cosine: f32, n: f32) -> f32 {
+  return sqrt(1.0 - (1.0 - cosine * cosine) / (n * n));
+}
+
+// A reflected ray that dips under the horizon would see the sea itself, which this shade cannot draw, so it is held just
+// above the horizon: from a point at or under mean level a ray exactly along it already meets the planet's ground in the
+// atmosphere's tables, which reads black.
+fn sky_along(world: vec3f, mirror: vec3f) -> vec3f {
+  return sky_radiance(world, normalize(vec3f(mirror.xy, max(mirror.z, 0.01)))).radiance;
+}
+
+// The facet normal of slope zeta: the surface z = zeta . x has normal (-zeta, 1).
+fn facet_normal(zeta: vec2f) -> vec3f {
+  return normalize(vec3f(-zeta, 1.0));
+}
+
 @fragment
 fn fragment_main(in: Varying) -> @location(0) vec4f {
-  // Every cascade's slope per pixel through the hardware filter, so detail finer than the mesh still shades. Only the
-  // slope: the horizontal stretch came with the displacement the vertex carried.
+  let n = ocean.band_covariance.w;
+  let backscattering = ocean.cox_munk.w;
+  // Every drawn cascade's slope per pixel through the hardware filter, with its covariance over the same footprint from
+  // the moment mips. Only the slope: the horizontal stretch came with the displacement the vertex carried.
   var slope = vec2f(in.tangent_x.z, in.tangent_y.z);
+  var variance = vec3f(0.0);
+  // The slope variance the drawn sea holds in all, whatever this pixel resolves of it: the floor tops it up to Cox and
+  // Munk's. Cascades switched off and an undrawn band leave theirs to the floor.
+  var drawn = vec3f(0.0);
+  if (ocean.band != 0u) {
+    variance += in.unresolved;
+    drawn += ocean.band_covariance.xyz;
+  }
+  let whole = i32(textureNumLevels(moments)) - 1;
   for (var c = 0u; c < ocean.cascade_count; c++) {
     if (ocean.cascades[c].w != 0.0) {
-      slope += textureSample(derivatives, tail_sampler, tail_uv(c, in.lagrangian), c).xy;
+      let uv = tail_uv(c, in.lagrangian);
+      let mean = textureSample(derivatives, tail_sampler, uv, c).xy;
+      let second = textureSample(moments, tail_sampler, uv, c).xyz;
+      slope += mean;
+      variance += second - vec3f(mean * mean, mean.x * mean.y);
+      let tile_mean = textureLoad(derivatives, vec2i(0), c, whole).xy;
+      drawn += textureLoad(moments, vec2i(0), c, whole).xyz - vec3f(tile_mean * tile_mean, tile_mean.x * tile_mean.y);
     }
   }
-  let normal = normalize(cross(vec3f(in.tangent_x.xy, slope.x), vec3f(in.tangent_y.xy, slope.y)));
+  let sigma = clamp_covariance(variance) + clamp_covariance(ocean.cox_munk.xyz - drawn);
+  let surface = cross(vec3f(in.tangent_x.xy, slope.x), vec3f(in.tangent_y.xy, slope.y));
+  // The pixel's mean slope: the drawn surface's, horizontal stretch included.
+  let mean = -surface.xy / surface.z;
   let world = vec3f(ocean.origin + in.relative.xy, in.relative.z);
-  let view = normalize(in.relative - ocean.eye);
-  // Placeholder shade until water shading lands (#36): a mirror for the sky along the normal. A reflected ray that dips
-  // under the horizon would see the sea itself, which this shade cannot draw, so it is held just above the horizon: from a
-  // point at or under mean level a ray exactly along it already meets the planet's ground in the atmosphere's tables,
-  // which reads black, and the tail's per-pixel slopes tilt many grazing reflections that far.
-  let mirror = reflect(view, normal);
-  let ray = normalize(vec3f(mirror.xy, max(mirror.z, 0.01)));
-  let sky = sky_radiance(world, ray);
-  var color = sky.radiance * in.transmittance + in.in_scatter;
+  let eye = normalize(ocean.eye - in.relative);
+  let sun = sun_direction();
+
+  // Sky reflection: the sky seen in the mirror of four slopes, the unscented transform's sigma points of the pixel's
+  // slope distribution (mean plus and minus sqrt 2 times each column of its Cholesky factor, a quarter each), weighted by
+  // the area each facet shows the eye. The factor is taken in the frame of the view's azimuth, slope along it first, so
+  // the points tilt the mirror up and down the sky, the direction its radiance changes fastest, and follow the eye
+  // smoothly as it turns. Sky radiance varies too slowly away from the Sun to need more; the Sun is integrated below.
+  let toward = select(vec2f(1.0, 0.0), normalize(eye.xy), length(eye.xy) > 0.0);
+  let across = vec2f(-toward.y, toward.x);
+  let s_along = sigma.x * toward.x * toward.x + 2.0 * sigma.z * toward.x * toward.y + sigma.y * toward.y * toward.y;
+  let s_across = sigma.x * across.x * across.x + 2.0 * sigma.z * across.x * across.y + sigma.y * across.y * across.y;
+  let s_both = (sigma.x - sigma.y) * toward.x * across.x + sigma.z * (toward.x * across.y + toward.y * across.x);
+  let l_along = sqrt(max(s_along, 1e-12));
+  let l_mixed = s_both / l_along;
+  let l_across = sqrt(max(s_across - l_mixed * l_mixed, 0.0));
+  let spread = array<vec2f, 2>(
+    (l_along * toward + l_mixed * across) * sqrt(2.0),
+    l_across * across * sqrt(2.0),
+  );
+  var reflected = vec3f(0.0);
+  var reflectance = 0.0;
+  var shown = 0.0;
+  for (var i = 0u; i < 4u; i++) {
+    let facet = facet_normal(mean + select(1.0, -1.0, i >= 2u) * spread[i % 2u]);
+    let facing = dot(eye, facet);
+    if (facing > 0.0) {
+      let area = facing / facet.z;
+      let f = fresnel(facing, n);
+      reflected += area * f * sky_along(world, reflect(-eye, facet));
+      reflectance += area * f;
+      shown += area;
+    }
+  }
+  if (shown > 0.0) {
+    reflected /= shown;
+    reflectance /= shown;
+  } else {
+    let facet = facet_normal(mean);
+    reflectance = fresnel(abs(dot(eye, facet)), n);
+    reflected = reflectance * sky_along(world, reflect(-eye, facet));
+  }
+
+  // Sun glitter: the expected radiance of a Gaussian slope field toward the eye, E F p(zeta_h) / (4 mu_v cos^4 beta)
+  // (Cox and Munk 1954), with Smith's masking and shadowing. The Sun's disc widens the lobe: a light direction moved by
+  // delta moves the half vector by delta / 2, and a disc of radius r has variance r^2 / 4 per axis.
+  let half_vector = normalize(eye + sun);
+  let disc = atmosphere.sun_angular_radius * atmosphere.sun_angular_radius / 16.0;
+  let glitter_sigma = sigma + vec3f(disc, disc, 0.0);
+  let shadowing = 1.0 / (1.0 + smith_lambda(eye, mean, glitter_sigma) + smith_lambda(sun, mean, glitter_sigma));
+  let beam = sun_and_sky_irradiance(world, sun).sun;
+  let cos4 = half_vector.z * half_vector.z * half_vector.z * half_vector.z;
+  var glitter = vec3f(0.0);
+  if (sun.z > 0.0 && eye.z > 0.0) {
+    glitter = beam * fresnel(dot(eye, half_vector), n) * slope_density(-half_vector.xy / half_vector.z, mean, glitter_sigma) *
+      shadowing / (4.0 * eye.z * cos4);
+  }
+
+  // The water body in the quasi-single-scattering approximation (Gordon 1973): light enters through the mean facet,
+  // decays at a + b_b along both paths, and is scattered back once, isotropically over the backward hemisphere, so the
+  // phase function is b_b / 2 pi. A beam of in-water irradiance E at cosine mu_s seen at cosine mu_v gives
+  // b_b / (2 pi) E mu_s / ((a + b_b) (mu_s + mu_v)) below the surface; sky light enters as a beam along the normal.
+  let normal = facet_normal(mean);
+  let cos_sun = max(dot(sun, normal), 0.0);
+  let mu_v = refracted_cosine(clamp(dot(eye, normal), 0.0, 1.0), n);
+  let mu_s = refracted_cosine(cos_sun, n);
+  let light = sun_and_sky_irradiance(world, normal);
+  // irradiance.sun is on the facet's plane; the refracted beam's own is that over mu_s.
+  let sun_in = light.sun * (1.0 - fresnel(cos_sun, n)) / mu_s;
+  let sky_in = light.sky * (1.0 - fresnel(1.0, n));
+  let extinction = ocean.absorption.xyz + backscattering;
+  let below = backscattering / TAU / extinction * (sun_in * mu_s / (mu_s + mu_v) + sky_in / (1.0 + mu_v));
+  // Out through the surface, the radiance diluted by n^2 as the cone widens.
+  let body = below * (1.0 - reflectance) / (n * n);
+
+  var color = (reflected + glitter + body) * in.transmittance + in.in_scatter;
 
   // The wireframe as lines one pixel wide along every cell edge, faded where the cells crowd closer than four pixels.
   let footprint = fwidth(in.cell);
@@ -257,7 +449,8 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
 }
 `
 
-export const createOceanSurface = (target: OceanTarget): OceanSurface => {
+/** `optics` holds every optical constant the shading reads; the tool passes `data`'s tables. */
+export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): OceanSurface => {
   const { device } = target
   const label = 'ocean surface'
   const both = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT
@@ -274,6 +467,7 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
       { binding: 5, visibility: both, texture: fieldTexture },
       { binding: 6, visibility: both, texture: fieldTexture },
       { binding: 7, visibility: both, sampler: { type: 'filtering' } },
+      { binding: 8, visibility: GPUShaderStage.FRAGMENT, texture: fieldTexture },
     ],
   })
   const tail = createOceanTail(device)
@@ -325,6 +519,7 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
     readonly weightData: Float32Array<ArrayBuffer>
     readonly ringData: Float32Array<ArrayBuffer>
     readonly cascadeData: Float32Array
+    readonly unresolvedData: Float32Array
     clipmap: Clipmap | undefined
   }
 
@@ -358,6 +553,18 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
     const weights = storage('weights', weightData.byteLength)
     const rings = storage('rings', ringData.byteLength)
     const fields = tail.setSea(sea, settings)
+    const absorption = waterAbsorption(optics)
+    uniformFloats.set(
+      [
+        ...bandSlopeCovariance(sea),
+        optics.water.refractiveIndex.value,
+        ...coxMunkCovariance(sea, optics),
+        optics.water.backscattering.value,
+        ...absorption,
+        0,
+      ],
+      SHADING_FLOATS,
+    )
     const group = device.createBindGroup({
       label,
       layout,
@@ -369,6 +576,7 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
         { binding: 5, resource: fields.displacement },
         { binding: 6, resource: fields.derivatives },
         { binding: 7, resource: tailSampler },
+        { binding: 8, resource: fields.moments },
       ],
     })
     return {
@@ -387,6 +595,7 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
       weightData,
       ringData,
       cascadeData: new Float32Array(ringTotal * 4),
+      unresolvedData: new Float32Array(ringTotal * 4),
       clipmap: undefined,
     }
   }
@@ -416,8 +625,10 @@ export const createOceanSurface = (target: OceanTarget): OceanSurface => {
       bandWeights(sea, clipmap, state.weightData)
       device.queue.writeBuffer(state.weights, 0, state.weightData)
       cascadeWeights(state.tail.longest, clipmap, state.cascadeData)
+      unresolvedBandCovariance(sea, state.weightData, clipmap.rings.length, state.unresolvedData)
       clipmap.rings.forEach((ring, slot) => {
         state.ringData.set(state.cascadeData.subarray(slot * 4, slot * 4 + 4), slot * RING_FLOATS + 8)
+        state.ringData.set(state.unresolvedData.subarray(slot * 4, slot * 4 + 4), slot * RING_FLOATS + 12)
         state.ringData.set(
           [
             ring.centre[0] - x0,
