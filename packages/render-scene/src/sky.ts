@@ -3,9 +3,9 @@ import { cameraWgsl } from './camera.ts'
 import { createFullscreenPipeline } from './pipeline.ts'
 import { DEPTH_FORMAT, HDR_FORMAT, MSAA_SAMPLES } from './target.ts'
 
-// The background: every pixel's view ray either escapes to space, where it gets the sky's radiance plus the Sun's
-// disc, or meets the planet, which stands in for the sea until render-ocean draws it: a Lambertian ground at the
-// atmosphere's ground albedo, lit by sun and sky irradiance and seen through the aerial perspective in between, as
+// The background, drawn only where nothing else has been: every pixel's view ray either escapes to space, where it
+// gets the sky's radiance plus the Sun's disc, or meets the planet beyond the sea's flat disc: a Lambertian ground at
+// the atmosphere's ground albedo, lit by sun and sky irradiance and seen through the aerial perspective in between, as
 // Bruneton's demo renders its ground.
 const skyFragmentWgsl = /* wgsl */ `
 ${cameraWgsl(0)}
@@ -50,6 +50,8 @@ export const createSkyPass = (device: GPUDevice, cameraLayout: GPUBindGroupLayou
     format: HDR_FORMAT,
     sampleCount: MSAA_SAMPLES,
     depthFormat: DEPTH_FORMAT,
+    // Drawn after the opaque scene, so it shades only the pixels the scene left at the far plane.
+    depthCompare: 'equal',
   })
   return {
     draw: (pass, cameraGroup) => {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import type { SeaDescription } from '@luovi/core'
   import type { Camera } from '@luovi/render-scene'
   import { attachCameraControls } from '../lib/cameraControls.ts'
   import { type Host, startHost } from '../lib/host/host.ts'
@@ -14,6 +15,8 @@
   let sunAzimuth = $state(Math.round(toDegrees(initialSettings.sunAzimuth)))
   let exposureValue = $state(initialSettings.exposureValue)
   let cameraMode = $state<Camera['mode']>(initialSettings.camera.mode)
+  let bandOnly = $state(false)
+  let wireframe = $state(false)
   let refusal = $state<string | undefined>(undefined)
   let failure = $state<string | undefined>(undefined)
   let timings = $state<string | undefined>(undefined)
@@ -30,6 +33,8 @@
   let pendingName = 'Moderate reference sea'
   let loadError = $state<string | undefined>(undefined)
   const noMarkers = new Float32Array(0)
+  // The loaded world's sea; the renderer uploads a new one when this changes identity.
+  let sea: SeaDescription | null = null
 
   const readFrame = () => {
     const frame = host?.frame()
@@ -60,7 +65,8 @@
     refusal = isolationProblem(crossOriginIsolated)
     if (refusal !== undefined || canvas === undefined) return
     const simulation = startHost({
-      loaded: () => {
+      loaded: (loaded) => {
+        sea = loaded.sea
         loadError = undefined
         scenarioName = pendingName
       },
@@ -97,6 +103,7 @@
         const started = await startViewer(target, (seconds) => {
           if (controls.camera.mode !== cameraMode) controls.setMode(cameraMode)
           controls.update(seconds)
+          const slot = readFrame()
           return {
             settings: {
               sunElevation: degrees(sunElevation),
@@ -104,7 +111,10 @@
               exposureValue,
               camera: controls.camera,
             },
-            content: { markers: readFrame()?.markers ?? noMarkers },
+            sea,
+            tick: slot?.tick ?? 0,
+            oceanDebug: { bandOnly, wireframe },
+            markers: slot?.markers ?? noMarkers,
           }
         })
         if (stopped) started.stop()
@@ -188,6 +198,14 @@
         ? 'Drag to orbit, scroll to zoom.'
         : 'Drag to look. W, A, S and D fly, Q and E sink and climb, Shift goes faster.'}
     </p>
+    <label class="toggle">
+      <input type="checkbox" bind:checked={bandOnly} />
+      <span>Band only</span>
+    </label>
+    <label class="toggle">
+      <input type="checkbox" bind:checked={wireframe} />
+      <span>Wireframe rings</span>
+    </label>
     {#if timings !== undefined}
       <p class="hint">GPU: {timings}</p>
     {/if}
@@ -234,6 +252,11 @@
   label span {
     display: flex;
     justify-content: space-between;
+  }
+  label.toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .buttons {
     display: flex;

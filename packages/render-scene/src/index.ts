@@ -35,6 +35,12 @@ export type { AtmosphereConstants } from './atmosphere/constants.ts'
 export { type RenderSettings, sunDirection } from './settings.ts'
 export { createSkyPass, type SkyPass } from './sky.ts'
 export { createTonemapPass, type TonemapPass } from './tonemap.ts'
-export { createFlatSeaPass, type FlatSeaPass } from './flatSea.ts'
 export { createMarkerPass, type MarkerPass } from './markers.ts'
-export { createSceneRenderer, type SceneContent, type SceneRenderer } from './scene.ts'
+export {
+  createSceneRenderer,
+  type LayerTarget,
+  type LayerView,
+  type SceneContent,
+  type SceneLayer,
+  type SceneRenderer,
+} from './scene.ts'

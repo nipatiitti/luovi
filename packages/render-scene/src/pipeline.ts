@@ -94,11 +94,16 @@ export interface FullscreenPipelineOptions {
   readonly format: GPUTextureFormat
   readonly sampleCount?: number
   readonly depthFormat?: GPUTextureFormat
+  /**
+   * Against the triangle's depth of 0, the far plane under reverse-Z: 'equal' draws only where nothing has been drawn.
+   * Default 'always'.
+   */
+  readonly depthCompare?: GPUCompareFunction
 }
 
-/** A full-screen pass: no vertex buffers, three vertices, and depth left untouched when a depth target exists. */
+/** A full-screen pass: no vertex buffers, three vertices, and depth left unwritten when a depth target exists. */
 export const createFullscreenPipeline = (device: GPUDevice, options: FullscreenPipelineOptions): GPURenderPipeline => {
-  const { label, fragmentWgsl, layouts, format, sampleCount = 1, depthFormat } = options
+  const { label, fragmentWgsl, layouts, format, sampleCount = 1, depthFormat, depthCompare = 'always' } = options
   const module = device.createShaderModule({ label, code: fullscreenVertexWgsl + fragmentWgsl })
   return device.createRenderPipeline({
     label,
@@ -107,7 +112,7 @@ export const createFullscreenPipeline = (device: GPUDevice, options: FullscreenP
     fragment: { module, entryPoint: 'main', targets: [{ format }] },
     multisample: { count: sampleCount },
     ...(depthFormat && {
-      depthStencil: { format: depthFormat, depthWriteEnabled: false, depthCompare: 'always' as const },
+      depthStencil: { format: depthFormat, depthWriteEnabled: false, depthCompare },
     }),
   })
 }

@@ -4,8 +4,8 @@ import { createBindGroup, createBindGroupLayout, createScenePipeline } from './p
 import { DEPTH_FORMAT, HDR_FORMAT, MSAA_SAMPLES } from './target.ts'
 
 // Point markers in the world, drawn as camera-facing quads that shade as small spheres (a normal reconstructed per
-// pixel), lit by the same sun and sky as the sea and depth-tested against it, so a marker in a trough sinks below the
-// flat disc. The probe overlay is their first user.
+// pixel), lit by the same sun and sky as the sea and depth-tested against it, so a marker whose height is wrong sinks
+// into the drawn surface or floats clear of it. The probe overlay is their first user.
 
 /** m, the marker sphere's radius. */
 const MARKER_RADIUS = 0.35
