@@ -54,7 +54,8 @@
 
   // The live environment. The form opens from each load's effective scenario and is not overwritten by the Worker's
   // echo of an edit, which would fight a slider mid-drag; the echoed effective scenario is what an export writes.
-  let effective = $state<EffectiveScenario | undefined>(undefined)
+  // Raw, not a deep proxy: it is replaced whole and posted back to the Worker on reload, which cannot clone a proxy.
+  let effective = $state.raw<EffectiveScenario | undefined>(undefined)
   let form = $state<EnvironmentForm | undefined>(undefined)
   let lastApplied = $state<string | undefined>(undefined)
   const blocks = createBlockSender((input) => host?.send(input))
