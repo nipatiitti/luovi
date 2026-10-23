@@ -2,6 +2,9 @@
   import { onMount } from 'svelte'
   import type { Camera } from '@luovi/render-scene'
   import { attachCameraControls } from '../lib/cameraControls.ts'
+  import { type Host, startHost } from '../lib/host/host.ts'
+  import { formatHash, formatMsPerTick, readScenarioFile, SPEEDS } from '../lib/runBar.ts'
+  import referenceSea from '../lib/scenarios/reference-moderate.json'
   import { isolationProblem } from '../lib/isolation.ts'
   import { degrees, initialSettings, toDegrees } from '../lib/settings.ts'
   import { startViewer, type Viewer } from '../lib/viewer.ts'
@@ -16,12 +19,72 @@
   let timings = $state<string | undefined>(undefined)
   let canvas: HTMLCanvasElement | undefined = $state()
 
+  // The run bar. Tick and hash come from the slot each frame reads; running and ms per tick from the Worker's status.
+  let host: Host | undefined
+  let running = $state(false)
+  let tick = $state<number | undefined>(undefined)
+  let hash = $state<number | undefined>(undefined)
+  let msPerTick = $state<number | undefined>(undefined)
+  let speed = $state(1)
+  let scenarioName = $state('Moderate reference sea')
+  let pendingName = 'Moderate reference sea'
+  let loadError = $state<string | undefined>(undefined)
+  const noMarkers = new Float32Array(0)
+
+  const readFrame = () => {
+    const frame = host?.frame()
+    if (frame !== undefined) {
+      tick = frame.tick
+      hash = frame.hash
+    }
+    return frame
+  }
+
+  const load = (name: string, document: unknown) => {
+    pendingName = name
+    host?.load(document)
+    host?.play()
+  }
+
+  const onFile = async (event: Event) => {
+    const input = event.currentTarget
+    const file = input instanceof HTMLInputElement ? input.files?.[0] : undefined
+    if (file === undefined) return
+    const read = await readScenarioFile(file)
+    if ('problem' in read) loadError = read.problem
+    else load(file.name, read.document)
+    if (input instanceof HTMLInputElement) input.value = ''
+  }
+
   onMount(() => {
     refusal = isolationProblem(crossOriginIsolated)
     if (refusal !== undefined || canvas === undefined) return
+    const simulation = startHost({
+      loaded: () => {
+        loadError = undefined
+        scenarioName = pendingName
+      },
+      error: (message) => {
+        loadError = message
+      },
+      status: (status) => {
+        running = status.running
+        msPerTick = status.msPerTick
+      },
+    })
+    host = simulation
+    load(pendingName, referenceSea)
     const controls = attachCameraControls(canvas, initialSettings.camera)
     let viewer: Viewer | undefined
     let stopped = false
+    // The renderer reads the newest slot once per frame it draws; until it has started, or if it never does, the run bar
+    // reads it here instead, so the slot is still read once per frame.
+    let poll = 0
+    const pollFrame = () => {
+      if (viewer === undefined) readFrame()
+      poll = requestAnimationFrame(pollFrame)
+    }
+    poll = requestAnimationFrame(pollFrame)
     const timer = setInterval(() => {
       const latest = viewer?.timings
       timings =
@@ -35,10 +98,13 @@
           if (controls.camera.mode !== cameraMode) controls.setMode(cameraMode)
           controls.update(seconds)
           return {
-            sunElevation: degrees(sunElevation),
-            sunAzimuth: degrees(sunAzimuth),
-            exposureValue,
-            camera: controls.camera,
+            settings: {
+              sunElevation: degrees(sunElevation),
+              sunAzimuth: degrees(sunAzimuth),
+              exposureValue,
+              camera: controls.camera,
+            },
+            content: { markers: readFrame()?.markers ?? noMarkers },
           }
         })
         if (stopped) started.stop()
@@ -51,6 +117,8 @@
     return () => {
       stopped = true
       clearInterval(timer)
+      cancelAnimationFrame(poll)
+      simulation.stop()
       controls.detach()
       viewer?.stop()
     }
@@ -65,6 +133,33 @@
 {:else}
   <canvas bind:this={canvas}></canvas>
   <aside>
+    <h1>Run</h1>
+    <div class="buttons">
+      <button onclick={() => (running ? host?.pause() : host?.play())}>{running ? 'Pause' : 'Play'}</button>
+      <button onclick={() => host?.step()} disabled={running}>Step</button>
+      <select bind:value={speed} onchange={() => host?.setSpeed(speed)} aria-label="Speed">
+        {#each SPEEDS as option (option)}
+          <option value={option}>{option} times real time</option>
+        {/each}
+      </select>
+    </div>
+    <dl>
+      <dt>Scenario</dt>
+      <dd>{scenarioName}</dd>
+      <dt>Tick</dt>
+      <dd data-readout="tick">{tick ?? 'not loaded'}</dd>
+      <dt>State hash</dt>
+      <dd data-readout="hash">{hash === undefined ? 'not loaded' : formatHash(hash)}</dd>
+      <dt>Worker per tick</dt>
+      <dd data-readout="ms">{formatMsPerTick(msPerTick)}</dd>
+    </dl>
+    <label>
+      <span>Load a scenario file</span>
+      <input type="file" accept=".json,application/json" onchange={onFile} />
+    </label>
+    {#if loadError !== undefined}
+      <p class="error" data-readout="load-error">{loadError}</p>
+    {/if}
     <h1>Scene</h1>
     {#if failure !== undefined}
       <p class="error">{failure}</p>
@@ -139,6 +234,27 @@
   label span {
     display: flex;
     justify-content: space-between;
+  }
+  .buttons {
+    display: flex;
+    gap: 6px;
+  }
+  .buttons select {
+    flex: 1;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 10px;
+    margin: 0;
+  }
+  dt {
+    color: #9aa3ad;
+  }
+  dd {
+    margin: 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
   .hint {
     margin: 0;

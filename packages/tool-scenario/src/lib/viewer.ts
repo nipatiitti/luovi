@@ -1,5 +1,11 @@
 import { brunetonAtmosphere } from '@luovi/data'
-import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
+import { acquireGpu, createSceneRenderer, type RenderSettings, type SceneContent } from '@luovi/render-scene'
+
+/** One frame's input to the renderer: what the viewer chose and what the simulation shows. */
+export interface ViewerFrame {
+  readonly settings: RenderSettings
+  readonly content: SceneContent
+}
 
 export interface Viewer {
   /** GPU milliseconds per pass, absent without `timestamp-query`. */
@@ -13,7 +19,7 @@ export interface Viewer {
  */
 export const startViewer = async (
   canvas: HTMLCanvasElement,
-  frame: (seconds: number) => RenderSettings,
+  frame: (seconds: number) => ViewerFrame,
 ): Promise<Viewer> => {
   const gpu = await acquireGpu()
   const renderer = await createSceneRenderer(gpu, canvas, brunetonAtmosphere)
@@ -32,7 +38,8 @@ export const startViewer = async (
   const tick = (now: number): void => {
     const seconds = last === undefined ? 0 : (now - last) / 1000
     last = now
-    renderer.render(frame(seconds))
+    const { settings, content } = frame(seconds)
+    renderer.render(settings, content)
     handle = requestAnimationFrame(tick)
   }
   handle = requestAnimationFrame(tick)

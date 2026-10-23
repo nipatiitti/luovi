@@ -2,6 +2,8 @@ import { type Atmosphere, createAtmosphere } from './atmosphere/atmosphere.ts'
 import type { AtmosphereConstants } from './atmosphere/constants.ts'
 import { CAMERA_UNIFORM_BYTES, cameraPose, cameraUniform } from './camera.ts'
 import type { Gpu } from './gpu.ts'
+import { createFlatSeaPass } from './flatSea.ts'
+import { createMarkerPass } from './markers.ts'
 import { createBindGroup, createBindGroupLayout, createUniformBuffer } from './pipeline.ts'
 import { type RenderSettings, sunDirection } from './settings.ts'
 import { createSkyPass } from './sky.ts'
@@ -9,15 +11,24 @@ import { createPassTimestamps, type PassTimestamps } from './timestamps.ts'
 import { createHdrTarget, type HdrTarget, hdrPassDescriptor } from './target.ts'
 import { createTonemapPass } from './tonemap.ts'
 
-const PASSES = ['sky', 'tonemap'] as const
+const PASSES = ['scene', 'tonemap'] as const
 
-/** The frame as render-scene draws it today: sky into the HDR target, then tone mapping onto the canvas. */
+/** What the frame shows besides sky and sea, owned by the caller. */
+export interface SceneContent {
+  /** xyz per marker in world metres. */
+  readonly markers: Float32Array<ArrayBuffer>
+}
+
+/**
+ * The frame as render-scene draws it today: sky, the flat sea and markers into the HDR target, then tone mapping onto
+ * the canvas.
+ */
 export interface SceneRenderer {
   readonly atmosphere: Atmosphere
   /** Bind group layout of the camera uniform at group 0 of every scene pass (see `cameraWgsl`). */
   readonly cameraLayout: GPUBindGroupLayout
   /** Draws one frame at the canvas's current size. */
-  render(settings: RenderSettings): void
+  render(settings: RenderSettings, content: SceneContent): void
   /** Milliseconds per pass from GPU timestamps, absent when the device has no `timestamp-query`. */
   readonly timings: ReadonlyMap<string, number> | undefined
   destroy(): void
@@ -40,6 +51,8 @@ export const createSceneRenderer = async (
   const camera = createUniformBuffer(device, 'camera', CAMERA_UNIFORM_BYTES)
   const cameraGroup = createBindGroup(device, 'camera', cameraLayout, [camera.buffer])
   const sky = createSkyPass(device, cameraLayout, atmosphere)
+  const sea = createFlatSeaPass(device, cameraLayout, atmosphere)
+  const markers = createMarkerPass(device, cameraLayout, atmosphere)
   const tonemap = createTonemapPass(device, gpu.canvasFormat)
   const timestamps: PassTimestamps | undefined = createPassTimestamps(device, gpu.timestampQuery, PASSES)
 
@@ -61,7 +74,7 @@ export const createSceneRenderer = async (
   return {
     atmosphere,
     cameraLayout,
-    render: (settings) => {
+    render: (settings, content) => {
       const width = Math.max(1, canvas.width)
       const height = Math.max(1, canvas.height)
       const hdr = targetFor(width, height)
@@ -69,11 +82,15 @@ export const createSceneRenderer = async (
       atmosphere.setSunDirection(sunDirection(settings.sunElevation, settings.sunAzimuth))
       const exposure = 2 ** -settings.exposureValue
       tonemap.setScale([exposure / whitePoint[0], exposure / whitePoint[1], exposure / whitePoint[2]])
+      markers.setPositions(content.markers)
 
       const encoder = device.createCommandEncoder({ label: 'frame' })
-      const skyPass = encoder.beginRenderPass(hdrPassDescriptor(hdr, 'sky', timestamps?.writesFor(0)))
-      sky.draw(skyPass, cameraGroup)
-      skyPass.end()
+      // The sky writes no depth and draws first; the sea and markers then depth-test against each other over it.
+      const scenePass = encoder.beginRenderPass(hdrPassDescriptor(hdr, 'scene', timestamps?.writesFor(0)))
+      sky.draw(scenePass, cameraGroup)
+      sea.draw(scenePass, cameraGroup)
+      markers.draw(scenePass, cameraGroup)
+      scenePass.end()
       const toneWrites = timestamps?.writesFor(1)
       const tonePass = encoder.beginRenderPass({
         label: 'tonemap',
@@ -98,6 +115,7 @@ export const createSceneRenderer = async (
     },
     destroy: () => {
       target?.destroy()
+      markers.destroy()
       atmosphere.destroy()
       camera.buffer.destroy()
       context.unconfigure()

@@ -6,8 +6,10 @@ export {
   createBindGroupLayout,
   createComputePipeline,
   createFullscreenPipeline,
+  createScenePipeline,
   createUniformBuffer,
   type FullscreenPipelineOptions,
+  type ScenePipelineOptions,
   fullscreenVertexWgsl,
   type UniformBuffer,
 } from './pipeline.ts'
@@ -33,4 +35,6 @@ export type { AtmosphereConstants } from './atmosphere/constants.ts'
 export { type RenderSettings, sunDirection } from './settings.ts'
 export { createSkyPass, type SkyPass } from './sky.ts'
 export { createTonemapPass, type TonemapPass } from './tonemap.ts'
-export { createSceneRenderer, type SceneRenderer } from './scene.ts'
+export { createFlatSeaPass, type FlatSeaPass } from './flatSea.ts'
+export { createMarkerPass, type MarkerPass } from './markers.ts'
+export { createSceneRenderer, type SceneContent, type SceneRenderer } from './scene.ts'

@@ -29,6 +29,9 @@ const packages = fileURLToPath(new URL('..', import.meta.url))
 export default defineConfig({
   // A single-page app: no server rendering (see src/routes/+layout.ts), every route falls back to one page.
   plugins: [isolation, sveltekit({ adapter: adapter({ fallback: 'index.html' }) })],
+  // The simulation Worker is a module Worker (src/lib/host/worker.ts) and imports the simulation packages, so the
+  // build emits it as an ES module rather than a classic script.
+  worker: { format: 'es' },
   resolve: {
     alias: [
       { find: /^@luovi\/core\/math$/, replacement: `${packages}core/src/math/index.ts` },

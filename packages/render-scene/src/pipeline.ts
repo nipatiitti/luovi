@@ -126,3 +126,31 @@ export const createUniformBuffer = (device: GPUDevice, label: string, byteSize: 
     },
   }
 }
+
+export interface ScenePipelineOptions {
+  readonly label: string
+  /** Must contain `@vertex fn vertex_main` and `@fragment fn fragment_main`; vertices come from storage or the index. */
+  readonly wgsl: string
+  readonly layouts: readonly GPUBindGroupLayout[]
+  readonly format: GPUTextureFormat
+  readonly sampleCount: number
+  readonly depthFormat: GPUTextureFormat
+}
+
+/**
+ * An opaque scene pass into the HDR target: no vertex buffers, triangle list, depth tested and written. Depth is
+ * reverse-Z (1 near, 0 at infinity), so nearer is greater.
+ */
+export const createScenePipeline = (device: GPUDevice, options: ScenePipelineOptions): GPURenderPipeline => {
+  const { label, wgsl, layouts, format, sampleCount, depthFormat } = options
+  const module = device.createShaderModule({ label, code: wgsl })
+  return device.createRenderPipeline({
+    label,
+    layout: device.createPipelineLayout({ label, bindGroupLayouts: [...layouts] }),
+    vertex: { module, entryPoint: 'vertex_main' },
+    fragment: { module, entryPoint: 'fragment_main', targets: [{ format }] },
+    primitive: { topology: 'triangle-list' },
+    multisample: { count: sampleCount },
+    depthStencil: { format: depthFormat, depthWriteEnabled: true, depthCompare: 'greater' },
+  })
+}
