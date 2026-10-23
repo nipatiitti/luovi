@@ -59,7 +59,7 @@ export interface HarnessTiming {
 
 /** sim-world's public surface and nothing else (ADR 0010); before the first load every world accessor throws. */
 export interface Harness {
-  /** Loads a scenario into a fresh world and resets the timing; throws ContractError on an invalid one. */
+  /** Loads a scenario into a fresh world; throws ContractError on an invalid one. */
   load(scenario: unknown): void
   step(ticks: number): void
   readonly tick: number
@@ -73,6 +73,10 @@ export interface Harness {
   /** hashState over the world's state buffer. */
   hash(): number
   readBinary: (url: URL) => Promise<ArrayBuffer>
+  /**
+   * Totals over every world this harness has loaded, so a benchmark that loads several reads each one's share as a
+   * difference.
+   */
   readonly timing: HarnessTiming
 }
 

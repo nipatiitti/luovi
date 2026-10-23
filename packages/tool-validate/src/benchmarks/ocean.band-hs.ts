@@ -60,6 +60,7 @@ const gridPoints = (): Float64Array => {
 
 const measureSea = (harness: Harness, name: string, scenario: unknown, points: Float64Array): Measurement => {
   harness.load(scenario)
+  const before = harness.timing
   const sea = harness.sea
   if (sea === null) throw new Error(`${name}: the reference sea loaded as flat water`)
 
@@ -93,7 +94,12 @@ const measureSea = (harness: Harness, name: string, scenario: unknown, points: F
   // About the sample mean: the choppy surface at fixed world points sits below the mean level by about lambda sum k A^2 / 2.
   const variance = sumSquares / samples - mean * mean
 
-  const { ticks, stepMs, waterCalls, waterMs } = harness.timing
+  // The harness's timing runs across all three seas, so this sea's share is the difference since its load.
+  const after = harness.timing
+  const ticks = after.ticks - before.ticks
+  const stepMs = after.stepMs - before.stepMs
+  const waterCalls = after.waterCalls - before.waterCalls
+  const waterMs = after.waterMs - before.waterMs
   const microsecondsPerCall = (1000 * waterMs) / waterCalls
   return {
     values: { [`${name}.hs`]: sqrt(variance / fine) },

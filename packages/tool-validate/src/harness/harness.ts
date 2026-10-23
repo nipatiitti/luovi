@@ -38,10 +38,6 @@ export const createHarness = (io: HarnessIo): Harness => {
   return {
     load: (scenario) => {
       world = loadWorld(scenario)
-      ticks = 0
-      stepMs = 0
-      waterCalls = 0
-      waterMs = 0
     },
     step: (count) => {
       if (!(Number.isInteger(count) && count >= 0)) {

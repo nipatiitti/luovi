@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync": "svelte-kit sync",
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings --output human"
   },
   "dependencies": {
     "@luovi/core": "workspace:*",
@@ -21,6 +23,7 @@
     "@sveltejs/kit": "3.1.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "svelte": "5.57.2",
+    "svelte-check": "4.7.7",
     "vite": "8.3.4"
   }
 }

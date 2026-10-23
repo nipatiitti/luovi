@@ -397,6 +397,22 @@ static int powint_pairs(double *e) {
   return n / 2;
 }
 
+/* powInt as @luovi/core/math specifies it: |n|'s bits from the most significant down, squaring
+ * then multiplying by x for each set bit, and one division for a negative n. This file is compiled
+ * without contraction, so every product rounds on its own as in JavaScript. Its records are the
+ * ones whose partial products round, where any other order of squaring gives other bits; the
+ * powInt row keeps the exact inputs and the benchmark's BigInt oracle. */
+static double powint_left_to_right(double x, double nd) {
+  int n = (int)nd;
+  uint32_t m = n < 0 ? 0u - (uint32_t)n : (uint32_t)n;
+  double r = 1.0;
+  for (int bit = m == 0 ? -1 : 31 - __builtin_clz(m); bit >= 0; bit--) {
+    r *= r;
+    if ((m >> bit) & 1u) r *= x;
+  }
+  return n < 0 ? 1.0 / r : r;
+}
+
 static int no_edges(double *e) {
   (void)e;
   return 0;
@@ -404,14 +420,14 @@ static int no_edges(double *e) {
 
 /* ---- functions ---- */
 
-enum kind { UNARY, BINARY, SCALBN, SINCOS, REM_PIO2, POWINT };
+enum kind { UNARY, BINARY, SCALBN, SINCOS, REM_PIO2, POWINT, POWINT_ROUNDED };
 
 struct function {
   const char *name;
   enum kind kind;
   double (*unary)(double);
   double (*binary)(double, double);
-  /* Unary kinds: extra edge inputs, returning how many. BINARY and POWINT: extra (a, b) pairs
+  /* Unary kinds: extra edge inputs, returning how many. The two-input kinds: extra (a, b) pairs
    * written back to back, returning how many pairs. */
   int (*extra_edges)(double *);
   struct domain domains[5];
@@ -477,6 +493,12 @@ static const struct function functions[] = {
       {1024, {{UNIFORM, 0.99, 1.01}, {UNIFORM, 0, 8700}}},
       {1024, {{UNIFORM, -100, -0.01}, {INTEGER, -50, 50}}}}},
     {"powInt", POWINT, NULL, NULL, powint_pairs, {{4096, {{POWINT_BASE, 0, 0}, {INTEGER, -64, 64}}}}},
+    /* Full 53-bit bases: short chains of rounded products, long chains near one, and chains that
+     * overflow or round into the subnormals. */
+    {"powIntRounded", POWINT_ROUNDED, NULL, powint_left_to_right, no_edges,
+     {{2048, {{LOG_UNIFORM_BOTH, -4, 4}, {INTEGER, -64, 64}}},
+      {1024, {{UNIFORM, 0.9, 1.1}, {INTEGER, -1100, 1100}}},
+      {1024, {{LOG_UNIFORM_BOTH, -2, 2}, {INTEGER, -1100, 1100}}}}},
     {"rem_pio2", REM_PIO2, NULL, NULL, trig_edges, TRIG_DOMAINS},
     {"remainder", BINARY, NULL, remainder_xy, remainder_pairs,
      {{2048, {{UNIFORM, -1e3, 1e3}, {UNIFORM, 0.1, 10}}},
@@ -499,7 +521,7 @@ static const struct function functions[] = {
  * and the +-50000 guards of s_scalbn.c. */
 static const int scalbn_edge_n[] = {0, 1, -1, 1023, -1022, -1074, 2098, -2098, 50001, -50001, 2147483647, -2147483647 - 1};
 
-static int inputs_of(enum kind k) { return (k == BINARY || k == SCALBN || k == POWINT) ? 2 : 1; }
+static int inputs_of(enum kind k) { return (k == BINARY || k == SCALBN || k == POWINT || k == POWINT_ROUNDED) ? 2 : 1; }
 
 /* powInt has no C oracle: its records are inputs only, and the benchmark computes the exact result. */
 static int outputs_of(enum kind k) { return k == POWINT ? 0 : k == SINCOS ? 2 : k == REM_PIO2 ? 3 : 1; }
@@ -525,6 +547,7 @@ static void record(FILE *f, const struct function *fn, double a, double b) {
     put_f64(f, fn->unary(a));
     break;
   case BINARY:
+  case POWINT_ROUNDED:
     put_f64(f, a);
     put_f64(f, b);
     put_f64(f, fn->binary(a, b));
@@ -595,7 +618,7 @@ static void generate(const char *dir, const struct function *fn, FILE *manifest,
 
   double edges[MAX_EDGES];
   int sampled = records;
-  if (fn->kind == BINARY || fn->kind == POWINT) {
+  if (fn->kind == BINARY || fn->kind == POWINT || fn->kind == POWINT_ROUNDED) {
     if (fn->kind == BINARY) {
       double red[MAX_EDGES];
       int nr = reduced_edges(red);

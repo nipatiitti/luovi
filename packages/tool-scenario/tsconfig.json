@@ -1,9 +1,10 @@
 {
-  "extends": "../../tsconfig.web.json",
+  "extends": ["$app/tsconfig", "../../tsconfig.web.json"],
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "tsBuildInfoFile": "dist/.tsbuildinfo"
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "types": ["@webgpu/types", "$app/types"]
   },
   "include": ["src", "src/**/*.json"],
   "references": [

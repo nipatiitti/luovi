@@ -16,10 +16,11 @@ fn main(in: FullscreenVarying) -> @location(0) vec4f {
   let ray = camera_ray(in.ndc);
   let eye = atmosphere_position(camera.eye);
   let along = dot(eye, ray);
-  // |eye|^2 - R^2 written as h (2R + h) from the altitude: in f32 the difference of two squared planet radii loses
-  // kilometres, which frays the horizon.
-  let altitude = camera.eye.z * 0.001;
-  let discriminant = along * along - altitude * (2.0 * atmosphere.bottom_radius + altitude);
+  // |eye|^2 - R^2 expanded from the world position, where eye = world / 1000 + (0, 0, R): in f32 the difference of
+  // two squared planet radii loses kilometres, which frays the horizon. The horizontal term keeps the test sphere the
+  // true ground away from the origin, where the sky and aerial-perspective lookups already place it.
+  let world_km = camera.eye * 0.001;
+  let discriminant = along * along - (dot(world_km, world_km) + 2.0 * atmosphere.bottom_radius * world_km.z);
   let ground_distance = -along - sqrt(max(discriminant, 0.0));
   if (discriminant >= 0.0 && ground_distance > 0.0) {
     let point = eye + ray * ground_distance;

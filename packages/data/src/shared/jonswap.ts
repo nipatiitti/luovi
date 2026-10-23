@@ -1,7 +1,8 @@
 // Hasselmann et al. 1973 is the JONSWAP report (Ergaenzungsheft zur Deutschen Hydrographischen Zeitschrift, Reihe A
 // (8), Nr. 12). The report itself was not read for this table: its fetch laws and mean shape parameters are taken as
 // Frechot 2006 (GRAPP, "Realistic simulation of ocean surface using wave spectra", section 3.2) restates them, and the
-// Pierson and Moskowitz 1964 peak likewise. Each src says so.
+// Pierson and Moskowitz 1964 peak likewise. Each src says so. The equation numbers are the report's as the #4 spectrum
+// research cites them.
 import type { CitedValue } from '@luovi/core'
 
 /** JONSWAP frequency spectrum constants. x~ = g F / U10^2 is the dimensionless fetch, F in m, U10 in m/s. */
@@ -28,15 +29,15 @@ const jonswapReport =
   'Hasselmann et al. 1973, Erg. Dtsch. Hydrogr. Z. Reihe A 8(12), section 2.4, as restated by Frechot 2006, GRAPP, section 3.2 (report not read)'
 
 export const jonswap: JonswapTable = {
-  alphaCoefficient: { value: 0.076, src: `${jonswapReport}: fetch law alpha = 0.076 x~^-0.22` },
-  alphaExponent: { value: -0.22, src: `${jonswapReport}: fetch law alpha = 0.076 x~^-0.22` },
-  peakCoefficient: { value: 3.5, src: `${jonswapReport}: peak law f_p U10 / g = 3.5 x~^-0.33` },
-  peakExponent: { value: -0.33, src: `${jonswapReport}: peak law f_p U10 / g = 3.5 x~^-0.33` },
-  gammaDefault: { value: 3.3, src: `${jonswapReport}: mean peak enhancement gamma = 3.3` },
+  alphaCoefficient: { value: 0.076, src: `${jonswapReport}: eq. 2.4.4, fetch law alpha = 0.076 x~^-0.22` },
+  alphaExponent: { value: -0.22, src: `${jonswapReport}: eq. 2.4.4, fetch law alpha = 0.076 x~^-0.22` },
+  peakCoefficient: { value: 3.5, src: `${jonswapReport}: eq. 2.4.3, peak law f_p U10 / g = 3.5 x~^-0.33` },
+  peakExponent: { value: -0.33, src: `${jonswapReport}: eq. 2.4.3, peak law f_p U10 / g = 3.5 x~^-0.33` },
+  gammaDefault: { value: 3.3, src: `${jonswapReport}: eq. 2.4.5, mean peak enhancement gamma = 3.3` },
   gammaMin: { value: 1, src: 'Frechot 2006, GRAPP, section 3.2: gamma "can vary between 1 and 7"' },
   gammaMax: { value: 7, src: 'Frechot 2006, GRAPP, section 3.2: gamma "can vary between 1 and 7"' },
-  sigmaA: { value: 0.07, src: `${jonswapReport}: mean peak width sigma_a = 0.07 for omega <= omega_p` },
-  sigmaB: { value: 0.09, src: `${jonswapReport}: mean peak width sigma_b = 0.09 for omega > omega_p` },
+  sigmaA: { value: 0.07, src: `${jonswapReport}: eq. 2.4.5, mean peak width sigma_a = 0.07 for omega <= omega_p` },
+  sigmaB: { value: 0.09, src: `${jonswapReport}: eq. 2.4.5, mean peak width sigma_b = 0.09 for omega > omega_p` },
 }
 
 /** The fully developed limit the fetch-limited JONSWAP sea may not pass. */
