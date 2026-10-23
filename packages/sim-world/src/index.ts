@@ -17,6 +17,7 @@ export {
   tailStream,
   type WaveSpectrum,
   waveSpectrum,
+  windProfile,
 } from '@luovi/sim-ocean'
 
 export type {

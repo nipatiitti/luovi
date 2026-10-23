@@ -1,5 +1,5 @@
 import type { CitedValue } from '@luovi/core'
-import type { SeaDescription } from '@luovi/sim-world'
+import { type SeaDescription, windProfile } from '@luovi/sim-world'
 
 // The CPU half of the sea's filtered shading (#36): the slope covariances the band contributes, whole and per ring, the
 // Cox and Munk target the floor fills up to, and the water's absorption per channel. Symmetric 2 by 2 slope covariances
@@ -104,8 +104,7 @@ export const unresolvedBandCovariance = (
 export const coxMunkCovariance = (sea: SeaDescription | null, optics: OceanOptics): Covariance => {
   if (sea === null) return [0, 0, 0]
   const { coxMunk } = optics
-  const z0 = optics.roughnessLength.value
-  const wind = (sea.spectrum.windSpeed * Math.log(coxMunk.windHeight.value / z0)) / Math.log(10 / z0)
+  const wind = sea.spectrum.windSpeed * windProfile(optics.roughnessLength.value)(coxMunk.windHeight.value)
   const upwind = coxMunk.upwindIntercept.value + coxMunk.upwindSlope.value * wind
   const crosswind = coxMunk.crosswindIntercept.value + coxMunk.crosswindSlope.value * wind
   const c = Math.cos(sea.spectrum.meanDirection)

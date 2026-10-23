@@ -9,6 +9,15 @@ import { bandPhases } from './phases.ts'
 const WIND_REFERENCE_HEIGHT = 10
 
 /**
+ * The log profile as a factor on the 10 m wind: U(z) = U10 ln(z / z0) / ln(10 / z0), zero at or below z0 where the
+ * profile has no meaning. The query and anything else that carries U10 to another height read this one law.
+ */
+export const windProfile = (z0: number): ((z: number) => number) => {
+  const referenceLog = log(WIND_REFERENCE_HEIGHT / z0)
+  return (z) => (z > z0 ? log(z / z0) / referenceLog : 0)
+}
+
+/**
  * Fixed-point iterations of x <- X - D(x) for the height at a world point (ADR 0005). Cold, from x = X every call, so a
  * result never depends on call history; with K <= 0.8 two of them bring the storm sea's worst height error to about 1 cm
  * (#4 resolution section 4).
@@ -43,8 +52,7 @@ export const createEnvironmentQuery = (
   }
   const [currentEast, currentNorth] = environment.current?.vector ?? [0, 0]
   const [windEast, windNorth] = environment.wind.vector10m
-  const z0 = environment.wind.z0.value
-  const referenceLog = log(WIND_REFERENCE_HEIGHT / z0)
+  const profile = windProfile(environment.wind.z0.value)
 
   const count = sea?.components.count ?? 0
   const kx = sea?.components.kx ?? new Float64Array(0)
@@ -153,12 +161,11 @@ export const createEnvironmentQuery = (
         out[4 * p + 3] = up
       }
     },
-    // The log profile U(z) = U10 ln(z / z0) / ln(10 / z0), zero at or below z0 where the profile has no meaning.
     wind: (_tick, points, out) => {
       const pointCount = checkStride('wind', points, out, 3)
       for (let p = 0; p < pointCount; p += 1) {
         const z = points[3 * p + 2] ?? 0
-        const factor = z > z0 ? log(z / z0) / referenceLog : 0
+        const factor = profile(z)
         out[3 * p] = windEast * factor
         out[3 * p + 1] = windNorth * factor
         out[3 * p + 2] = 0
