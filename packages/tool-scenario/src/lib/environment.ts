@@ -39,22 +39,32 @@ const fromWind = (vector10m: readonly [number, number]): { knots: number; from: 
 }
 const windVector = (knots: number, from: number): [number, number] => vector(knots, from + 180)
 
-// The form shows a loaded vector rounded, so rebuilding it from the form would turn the first edit of any field in its
-// block into a change of that vector too (12 m/s comes back as 11.987). The loaded vector is kept while the form still
-// shows its rounded speed and bearing, and the form's own is sent once either of those differs.
-const keptWind = (knots: number, from: number, loaded: readonly [number, number]): [number, number] => {
-  const shown = fromWind(loaded)
-  return shown.knots === knots && shown.from === from ? [loaded[0], loaded[1]] : windVector(knots, from)
+// The form shows a loaded value rounded, so rebuilding it from the form would turn the first edit of any field in its
+// block into a change of that value too (12 m/s comes back as 11.987). The loaded value is kept while the form still
+// shows what `shown` makes of it, and the form's own is sent once any shown number differs.
+const kept = <T>(
+  loaded: T | undefined,
+  shown: (value: T) => readonly number[],
+  form: readonly number[],
+  fromForm: () => T,
+): T => {
+  if (loaded === undefined) return fromForm()
+  const rounded = shown(loaded)
+  return rounded.every((value, i) => value === form[i]) ? loaded : fromForm()
 }
-const keptCurrent = (
-  knots: number,
-  toward: number,
-  loaded: readonly [number, number] | undefined,
-): [number, number] => {
-  if (loaded === undefined) return vector(knots, toward)
-  const shown = polar(loaded)
-  return shown.knots === knots && shown.toward === toward ? [loaded[0], loaded[1]] : vector(knots, toward)
-}
+const copy = ([east, north]: readonly [number, number]): [number, number] => [east, north]
+const keptWind = (knots: number, from: number, loaded: readonly [number, number]): [number, number] =>
+  copy(
+    kept(
+      loaded,
+      (value) => {
+        const shown = fromWind(value)
+        return [shown.knots, shown.from]
+      },
+      [knots, from],
+      () => windVector(knots, from),
+    ),
+  )
 /** km to one decimal, as the form shows a fetch. */
 const fetchShown = (metres: number): number => round(metres / 1000, 1)
 
@@ -132,10 +142,12 @@ export const formFor = (scenario: EffectiveScenario): EnvironmentForm => {
  */
 export const windBlock = (form: WindForm, loaded: { vector10m: readonly [number, number]; z0: CitedValue }): Wind => ({
   vector10m: keptWind(form.knots, form.from, loaded.vector10m),
-  z0:
-    form.roughness === round(loaded.z0.value * 1000, 3)
-      ? loaded.z0
-      : { value: form.roughness / 1000, src: 'Estimate: set by hand in the scenario tool' },
+  z0: kept(
+    loaded.z0,
+    (z0) => [round(z0.value * 1000, 3)],
+    [form.roughness],
+    () => ({ value: form.roughness / 1000, src: 'Estimate: set by hand in the scenario tool' }),
+  ),
 })
 
 /** The sea block for the form, from the sea in effect, or the one a sea toggled on starts from when there is none. */
@@ -144,7 +156,12 @@ export const seaBlock = (form: SeaForm, inEffect: EffectiveSeaBlock | undefined)
   const loaded = inEffect ?? seaWhenNone()
   return {
     generatingWind: keptWind(form.knots, form.from, loaded.generatingWind),
-    fetch: form.fetch === fetchShown(loaded.fetch) ? loaded.fetch : form.fetch * 1000,
+    fetch: kept(
+      loaded.fetch,
+      (metres) => [fetchShown(metres)],
+      [form.fetch],
+      () => form.fetch * 1000,
+    ),
     gamma: form.gamma,
     cutRatio: form.cutRatio,
     strips: form.strips,
@@ -154,7 +171,21 @@ export const seaBlock = (form: SeaForm, inEffect: EffectiveSeaBlock | undefined)
 }
 
 export const currentBlock = (form: CurrentForm, inEffect: Current | undefined): Current | null =>
-  form.knots > 0 ? { vector: keptCurrent(form.knots, form.toward, inEffect?.vector) } : null
+  form.knots > 0
+    ? {
+        vector: copy(
+          kept(
+            inEffect?.vector,
+            (value) => {
+              const shown = polar(value)
+              return [shown.knots, shown.toward]
+            },
+            [form.knots, form.toward],
+            () => vector(form.knots, form.toward),
+          ),
+        ),
+      }
+    : null
 
 type EnvironmentInput = Extract<Input, { kind: 'environment' }>
 export type Block = EnvironmentInput['block']
