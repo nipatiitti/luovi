@@ -1,5 +1,12 @@
 import type { SeaDescription } from '@luovi/core'
-import { balticOptics, brunetonAtmosphere, coxMunk, openSeaRoughnessLength } from '@luovi/data'
+import {
+  balticOptics,
+  brunetonAtmosphere,
+  coxMunk,
+  foamDecayTime,
+  foamReflectance,
+  openSeaRoughnessLength,
+} from '@luovi/data'
 import { createOceanSurface, type OceanDebug } from '@luovi/render-ocean'
 import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
 
@@ -39,6 +46,8 @@ export const startViewer = async (
     coxMunk,
     roughnessLength: openSeaRoughnessLength,
     water: balticOptics,
+    foamReflectance,
+    foamDecayTime,
   })
   const limit = gpu.device.limits.maxTextureDimension2D
 
@@ -71,8 +80,8 @@ export const startViewer = async (
           fft: (pass) => {
             ocean.encodeTail(pass)
           },
-          foam: (pass) => {
-            ocean.encodeFoam(pass)
+          foam: (encoder, timestampWrites) => {
+            ocean.encodeFoam(encoder, timestampWrites)
           },
         },
         draw: (pass, sceneGroups) => {

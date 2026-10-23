@@ -31,10 +31,15 @@ export interface LayerView {
 export interface SceneLayer {
   /** The frame's uploads, before any pass is encoded. */
   prepare(view: LayerView): void
-  /** The layer's compute work that the draw reads, such as the sea's FFT, each in its own timed compute pass. */
+  /** The layer's work that the draw reads, each in its own timed pass. */
   readonly compute?: {
+    /** The sea's FFT, into a compute pass the scene opens. */
     readonly fft: (pass: GPUComputePassEncoder) => void
-    readonly foam: (pass: GPUComputePassEncoder) => void
+    /**
+     * The foam buffer's update, which renders into the layer's own target, so the layer opens exactly one pass itself
+     * with `timestampWrites`.
+     */
+    readonly foam: (encoder: GPUCommandEncoder, timestampWrites: GPURenderPassTimestampWrites | undefined) => void
   }
   /** Draws into an open scene pass; `sceneGroups` are the bind groups of `LayerTarget.sceneLayouts`. */
   draw(pass: GPURenderPassEncoder, sceneGroups: readonly GPUBindGroup[]): void
@@ -146,17 +151,17 @@ export const createSceneRenderer = async (
       markers.setPositions(content.markers)
 
       const encoder = device.createCommandEncoder({ label: 'frame' })
-      // Compute passes run even with nothing to encode, so every timed pass exists in every frame.
-      const computes = [
-        [PASSES[0], content.sea?.compute?.fft],
-        [PASSES[1], content.sea?.compute?.foam],
-      ] as const
-      computes.forEach(([label, encode], index) => {
+      // Every timed pass exists in every frame, empty when there is nothing to encode, so its timing always has a line.
+      const emptyPass = (label: string, index: number): GPUComputePassEncoder => {
         const writes = timestamps?.writesFor(index)
-        const pass = encoder.beginComputePass({ label, ...(writes && { timestampWrites: writes }) })
-        encode?.(pass)
-        pass.end()
-      })
+        return encoder.beginComputePass({ label, ...(writes && { timestampWrites: writes }) })
+      }
+      const fftPass = emptyPass(PASSES[0], 0)
+      content.sea?.compute?.fft(fftPass)
+      fftPass.end()
+      const foam = content.sea?.compute?.foam
+      if (foam === undefined) emptyPass(PASSES[1], 1).end()
+      else foam(encoder, timestamps?.writesFor(1))
       // The sea clears the target and draws first, alone, so its timestamp is the surface draw and nothing else. The
       // sky then fills only what is still at the far plane, and the markers depth-test against the sea.
       const seaPass = encoder.beginRenderPass(

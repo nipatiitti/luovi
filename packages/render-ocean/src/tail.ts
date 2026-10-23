@@ -178,8 +178,10 @@ fn columns_main(@builtin(local_invocation_id) local: vec3u, @builtin(workgroup_i
     let i = im[iy] * sign;
     textureStore(displacement, vec2u(ix, iy), c, vec4f(r.x, i.x, r.y, i.y));
     textureStore(derivatives, vec2u(ix, iy), c, vec4f(r.z, i.z, r.w, i.w));
-    // The slope's second moments, so the mips hold the covariance of the slopes each texel averages, not only their mean.
-    textureStore(moments, vec2u(ix, iy), c, vec4f(r.z * r.z, i.z * i.z, r.z * i.z, 0.0));
+    // The slope's second moments and the square of the displacement's divergence, the linear part of the Jacobian foam
+    // reads, so the mips hold the variance each texel averages, not only the mean.
+    let divergence = r.w + i.w;
+    textureStore(moments, vec2u(ix, iy), c, vec4f(r.z * r.z, i.z * i.z, r.z * i.z, divergence * divergence));
   }
 }
 `
@@ -229,9 +231,9 @@ export interface TailFields {
   /** (dh/dx, dh/dy, dDx/dx, dDy/dy) per cascade layer, mipmapped. */
   readonly derivatives: GPUTextureView
   /**
-   * The slope's second moments (dh/dx^2, dh/dy^2, dh/dx dh/dy, 0) per cascade layer, mipmapped: a mip texel minus the
-   * square of the matching `derivatives` texel is the slope covariance over its footprint, and the last mip's is the
-   * cascade's whole.
+   * The second moments (dh/dx^2, dh/dy^2, dh/dx dh/dy, (dDx/dx + dDy/dy)^2) per cascade layer, mipmapped: a mip texel
+   * minus the square of the matching `derivatives` texel is the slope covariance, or the divergence's variance, over its
+   * footprint, and the last mip's is the cascade's whole.
    */
   readonly moments: GPUTextureView
 }

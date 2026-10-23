@@ -2,8 +2,7 @@ import { type CascadeRule, DEFAULT_CASCADE_RULE, defaultCascadeLayout, type SeaD
 
 /**
  * Render settings of the sea (ADR 0011): they change the picture and nothing the simulation computes, so the host owns
- * them, may override any field, and they never enter a scenario or a state hash. The cascade and foam fields are
- * reserved here for the tail (#35) and foam (#37) tickets so the shape of the value does not change under the host.
+ * them, may override any field, and they never enter a scenario or a state hash.
  */
 export interface RenderOceanSettings {
   /** How the tail's cascade tiles derive from the cut wavenumber: count bounds, lattice side, periods per tile, ratio, floor. */
@@ -30,9 +29,14 @@ export interface OceanDebug {
   readonly cascades: readonly boolean[]
   /** Overlay every ring's cells, tinted by ring, so the snapping and the morph can be watched. */
   readonly wireframe: boolean
+  /**
+   * Draw foam, near buffer and far coverage both. Foam always reads the band and every cascade whatever the toggles
+   * above draw, since its threshold was solved for the whole sea.
+   */
+  readonly foam: boolean
 }
 
-export const NO_DEBUG: OceanDebug = { band: true, cascades: [], wireframe: false }
+export const NO_DEBUG: OceanDebug = { band: true, cascades: [], wireframe: false, foam: true }
 
 /**
  * The spec's defaults (#26 "render-ocean", decided by #23): eight rings of 128 cells from 0.25 m, a 1024^2 foam buffer

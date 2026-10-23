@@ -8,8 +8,9 @@ import type { SeaDescription } from '@luovi/sim-world'
 type Rgb = readonly [number, number, number]
 
 /**
- * The optical constants the shading reads. Renderers cannot import `data`, so the tool passes its tables here:
- * `coxMunk`, `openSeaRoughnessLength` and `balticOptics` match these shapes field for field.
+ * The optical and foam constants the shading reads. Renderers cannot import `data`, so the tool passes its tables here:
+ * `coxMunk`, `openSeaRoughnessLength`, `balticOptics`, `foamReflectance` and `foamDecayTime` match these shapes field
+ * for field.
  */
 export interface OceanOptics {
   readonly coxMunk: {
@@ -32,6 +33,14 @@ export interface OceanOptics {
     readonly cdomSlope: CitedValue
     readonly backscattering: CitedValue
   }
+  /** Lambertian reflectances of foam: fresh at injection, thin as it fades, and the lifetime average for far coverage. */
+  readonly foamReflectance: {
+    readonly fresh: CitedValue
+    readonly thin: CitedValue
+    readonly lifetime: CitedValue
+  }
+  /** s, the e-folding time of foam density. */
+  readonly foamDecayTime: CitedValue
 }
 
 export type Covariance = readonly [number, number, number]
@@ -63,9 +72,10 @@ export const bandSlopeCovariance = (sea: SeaDescription | null): Covariance => {
 }
 
 /**
- * Per ring, the slope covariance of the band displacement the ring does not carry, (xx, yy, xy, 0) per ring. A component
- * drawn at weight w keeps w^2 of its slope variance in the mesh, so 1 - w^2 of it joins the ring's roughness and the
- * ring's whole is the band's exact covariance at every weight. `weights` is `bandWeights`' output for the same rings.
+ * Per ring, the slope covariance of the band displacement the ring does not carry and the variance of its divergence,
+ * (xx, yy, xy, div) per ring. A component drawn at weight w keeps w^2 of its variance in the mesh, so 1 - w^2 of it joins
+ * the ring's roughness and the far foam's Jacobian variance, and the ring's whole is the band's exact value at every
+ * weight. `weights` is `bandWeights`' output for the same rings.
  */
 export const unresolvedBandCovariance = (
   sea: SeaDescription | null,
@@ -80,6 +90,9 @@ export const unresolvedBandCovariance = (
     for (let i = 0; i < count; i += 1) {
       const w = weights[slot * count + i] ?? 0
       componentCovariance(sea, i, 1 - w * w, out, slot * 4)
+      // The divergence -lambda A k cos(theta) has mean square (lambda A k)^2 / 2.
+      const divergence = sea.choppiness * (sea.components.amplitude[i] ?? 0) * (sea.components.k[i] ?? 0)
+      out[slot * 4 + 3] = (out[slot * 4 + 3] ?? 0) + 0.5 * (1 - w * w) * divergence * divergence
     }
   }
 }

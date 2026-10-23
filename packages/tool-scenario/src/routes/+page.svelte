@@ -30,6 +30,7 @@
   // A toggle per tail cascade of the drawn sea; a cascade with no entry yet is drawn.
   let cascades = $state<boolean[]>([])
   let wireframe = $state(false)
+  let foam = $state(true)
   let refusal = $state<string | undefined>(undefined)
   let failure = $state<string | undefined>(undefined)
   let timings = $state<string | undefined>(undefined)
@@ -186,7 +187,7 @@
             },
             sea,
             tick: slot?.tick ?? 0,
-            oceanDebug: { band, cascades, wireframe },
+            oceanDebug: { band, cascades, wireframe, foam },
             markers: slot?.markers ?? noMarkers,
           }
         })
@@ -383,6 +384,10 @@
         <span>Cascade {c}</span>
       </label>
     {/each}
+    <label class="toggle">
+      <input type="checkbox" bind:checked={foam} />
+      <span>Foam</span>
+    </label>
     <label class="toggle">
       <input type="checkbox" bind:checked={wireframe} />
       <span>Wireframe rings</span>
