@@ -7,6 +7,7 @@ import {
   tailStream,
 } from '@luovi/sim-world'
 import type { RenderOceanSettings } from './settings.ts'
+import { phaseWgsl, wrap } from './shared.ts'
 
 // The FFT tail on the GPU (ADR 0011): h0 from sim-ocean's pure generator, uploaded once per sea state; per frame one
 // compute pass evolves every cascade at the slot's tick time, runs the inverse FFT over rows then columns, and builds
@@ -25,8 +26,10 @@ export const MAX_CASCADES = 4
  */
 const PERIOD_TICKS = 60_000
 
-/** Bytes of the `Tail` uniform: gravity, depth, tick within the period, padding, then a vec4 per cascade. */
-const TAIL_UNIFORM_BYTES = 16 + 16 * MAX_CASCADES
+/** Where each field of the `Tail` uniform starts, in 4-byte words; the WGSL struct below lists them in this order. */
+const TAIL_WORD = { gravity: 0, depth: 1, tick: 2, cascades: 4 } as const
+
+const TAIL_UNIFORM_BYTES = 4 * (TAIL_WORD.cascades + 4 * MAX_CASCADES)
 
 /** rgba16float filters and is a core storage format, and half precision is a fraction of a millimetre on these fields. */
 const FIELD_FORMAT: GPUTextureFormat = 'rgba16float'
@@ -59,7 +62,7 @@ override OMEGA_STEP: f32;
 @group(0) @binding(4) var derivatives: texture_storage_2d_array<rgba16float, write>;
 @group(0) @binding(5) var moments: texture_storage_2d_array<rgba16float, write>;
 
-const TAU: f32 = 6.28318530717958648;
+${phaseWgsl}
 const PI: f32 = 3.14159265358979324;
 
 // Four complex fields per bin, each the packing X + iY of two real fields, so one complex transform yields two real
@@ -380,9 +383,9 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
     })
 
     layout.tiles.forEach((tile, c) => {
-      uniformFloats.set([tile, layout.choppiness[c] ?? 0], 4 + 4 * c)
+      uniformFloats.set([tile, layout.choppiness[c] ?? 0], TAIL_WORD.cascades + 4 * c)
     })
-    uniformFloats.set([sea.gravity, sea.depth], 0)
+    uniformFloats.set([sea.gravity, sea.depth], TAIL_WORD.gravity)
 
     const displacement = fieldTexture('displacement', n, count)
     const derivatives = fieldTexture('derivatives', n, count)
@@ -450,7 +453,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
       return next.fields
     },
     prepare: (tick) => {
-      uniformWords[2] = ((tick % PERIOD_TICKS) + PERIOD_TICKS) % PERIOD_TICKS
+      uniformWords[TAIL_WORD.tick] = wrap(tick, PERIOD_TICKS)
       device.queue.writeBuffer(uniform, 0, uniformData)
     },
     encode: (pass) => {

@@ -16,6 +16,9 @@ import type { RenderOceanSettings } from './settings.ts'
  */
 const FLAT_RINGS = 3
 
+/** The share of a ring, outermost, over which CDLOD morphs it onto the next ring's grid (ADR 0011). */
+export const CDLOD_MORPH_SHARE = 0.25
+
 /** A ring as one frame draws it. */
 export interface Ring {
   /** Absolute ring index: the cell size is innerSpacing 2^level. */
@@ -59,14 +62,16 @@ const innermostLevel = (settings: RenderOceanSettings, height: number): { level:
   const halfWidth = (settings.ringCells / 2) * settings.innerSpacing
   const doublings = Math.log2(Math.max(height, halfWidth / 2) / (halfWidth / 2))
   const level = Math.floor(doublings)
-  return { level, morph: smoothstep(0.75, 1, doublings - level) }
+  return { level, morph: smoothstep(1 - CDLOD_MORPH_SHARE, 1, doublings - level) }
 }
+
+/** How many rings every clipmap of these settings holds: the displacing ones, the emerging one and the flat disc. */
+export const ringTotal = (settings: RenderOceanSettings): number => settings.ringCount + 1 + FLAT_RINGS
 
 /** The rings for an eye at world `eye` (m, z above mean level). */
 export const clipmapFor = (settings: RenderOceanSettings, eye: readonly [number, number, number]): Clipmap => {
   const { level: innermost, morph } = innermostLevel(settings, eye[2])
-  const displacing = settings.ringCount + 1
-  const centres = Array.from({ length: displacing + FLAT_RINGS }, (_, slot) => {
+  const centres = Array.from({ length: ringTotal(settings) }, (_, slot) => {
     const spacing = settings.innerSpacing * 2 ** (innermost + slot)
     const snap = (x: number): number => Math.round(x / (2 * spacing)) * 2 * spacing
     return { spacing, centre: [snap(eye[0]), snap(eye[1])] as const }

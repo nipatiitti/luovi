@@ -1,6 +1,14 @@
 import type { SeaDescription } from '@luovi/sim-world'
-import { bandWeights, cascadeWeights, type Clipmap, clipmapFor, surfacePhases } from './clipmap.ts'
-import { coverageWgsl, createOceanFoam, waveWgsl } from './foam.ts'
+import {
+  bandWeights,
+  CDLOD_MORPH_SHARE,
+  cascadeWeights,
+  type Clipmap,
+  clipmapFor,
+  ringTotal,
+  surfacePhases,
+} from './clipmap.ts'
+import { createOceanFoam } from './foam.ts'
 import { type RingMesh, ringMesh } from './mesh.ts'
 import { defaultRenderOceanSettings, type OceanDebug, type RenderOceanSettings } from './settings.ts'
 import {
@@ -10,6 +18,7 @@ import {
   unresolvedBandCovariance,
   waterAbsorption,
 } from './shading.ts'
+import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
 import { createOceanTail, MAX_CASCADES, type TailFields } from './tail.ts'
 
 // The sea surface draw: every ring of the clipmap as one indexed draw of the shared ring mesh, the band summed per vertex
@@ -89,15 +98,31 @@ const WAVE_FLOATS = 8
  */
 const RING_FLOATS = 16
 /**
- * Bytes of the `Ocean` uniform: view-projection, eye, count, origin, cells, wireframe, flags, a vec4 per cascade, then
- * the band covariance with the refractive index, the Cox and Munk covariance with the backscattering, the absorption,
- * then the foam window, its sampling offset with the threshold, and the foam reflectances.
+ * Where each field of the `Ocean` uniform starts, in 4-byte words; the WGSL struct below lists them in this order. After
+ * the cascades come the shading constants (band covariance with the refractive index, Cox and Munk covariance with the
+ * backscattering, absorption) and the foam's (window, sampling offset with threshold and lifetime reflectance, albedos).
  */
-const OCEAN_UNIFORM_BYTES = 112 + 16 * MAX_CASCADES + 48 + 48
-/** Float index of the shading constants in the `Ocean` uniform. */
-const SHADING_FLOATS = 28 + 4 * MAX_CASCADES
-/** Float index of the foam constants in the `Ocean` uniform. */
-const FOAM_FLOATS = SHADING_FLOATS + 12
+const OCEAN_WORD = (() => {
+  const shading = 28 + 4 * MAX_CASCADES
+  const foam = shading + 12
+  return {
+    viewProjection: 0,
+    eye: 16,
+    count: 19,
+    origin: 20,
+    wireframe: 23,
+    band: 24,
+    cascadeCount: 25,
+    cascades: 28,
+    shading,
+    foamWindow: foam,
+    /** foam_sample.z: the threshold, then the lifetime, fresh and thin reflectances. */
+    foamThreshold: foam + 6,
+    end: foam + 12,
+  } as const
+})()
+
+const OCEAN_UNIFORM_BYTES = 4 * OCEAN_WORD.end
 
 /**
  * Where across the foam buffer's half-width the near buffer starts handing over to the far coverage: the blend runs over
@@ -107,7 +132,9 @@ const FOAM_BLEND_START = 0.75
 
 const surfaceWgsl = (sceneWgsl: string): string => /* wgsl */ `
 ${sceneWgsl}
+${phaseWgsl}
 ${waveWgsl}
+${cascadeWgsl}
 ${coverageWgsl}
 
 struct Ocean {
@@ -163,8 +190,6 @@ struct Ring {
 // Near-field foam density, indexed by undisplaced position (foam.ts).
 @group(2) @binding(9) var foam: texture_2d<f32>;
 
-const TAU: f32 = 6.28318530717958648;
-
 struct Varying {
   @builtin(position) position: vec4f,
   // Displaced position measured from the clipmap origin.
@@ -189,8 +214,7 @@ struct Varying {
 
 // Where cascade c samples the point x from the clipmap origin.
 fn tail_uv(c: u32, x: vec2f) -> vec2f {
-  let cascade = ocean.cascades[c];
-  return (x + cascade.yz) / cascade.x;
+  return cascade_uv(ocean.cascades[c], x);
 }
 
 @vertex
@@ -206,7 +230,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
   // so the edge is always fully morphed onto the next ring's vertices.
   let reach = max(abs(flat_position.x - ocean.eye.x), abs(flat_position.y - ocean.eye.y)) / ring.spacing;
   let morph_end = half - 1.0;
-  let morph_start = morph_end - 0.25 * half;
+  let morph_start = morph_end - ${String(CDLOD_MORPH_SHARE)} * half;
   let morph = max(clamp((reach - morph_start) / (morph_end - morph_start), 0.0, 1.0), ring.height_morph);
   // Odd vertices slide onto the even one below them; the centre is on the coarser grid, so local parity is world parity.
   let odd = grid - 2.0 * floor(grid * 0.5);
@@ -236,9 +260,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
         continue;
       }
       let wave = waves[i];
-      var theta = dot(wave.k, position) + phases[i];
-      // WGSL bounds sin and cos only on [-pi, pi], and far rings reach phases of a thousand radians.
-      theta -= TAU * round(theta / TAU);
+      let theta = reduce_phase(dot(wave.k, position) + phases[i]);
       let s = sin(theta);
       let c = cos(theta);
       let a = weight * wave.amplitude;
@@ -247,7 +269,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       shift -= d * s * wave.k;
       slope -= a * s * wave.k;
       stretch -= d * c * vec3f(wave.k.x * wave.k.x, wave.k.x * wave.k.y, wave.k.y * wave.k.y);
-      band_divergence -= d * c * dot(wave.k, wave.k);
+      band_divergence += wave_divergence(wave, d, c);
     }
   }
   if (ring.carry > 0.0) {
@@ -384,9 +406,9 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
     let uv = tail_uv(c, in.lagrangian);
     let derivative = textureSample(derivatives, tail_sampler, uv, c);
     let second = textureSample(moments, tail_sampler, uv, c);
-    let divergence = derivative.z + derivative.w;
-    jacobian += divergence;
-    jacobian_variance += max(second.w - divergence * divergence, 0.0);
+    let divergence = cascade_divergence(derivative, second);
+    jacobian += divergence.x;
+    jacobian_variance += divergence.y;
     if (ocean.cascades[c].w != 0.0) {
       let mean = derivative.xy;
       slope += mean;
@@ -595,8 +617,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     }
 
     const count = sea?.components.count ?? 0
-    // The ring list is fixed by the settings: the displacing rings, the emerging one and the flat disc.
-    const ringTotal = clipmapFor(settings, [0, 0, 0]).rings.length
+    const ringSlots = ringTotal(settings)
     const waveData = new Float32Array(Math.max(1, count) * WAVE_FLOATS)
     if (sea !== null) {
       const { kx, ky, k, omega, amplitude } = sea.components
@@ -608,8 +629,8 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     const waves = storage('waves', waveData.byteLength)
     device.queue.writeBuffer(waves, 0, waveData)
     const phaseData = new Float32Array(Math.max(1, count))
-    const weightData = new Float32Array(Math.max(1, (ringTotal + 1) * count))
-    const ringData = new Float32Array(ringTotal * RING_FLOATS)
+    const weightData = new Float32Array(Math.max(1, (ringSlots + 1) * count))
+    const ringData = new Float32Array(ringSlots * RING_FLOATS)
     const phases = storage('phases', phaseData.byteLength)
     const weights = storage('weights', weightData.byteLength)
     const rings = storage('rings', ringData.byteLength)
@@ -625,7 +646,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
         ...absorption,
         0,
       ],
-      SHADING_FLOATS,
+      OCEAN_WORD.shading,
     )
     const { foamReflectance } = optics
     uniformFloats.set(
@@ -635,7 +656,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
         foamReflectance.fresh.value,
         foamReflectance.thin.value,
       ],
-      FOAM_FLOATS + 6,
+      OCEAN_WORD.foamThreshold,
     )
     const group = (foamView: GPUTextureView): GPUBindGroup =>
       device.createBindGroup({
@@ -668,8 +689,8 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       phaseData,
       weightData,
       ringData,
-      cascadeData: new Float32Array(ringTotal * 4),
-      unresolvedData: new Float32Array(ringTotal * 4),
+      cascadeData: new Float32Array(ringSlots * 4),
+      unresolvedData: new Float32Array(ringSlots * 4),
       clipmap: undefined,
     }
   }
@@ -717,18 +738,21 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       })
       device.queue.writeBuffer(state.rings, 0, state.ringData)
 
-      uniformFloats.set(frame.viewProjectionFrom([x0, y0, 0]), 0)
-      uniformFloats.set([frame.eye[0] - x0, frame.eye[1] - y0, frame.eye[2]], 16)
-      uniformWords[19] = sea?.components.count ?? 0
-      uniformFloats.set([x0, y0, settings.ringCells], 20)
-      uniformWords[23] = frame.debug.wireframe ? 1 : 0
-      uniformWords[24] = frame.debug.band ? 1 : 0
-      uniformWords[25] = state.tail.count
+      uniformFloats.set(frame.viewProjectionFrom([x0, y0, 0]), OCEAN_WORD.viewProjection)
+      uniformFloats.set([frame.eye[0] - x0, frame.eye[1] - y0, frame.eye[2]], OCEAN_WORD.eye)
+      uniformWords[OCEAN_WORD.count] = sea?.components.count ?? 0
+      uniformFloats.set([x0, y0, settings.ringCells], OCEAN_WORD.origin)
+      uniformWords[OCEAN_WORD.wireframe] = frame.debug.wireframe ? 1 : 0
+      uniformWords[OCEAN_WORD.band] = frame.debug.band ? 1 : 0
+      uniformWords[OCEAN_WORD.cascadeCount] = state.tail.count
       state.tail.tiles.forEach((tile, c) => {
         // The origin modulo the tile in f64, so the f32 lookup never sees a large coordinate; texel i holds x = i L / N.
         const texel = tile / settings.cascadeRule.resolution
-        const offset = (x: number): number => (((x % tile) + tile) % tile) + texel / 2
-        uniformFloats.set([tile, offset(x0), offset(y0), frame.debug.cascades[c] === false ? 0 : 1], 28 + 4 * c)
+        const offset = (x: number): number => wrap(x, tile) + texel / 2
+        uniformFloats.set(
+          [tile, offset(x0), offset(y0), frame.debug.cascades[c] === false ? 0 : 1],
+          OCEAN_WORD.cascades + 4 * c,
+        )
       })
       const window = foam.prepare({
         tick: frame.tick,
@@ -739,7 +763,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       })
       uniformFloats.set(
         [...window.corner, window.extent, frame.debug.foam && sea !== null ? 1 : 0, ...window.offset],
-        FOAM_FLOATS,
+        OCEAN_WORD.foamWindow,
       )
       device.queue.writeBuffer(uniform, 0, uniformData)
       tail.prepare(frame.tick)

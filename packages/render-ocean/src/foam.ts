@@ -1,5 +1,6 @@
 import { TICKS_PER_SECOND } from '@luovi/core'
 import type { RenderOceanSettings } from './settings.ts'
+import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
 import { MAX_CASCADES, type TailFields } from './tail.ts'
 
 // The near-field foam buffer of ADR 0011: a world-aligned, camera-centred, toroidal r16float density buffer. Each frame
@@ -21,45 +22,29 @@ import { MAX_CASCADES, type TailFields } from './tail.ts'
 /** Stamps one frame may inject: hull contact from render-ship (step 2) sends a handful per hull. */
 export const MAX_FOAM_STAMPS = 64
 
-/** Bytes of the `Foam` uniform: window, shift, corner, spacing, decay, threshold, counts, flags, then a vec4 per cascade. */
-const FOAM_UNIFORM_BYTES = 64 + 16 * MAX_CASCADES
+/** Where each field of the `Foam` uniform starts, in 4-byte words; the WGSL struct below lists them in this order. */
+const FOAM_WORD = {
+  window: 0,
+  shift: 2,
+  corner: 4,
+  spacing: 6,
+  decay: 7,
+  threshold: 8,
+  count: 9,
+  cascadeCount: 10,
+  stampCount: 11,
+  keep: 12,
+  cascades: 16,
+} as const
+
+const FOAM_UNIFORM_BYTES = 4 * (FOAM_WORD.cascades + 4 * MAX_CASCADES)
 
 const FOAM_FORMAT: GPUTextureFormat = 'r16float'
 
-/**
- * The fraction of a Gaussian below `threshold`, and the step itself when the variance is zero. The erfc is Abramowitz
- * and Stegun 1964 (formula 7.1.26, absolute error under 1.5e-7): algorithm constants, not data.
- */
-export const coverageWgsl = /* wgsl */ `
-fn coverage_below(threshold: f32, mean: f32, variance: f32) -> f32 {
-  if (variance <= 0.0) {
-    return select(0.0, 1.0, mean < threshold);
-  }
-  let z = (threshold - mean) / sqrt(variance);
-  let x = abs(z) * 0.70710678118654752;
-  let t = 1.0 / (1.0 + 0.3275911 * x);
-  let poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
-  let tail = 0.5 * poly * exp(-x * x);
-  return select(1.0 - tail, tail, z < 0.0);
-}
-`
-
-/** The band's wave table as the surface uploads it, shared so the foam pass reads the same layout. */
-export const waveWgsl = /* wgsl */ `
-struct Wave {
-  k: vec2f,
-  amplitude: f32,
-  // lambda A / |k|: the horizontal displacement is -lambda k_hat A sin(theta), the Gerstner sign the query uses.
-  displacement: f32,
-  // omega, rad/s; the draw takes time through the phases, and foam needs no velocity (foam.ts).
-  frequency: f32,
-  _pad0: f32,
-  _pad1: vec2f,
-}
-`
-
 const foamWgsl = /* wgsl */ `
+${phaseWgsl}
 ${waveWgsl}
+${cascadeWgsl}
 ${coverageWgsl}
 
 struct Foam {
@@ -93,8 +78,6 @@ struct Foam {
 // World-space stamps from the clipmap origin: centre x and y (m), radius (m), density.
 @group(0) @binding(7) var<storage, read> stamps: array<vec4f>;
 
-const TAU: f32 = 6.28318530717958648;
-
 @vertex
 fn vertex_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
   // One triangle over the whole target.
@@ -121,17 +104,17 @@ fn fragment_main(@builtin(position) position: vec4f) -> @location(0) f32 {
   var variance = 0.0;
   for (var i = 0u; i < foam.count; i++) {
     let wave = waves[i];
-    var theta = dot(wave.k, x) + phases[i];
-    theta -= TAU * round(theta / TAU);
-    mean -= wave.displacement * cos(theta) * dot(wave.k, wave.k);
+    mean += wave_divergence(wave, wave.displacement, cos(reduce_phase(dot(wave.k, x) + phases[i])));
   }
   for (var c = 0u; c < foam.cascade_count; c++) {
     let cascade = foam.cascades[c];
-    let uv = (x + cascade.yz) / cascade.x;
-    let d = textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w);
-    let divergence = d.z + d.w;
-    mean += divergence;
-    variance += max(textureSampleLevel(moments, tail_sampler, uv, c, cascade.w).w - divergence * divergence, 0.0);
+    let uv = cascade_uv(cascade, x);
+    let divergence = cascade_divergence(
+      textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w),
+      textureSampleLevel(moments, tail_sampler, uv, c, cascade.w),
+    );
+    mean += divergence.x;
+    variance += divergence.y;
   }
   density = max(density, coverage_below(foam.threshold, mean, variance));
 
@@ -186,9 +169,6 @@ export interface OceanFoam {
   encode(encoder: GPUCommandEncoder, timestampWrites: GPURenderPassTimestampWrites | undefined): void
   destroy(): void
 }
-
-/** x modulo m into [0, m). */
-const wrap = (x: number, m: number): number => ((x % m) + m) % m
 
 export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSampler: GPUSampler): OceanFoam => {
   const label = 'ocean foam'
@@ -293,11 +273,14 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
       const seconds = kept === undefined ? 0 : (frame.tick - kept.tick) / TICKS_PER_SECOND
       const shift = (axis: 0 | 1): number =>
         kept === undefined ? 0 : Math.max(-size, Math.min(size, window[axis] - kept.window[axis]))
-      ints.set([window[0], window[1], shift(0), shift(1)], 0)
-      floats.set([window[0] * spacing - x0, window[1] * spacing - y0, spacing, Math.exp(-seconds / decayTime)], 4)
-      floats[8] = threshold ?? 0
-      words[9] = state.bandCount
-      words[10] = tail.count
+      ints.set([window[0], window[1], shift(0), shift(1)], FOAM_WORD.window)
+      floats.set(
+        [window[0] * spacing - x0, window[1] * spacing - y0, spacing, Math.exp(-seconds / decayTime)],
+        FOAM_WORD.corner,
+      )
+      floats[FOAM_WORD.threshold] = threshold ?? 0
+      words[FOAM_WORD.count] = state.bandCount
+      words[FOAM_WORD.cascadeCount] = tail.count
       const stamps = frame.stamps ?? new Float64Array(0)
       const stampCount = stamps.length / 4
       if (!(Number.isInteger(stampCount) && stampCount <= MAX_FOAM_STAMPS)) {
@@ -310,12 +293,12 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
         )
       }
       if (stampCount > 0) device.queue.writeBuffer(stampBuffer, 0, stampData, 0, 4 * stampCount)
-      words[11] = stampCount
-      words[12] = kept === undefined ? 0 : 1
+      words[FOAM_WORD.stampCount] = stampCount
+      words[FOAM_WORD.keep] = kept === undefined ? 0 : 1
       tail.tiles.forEach((tile, c) => {
         const texel = tile / resolution
         const offset = (x: number): number => wrap(x, tile) + texel / 2
-        floats.set([tile, offset(x0), offset(y0), Math.max(0, Math.log2(spacing / texel))], 16 + 4 * c)
+        floats.set([tile, offset(x0), offset(y0), Math.max(0, Math.log2(spacing / texel))], FOAM_WORD.cascades + 4 * c)
       })
       device.queue.writeBuffer(uniform, 0, uniformData)
       current = current === 0 ? 1 : 0
