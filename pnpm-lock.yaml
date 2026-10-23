@@ -38,7 +38,11 @@ importers:
 
   packages/core: {}
 
-  packages/data: {}
+  packages/data:
+    dependencies:
+      '@luovi/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/render-ocean:
     dependencies:
