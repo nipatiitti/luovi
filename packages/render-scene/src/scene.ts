@@ -1,32 +1,66 @@
-import { type Atmosphere, createAtmosphere } from './atmosphere/atmosphere.ts'
+import { type Atmosphere, atmosphereWgsl, createAtmosphere } from './atmosphere/atmosphere.ts'
 import type { AtmosphereConstants } from './atmosphere/constants.ts'
-import { CAMERA_UNIFORM_BYTES, cameraPose, cameraUniform } from './camera.ts'
+import { CAMERA_UNIFORM_BYTES, cameraPose, cameraUniform, cameraWgsl, type Vec3, viewProjection } from './camera.ts'
 import type { Gpu } from './gpu.ts'
-import { createFlatSeaPass } from './flatSea.ts'
 import { createMarkerPass } from './markers.ts'
 import { createBindGroup, createBindGroupLayout, createUniformBuffer } from './pipeline.ts'
 import { type RenderSettings, sunDirection } from './settings.ts'
 import { createSkyPass } from './sky.ts'
 import { createPassTimestamps, type PassTimestamps } from './timestamps.ts'
-import { createHdrTarget, type HdrTarget, hdrPassDescriptor } from './target.ts'
+import { createHdrTarget, DEPTH_FORMAT, HDR_FORMAT, type HdrTarget, hdrPassDescriptor, MSAA_SAMPLES } from './target.ts'
 import { createTonemapPass } from './tonemap.ts'
 
-const PASSES = ['scene', 'tonemap'] as const
+/** Timed passes, in frame order: the sea surface has a pass of its own so its GPU cost reads on its own. */
+const PASSES = ['ocean surface', 'scene', 'tonemap'] as const
 
-/** What the frame shows besides sky and sea, owned by the caller. */
+/** The camera as a layer sees it for one frame. */
+export interface LayerView {
+  /** World eye position, m. */
+  readonly eye: Vec3
+  /** The frame's view-projection for positions measured from `origin`, so a layer can keep its coordinates small. */
+  viewProjectionFrom(origin: Vec3): Float32Array<ArrayBuffer>
+}
+
+/**
+ * Something another renderer draws into the scene, such as render-ocean's surface. Renderers may not import each other,
+ * so the layer is this shape and the tool joins the two.
+ */
+export interface SceneLayer {
+  /** The frame's uploads, before any pass is encoded. */
+  prepare(view: LayerView): void
+  /** Draws into an open scene pass; `sceneGroups` are the bind groups of `LayerTarget.sceneLayouts`. */
+  draw(pass: GPURenderPassEncoder, sceneGroups: readonly GPUBindGroup[]): void
+}
+
+/** What a layer builds its pipelines against. */
+export interface LayerTarget {
+  readonly device: GPUDevice
+  readonly format: GPUTextureFormat
+  readonly sampleCount: number
+  readonly depthFormat: GPUTextureFormat
+  /** Declares the camera at group 0 and the atmosphere at group 1. */
+  readonly sceneWgsl: string
+  readonly sceneLayouts: readonly GPUBindGroupLayout[]
+}
+
+/** What the frame shows besides the sky, owned by the caller. */
 export interface SceneContent {
+  /** The sea surface, drawn first in its own timed pass; without one the sky's planet ground shows. */
+  readonly sea?: SceneLayer
   /** xyz per marker in world metres. */
   readonly markers: Float32Array<ArrayBuffer>
 }
 
 /**
- * The frame as render-scene draws it today: sky, the flat sea and markers into the HDR target, then tone mapping onto
- * the canvas.
+ * The frame as render-scene draws it: the sea, then the sky where the sea is not and markers into the HDR target, then
+ * tone mapping onto the canvas.
  */
 export interface SceneRenderer {
   readonly atmosphere: Atmosphere
   /** Bind group layout of the camera uniform at group 0 of every scene pass (see `cameraWgsl`). */
   readonly cameraLayout: GPUBindGroupLayout
+  /** For a renderer whose passes join the scene as a `SceneLayer`. */
+  readonly layerTarget: LayerTarget
   /** Draws one frame at the canvas's current size. */
   render(settings: RenderSettings, content: SceneContent): void
   /** Milliseconds per pass from GPU timestamps, absent when the device has no `timestamp-query`. */
@@ -51,7 +85,6 @@ export const createSceneRenderer = async (
   const camera = createUniformBuffer(device, 'camera', CAMERA_UNIFORM_BYTES)
   const cameraGroup = createBindGroup(device, 'camera', cameraLayout, [camera.buffer])
   const sky = createSkyPass(device, cameraLayout, atmosphere)
-  const sea = createFlatSeaPass(device, cameraLayout, atmosphere)
   const markers = createMarkerPass(device, cameraLayout, atmosphere)
   const tonemap = createTonemapPass(device, gpu.canvasFormat)
   const timestamps: PassTimestamps | undefined = createPassTimestamps(device, gpu.timestampQuery, PASSES)
@@ -71,27 +104,54 @@ export const createSceneRenderer = async (
     return next
   }
 
+  const sceneGroups = [cameraGroup, atmosphere.bindGroup] as const
+
   return {
     atmosphere,
     cameraLayout,
+    layerTarget: {
+      device,
+      format: HDR_FORMAT,
+      sampleCount: MSAA_SAMPLES,
+      depthFormat: DEPTH_FORMAT,
+      sceneWgsl: cameraWgsl(0) + atmosphereWgsl(1),
+      sceneLayouts: [cameraLayout, atmosphere.layout],
+    },
     render: (settings, content) => {
       const width = Math.max(1, canvas.width)
       const height = Math.max(1, canvas.height)
       const hdr = targetFor(width, height)
-      camera.write(cameraUniform(cameraPose(settings.camera), width / height))
+      const pose = cameraPose(settings.camera)
+      const aspect = width / height
+      camera.write(cameraUniform(pose, aspect))
+      content.sea?.prepare({
+        eye: pose.eye,
+        viewProjectionFrom: (origin) =>
+          viewProjection(
+            { ...pose, eye: [pose.eye[0] - origin[0], pose.eye[1] - origin[1], pose.eye[2] - origin[2]] },
+            aspect,
+          ),
+      })
       atmosphere.setSunDirection(sunDirection(settings.sunElevation, settings.sunAzimuth))
       const exposure = 2 ** -settings.exposureValue
       tonemap.setScale([exposure / whitePoint[0], exposure / whitePoint[1], exposure / whitePoint[2]])
       markers.setPositions(content.markers)
 
       const encoder = device.createCommandEncoder({ label: 'frame' })
-      // The sky writes no depth and draws first; the sea and markers then depth-test against each other over it.
-      const scenePass = encoder.beginRenderPass(hdrPassDescriptor(hdr, 'scene', timestamps?.writesFor(0)))
+      // The sea clears the target and draws first, alone, so its timestamp is the surface draw and nothing else. The
+      // sky then fills only what is still at the far plane, and the markers depth-test against the sea.
+      const seaPass = encoder.beginRenderPass(
+        hdrPassDescriptor(hdr, 'ocean surface', { first: true, last: false }, timestamps?.writesFor(0)),
+      )
+      content.sea?.draw(seaPass, sceneGroups)
+      seaPass.end()
+      const scenePass = encoder.beginRenderPass(
+        hdrPassDescriptor(hdr, 'scene', { first: false, last: true }, timestamps?.writesFor(1)),
+      )
       sky.draw(scenePass, cameraGroup)
-      sea.draw(scenePass, cameraGroup)
       markers.draw(scenePass, cameraGroup)
       scenePass.end()
-      const toneWrites = timestamps?.writesFor(1)
+      const toneWrites = timestamps?.writesFor(2)
       const tonePass = encoder.beginRenderPass({
         label: 'tonemap',
         colorAttachments: [

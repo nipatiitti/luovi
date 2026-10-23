@@ -51,22 +51,30 @@ export const createHdrTarget = (device: GPUDevice, width: number, height: number
   }
 }
 
-/** The render pass descriptor that clears the target and resolves it at the end of the pass. */
+/**
+ * A render pass into the target. The first pass of a frame clears it; every pass but the last keeps colour and depth
+ * for the next, and the last resolves the samples and lets them go.
+ */
 export const hdrPassDescriptor = (
   target: HdrTarget,
   label: string,
+  order: { readonly first: boolean; readonly last: boolean },
   timestampWrites?: GPURenderPassTimestampWrites,
-): GPURenderPassDescriptor => ({
-  label,
-  colorAttachments: [
-    {
-      view: target.color,
-      resolveTarget: target.resolve,
-      clearValue: [0, 0, 0, 1],
-      loadOp: 'clear',
-      storeOp: 'discard',
-    },
-  ],
-  depthStencilAttachment: { view: target.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
-  ...(timestampWrites && { timestampWrites }),
-})
+): GPURenderPassDescriptor => {
+  const loadOp = order.first ? 'clear' : 'load'
+  const storeOp = order.last ? 'discard' : 'store'
+  return {
+    label,
+    colorAttachments: [
+      {
+        view: target.color,
+        ...(order.last && { resolveTarget: target.resolve }),
+        clearValue: [0, 0, 0, 1],
+        loadOp,
+        storeOp,
+      },
+    ],
+    depthStencilAttachment: { view: target.depth, depthClearValue: 0, depthLoadOp: loadOp, depthStoreOp: storeOp },
+    ...(timestampWrites && { timestampWrites }),
+  }
+}
