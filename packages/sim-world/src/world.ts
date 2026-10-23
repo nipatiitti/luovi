@@ -122,7 +122,8 @@ export const loadWorld = (document: unknown): World => {
   const derived = new Float64Array(layout.derived.length)
 
   const applied: AppliedInput[] = []
-  // In arrival order; stamps never decrease within a tick's arrivals, so arrival order is applying order.
+  // In arrival order, which is the order inputs due at the same tick apply in; stamps need not rise along it, since a
+  // future-tick input can arrive before an untimed one. The applied log is in applied order, so a replay reproduces it.
   let scheduled: Scheduled[] = []
 
   let tick = 0
