@@ -240,6 +240,19 @@
     },
     {
       "domains": [
+        "log-uniform magnitude [2^-4, 2^4], both signs x integer [-64, 64] x 2048",
+        "uniform [0.90000000000000002, 1.1000000000000001] x integer [-1100, 1100] x 1024",
+        "log-uniform magnitude [2^-2, 2^2], both signs x integer [-1100, 1100] x 1024",
+        "edge cases x 0"
+      ],
+      "file": "powIntRounded.f64",
+      "inputs": 2,
+      "name": "powIntRounded",
+      "outputs": 1,
+      "records": 4096
+    },
+    {
+      "domains": [
         "uniform [-10, 10] x 1536",
         "uniform [-1000000, 1000000] x 1536",
         "log-uniform magnitude [2^20, 2^1023], both signs x 1024",

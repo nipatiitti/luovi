@@ -1,6 +1,7 @@
 // Every committed golden vector reproduced bit for bit (ADR 0002): the deterministic math in
 // @luovi/core/math against FDLIBM 5.3 built by packages/core/scripts/generate-golden-vectors.sh,
-// and powInt, which has no C oracle, against exact BigInt arithmetic over its committed inputs.
+// and powInt twice: against exact BigInt arithmetic where no partial product rounds, and against
+// the generator's C left-to-right squaring where they all do, which pins the order of squaring.
 
 import {
   acos,
@@ -71,7 +72,9 @@ const binary =
 // power with no rounding at all, a negative one with the single rounding of its final division.
 // The fixed edge records outside that restriction (2^1024, 0.5^1075, the unit bases with int32
 // extreme exponents) are chosen so the same holds; zero, infinite and NaN bases follow C99 pow for
-// integer exponents, spelled out in specialPowInt.
+// integer exponents, spelled out in specialPowInt. Exact inputs cannot tell one order of squaring
+// from another, so the powIntRounded file holds inputs whose partial products round and the C
+// result for them.
 
 const wordView = new DataView(new ArrayBuffer(8))
 
@@ -256,6 +259,13 @@ const vectors: readonly Vectors[] = [
     outputs: 0,
     evaluate: binary(powInt),
     oracle: exactPowInt,
+  },
+  {
+    name: 'powIntRounded',
+    url: new URL('../../../core/golden/powIntRounded.f64', import.meta.url),
+    inputs: 2,
+    outputs: 1,
+    evaluate: binary(powInt),
   },
   {
     name: 'rem_pio2',
