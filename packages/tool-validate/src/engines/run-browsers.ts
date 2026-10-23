@@ -27,6 +27,9 @@ const browsers: readonly { engine: BrowserEngine; type: BrowserType }[] = [
 // three minutes; a healthy one starts in a few seconds.
 const LAUNCH_TIMEOUT_MS = 60_000
 const PAGE_READY_TIMEOUT_MS = 30_000
+// A browser that starts and then stalls inside a benchmark fails that benchmark after this. The slowest engine
+// benchmark takes under a minute in a healthy browser, so ten leave room for a slow CI machine.
+const BENCHMARK_TIMEOUT_MS = 600_000
 
 /** packages/tool-validate/.engines from both src/engines and dist/engines; gitignored. */
 const outDir = fileURLToPath(new URL('../../.engines/', import.meta.url))
@@ -67,6 +70,21 @@ const bundle = async (): Promise<void> => {
 
 const message = (error: unknown): string => (error instanceof Error ? error.message : String(error))
 
+/** Settles as `work` does, or rejects once `ms` pass; Playwright's evaluate has no timeout of its own. */
+const withDeadline = async <T>(work: Promise<T>, ms: number): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`no result within ${String(ms / 1000)} s`))
+    }, ms)
+  })
+  try {
+    return await Promise.race([work, deadline])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 const failedRuns = (engine: BrowserEngine, ids: readonly string[], error: string): Map<string, Run> =>
   new Map(ids.map((id) => [id, { engine, values: {}, logs: {}, error }]))
 
@@ -86,17 +104,36 @@ const runIn = async (
       await page.waitForFunction(() => globalThis.luoviEngines !== undefined, null, {
         timeout: PAGE_READY_TIMEOUT_MS,
       })
-      const runs = await page.evaluate(
-        async ({ ids, engine }) => {
-          const enginesPage = globalThis.luoviEngines
-          if (enginesPage === undefined) throw new Error('the engines page did not load')
-          return enginesPage.run(ids, engine)
-        },
-        { ids, engine },
-      )
-      return new Map(
-        ids.map((id, i) => [id, runs[i] ?? { engine, values: {}, logs: {}, error: 'the page returned no run' }]),
-      )
+      // One benchmark per evaluate, so each has its own deadline. A page stalled past it is still busy, so the
+      // benchmarks after it fail with the same error rather than queue behind it.
+      const runs = new Map<string, Run>()
+      for (const [i, id] of ids.entries()) {
+        try {
+          const [run] = await withDeadline(
+            page.evaluate(
+              async ({ id, engine }) => {
+                const enginesPage = globalThis.luoviEngines
+                if (enginesPage === undefined) throw new Error('the engines page did not load')
+                return enginesPage.run([id], engine)
+              },
+              { id, engine },
+            ),
+            BENCHMARK_TIMEOUT_MS,
+          )
+          runs.set(id, run ?? { engine, values: {}, logs: {}, error: 'the page returned no run' })
+        } catch (error) {
+          const detail = pageErrors.length > 0 ? `; page errors: ${pageErrors.join('; ')}` : ''
+          for (const [failedId, run] of failedRuns(
+            engine,
+            ids.slice(i),
+            `${engine} ${id}: ${message(error)}${detail}`,
+          )) {
+            runs.set(failedId, run)
+          }
+          break
+        }
+      }
+      return runs
     } finally {
       await browser.close()
     }
