@@ -1,48 +1,26 @@
-- No redundant comments: Avoid unnecessary comments that do not add value to the code. Comments should explain why something is done, not what is done, as the code itself should be self-explanatory.
-
 - Not a single — or • anywhere in the UI: This is just lazy and can be replaced with better UI design or sentence structure.
 
-- No unnecessary tests: Trust your code, tests should be e2e, not unit level. And absolutely no 1+1=2, except for the most core math functions and units, if they are custom rolled.
-
-- Well typed TS: any is banned, unkwnown only if it comes from external sources and no extra type assertions. Use type guards and type narrowing instead of type assertions.
-
-- Follow DRY, KISS and SOLID principles: Avoid code duplication, keep it simple, and adhere to SOLID principles for maintainable and scalable code.
-
-- Use async/await: Always use async/await for asynchronous code instead of callbacks or .then()/.catch() chains for better readability and error handling.
-
-- Write modern JavaScript/TypeScript: Use ES6+ features and syntax, such as arrow functions, template literals, destructuring, and modules. Avoid outdated patterns and practices.
-
-- Use functional programming where appropriate: Prefer pure functions, immutability, and higher-order functions to improve code readability and maintainability.
+- Code style and design judgement calls the reviewer enforces (comments say why, simplicity over cleverness, functional first, narrowing over assertions, no sailing-state special cases, no magic coefficients, units and frames, physics before pixels): `CODING_STANDARDS.md`. Mechanical rules (banned `Math` members, `any`, assertions, promise chains, timers and DOM in simulation packages, package layering) are enforced by `eslint.config.js` and `.dependency-cruiser.cjs`; read them before adding a dependency or a `Math` call.
 
 - No unnecessary markdown: Do not add README, CHANGELOG, CONTRIBUTING, per-package docs, plan or notes `.md` files unless explicitly asked. They bloat the repo and go stale. The design doc lives in `docs/intention` and is exported from its source, not written by hand.
 
 ## Project rules (luovi)
 
-- Simulation packages (`sim-*`, `core`) are pure: no DOM, no WebGPU, no timers, no `Date.now`, no `Math.random`. They run in Node for validation and on the server. Randomness comes from the seeded RNG in `core`; time is the integer tick.
+- Simulation packages (`core`, `data`, `sim-*`) run in Node for validation and on the server. Randomness comes from the seeded RNG in `core`; time is the integer tick.
 
-- Determinism is a contract: anything that feeds simulation state uses `core`'s deterministic math, never `Math.sin`/`cos`/`exp`/`pow` directly. GPU results never enter authoritative state. If you cannot make a step deterministic, it belongs in a `render-*` package.
-
-- Dependency direction is one way: data → core → sim-ocean/hull/rig → sim-world → render-_ → tool-_/game-\*. A package never imports from a layer below... [sic: above] it in this list. Games and renderers import `sim-world` only, never a model package.
+- Determinism is a contract: the same scenario and seed produce the same state buffer on every engine, so simulation math comes from `core`. GPU results never enter authoritative state. If a step cannot be made deterministic, it belongs in a `render-*` package.
 
 - Ship data is one `data` package, a directory per ship under `src/ships/<id>/` with `authored/` sources and a bake-written `baked.ts`, shared tables under `src/shared/`. Only `tool-bake` writes a baked file, CI re-bakes and fails on a diff, and nothing in the bake branches on a ship id: a ship that needs different bake behaviour gets a new authored field with a default. See `docs/adr/0009`.
 
-- No special cases for sailing states. There is no "aback", "in irons", "luffing", "broaching" or "sternway" flag anywhere. If a behaviour needs a branch to appear, the force model is wrong; fix the model.
-
-- No magic coefficients. Every empirical constant (polar, regression coefficient, damping, cloth property) lives in the `data` package with a source citation in the data file, not in code. Code receives coefficients through the ship definition.
-
-- Units and frames: SI everywhere, angles in radians, wind and water velocities as vectors (never speed + direction) outside the UI layer. World frame is right-handed, z up, x east, y north; body frame is x forward, y port, z up; heel is positive to starboard, leeway positive when drifting to leeward. Convert at the boundary, never inside a model.
-
 - The five contracts (ship definition, ship state, ship controls, environment query, scenario) are versioned schemas. A breaking change bumps the version and ships a migration for existing scenarios and ship definitions.
 
-- Tests are scenarios. A behaviour claim is proven by a scenario in `tool-validate` with a numeric target (polar within 5%, sternway 1–2 kn, drift speed, broach sequence), run headless. No tests of internals; the exceptions are `core` math and unit conversions.
-
-- Physics before pixels. A change to `render-*` is never a reason to touch `sim-*`. If a visual needs state the simulation does not expose, extend the ship state contract rather than reading internals.
+- Tests are scenarios. A behaviour claim is proven by a scenario in `tool-validate` with a numeric target (polar within 5%, sternway 1–2 kn, drift speed, broach sequence), run headless. The only unit-level tests are `core` math against golden vectors and unit conversions.
 
 - Performance budgets are requirements: 60 Hz fixed tick, hero boat under 1 ms CPU, full-rigged ship rig and sails under 2 ms, renderer under 5 ms GPU at 1440p on an RTX 4060 class card. Profile before optimising, and never trade determinism for speed in `sim-*`.
 
 - The design doc is the source of truth for intent; code is the source of truth for behaviour. When they disagree, open the question rather than silently changing either. Once the question is decided, the source doc is corrected and re-exported naming the ADR that decided it; only schedule deviations are recorded on the wayfinder map.
 
-- All and every user facing questions should be asked with available "ask user a question" tools or some other relvant tool.
+- Every user-facing question is asked with the "ask user a question" tool or another relevant tool.
 
 ## Grilling rounds
 
@@ -59,9 +37,9 @@ A grilling session (`/grilling`, a wayfinder ticket, any design decision put to 
 
 - An agent ends its slice with context under 200k tokens. If a slice will not fit, split it before starting.
 
-- An agent never writes tests for code it wrote itself.
+- A slice's benchmark is written by a second agent from the ticket's acceptance criteria, in parallel with the code. The implementer's brief names the benchmark its code must make pass; the benchmark author's brief names the public surface it may read. A ticket that carries a benchmark is therefore two briefs.
 
-- An agent never verifies code it wrote itself. It runs `pnpm check` to see that the tree compiles and lints, nothing more.
+- A slice agent's own check is `pnpm check`: the tree compiles, lints and respects the package boundaries. Verification of behaviour belongs to the sweeper and the benchmarks.
 
 - `pnpm validate` is the quick benchmark tier and is run once per batch by the sweeper, never by a slice agent. `pnpm validate --full` is run by the coordinator's final sweep or by CI on main.
 
@@ -77,7 +55,7 @@ A grilling session (`/grilling`, a wayfinder ticket, any design decision put to 
 
 ### Issue tracker
 
-Issues live in GitHub Issues on nipatiitti/luovi, driven with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues on nipatiitti/luovi, driven with the `gh` CLI. The build plan and every design decision live on the wayfinder map and its closed tickets; how to read them, and how to publish a batch of tickets, is in `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
