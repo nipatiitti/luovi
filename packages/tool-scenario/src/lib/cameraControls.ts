@@ -1,4 +1,4 @@
-import { type Camera, cameraPose, clampPitch, type Vec3 } from '@luovi/render-scene'
+import { type Camera, cameraPose, clampPitch, NEAR_PLANE, type Vec3 } from '@luovi/render-scene'
 
 // Pointer and keyboard input for the two cameras. Units are UI feel, not physics: radians per pixel of drag, the
 // fraction of the orbit distance per wheel notch, and metres per second of free flight.
@@ -100,7 +100,13 @@ export const attachCameraControls = (element: HTMLElement, initial: Camera): Cam
       const step = seconds * FLIGHT_SPEED * (held.has('ShiftLeft') || held.has('ShiftRight') ? FLIGHT_BOOST : 1)
       const move = (i: 0 | 1 | 2): number =>
         (pose.forward[i] * forward + pose.right[i] * right + (i === 2 ? up : 0)) * step
-      const position: Vec3 = [camera.position[0] + move(0), camera.position[1] + move(1), camera.position[2] + move(2)]
+      // The eye is drawn no lower than the near plane, so the stored height stops there too: sinking further would
+      // leave E climbing through height nobody sees before the view moves.
+      const position: Vec3 = [
+        camera.position[0] + move(0),
+        camera.position[1] + move(1),
+        Math.max(NEAR_PLANE, camera.position[2] + move(2)),
+      ]
       camera = { ...camera, position }
     },
     detach: () => {
