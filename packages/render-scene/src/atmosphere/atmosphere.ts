@@ -1,11 +1,7 @@
 import { createBindGroup, createBindGroupLayout, createComputePipeline, createUniformBuffer } from '../pipeline.ts'
+import type { AtmosphereTable } from '@luovi/core'
 import type { Vec3 } from '../camera.ts'
-import {
-  type AtmosphereConstants,
-  ATMOSPHERE_UNIFORM_FLOATS,
-  packAtmosphere,
-  SUN_DIRECTION_OFFSET,
-} from './constants.ts'
+import { ATMOSPHERE_UNIFORM_FLOATS, packAtmosphere, SUN_DIRECTION_OFFSET } from './constants.ts'
 import { atmosphereFunctionsWgsl, IRRADIANCE_SIZE, SCATTERING_SIZE, TRANSMITTANCE_SIZE } from './functions.ts'
 import {
   directIrradianceWgsl,
@@ -57,7 +53,7 @@ const workgroups = (size: readonly number[]): [number, number, number] => [
  * Runs Bruneton's precomputation once with compute passes and returns the tables. Each step is its own submission
  * so no single command buffer runs long enough to trip a GPU watchdog; the promise settles when the GPU is done.
  */
-export const createAtmosphere = async (device: GPUDevice, constants: AtmosphereConstants): Promise<Atmosphere> => {
+export const createAtmosphere = async (device: GPUDevice, constants: AtmosphereTable): Promise<Atmosphere> => {
   const uniform = createUniformBuffer(device, 'atmosphere', ATMOSPHERE_UNIFORM_FLOATS * 4)
   const packed = packAtmosphere(constants)
   uniform.write(packed)

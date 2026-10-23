@@ -6,47 +6,7 @@
 // implementation says the original used a constant solar spectrum (kConstantSolarIrradiance) and adds an ozone layer
 // the original lacked (use_ozone_), so those values and the Mie values, which it derives from an Angstrom turbidity
 // fit, are marked as estimates of the paper's atmosphere until its full text is checked.
-import type { CitedValue } from '@luovi/core'
-
-/** One value per rendering channel, in the order of `wavelengths`: red, green, blue. */
-export type Rgb = readonly [number, number, number]
-
-export interface AtmosphereTable {
-  /** nm, the wavelength each RGB channel is evaluated at. */
-  readonly wavelengths: CitedValue<Rgb>
-  /** W m^-2 nm^-1 at the top of the atmosphere. */
-  readonly solarIrradiance: CitedValue<Rgb>
-  /** rad, the Sun's apparent angular radius. */
-  readonly sunAngularRadius: CitedValue
-  /** m, the planet's radius: the bottom of the atmosphere. */
-  readonly bottomRadius: CitedValue
-  /** m, the radius of the top of the atmosphere. */
-  readonly topRadius: CitedValue
-  /** m^-1 at sea level; Rayleigh extinction equals scattering (no absorption by air molecules). */
-  readonly rayleighScattering: CitedValue<Rgb>
-  /** m, the exponential density profile's scale height for air molecules. */
-  readonly rayleighScaleHeight: CitedValue
-  /** m^-1 at sea level, wavelength independent (Angstrom exponent 0). */
-  readonly mieScattering: CitedValue
-  /** m^-1 at sea level, wavelength independent. */
-  readonly mieExtinction: CitedValue
-  /** m, the exponential density profile's scale height for aerosols. */
-  readonly mieScaleHeight: CitedValue
-  /** Asymmetry parameter of the Cornette-Shanks phase function, dimensionless. */
-  readonly mieAsymmetry: CitedValue
-  /** m^2 per molecule, the ozone absorption cross-section at each wavelength. */
-  readonly ozoneCrossSection: CitedValue<Rgb>
-  /** Dobson units, the total ozone column. */
-  readonly ozoneColumn: CitedValue
-  /** molecules m^-2 per Dobson unit. */
-  readonly dobsonUnit: CitedValue
-  /** m, the altitude of the tent profile's peak ozone density. */
-  readonly ozonePeakAltitude: CitedValue
-  /** m, the tent profile's half width: density falls linearly to zero this far above and below the peak. */
-  readonly ozoneHalfWidth: CitedValue
-  /** Lambertian albedo of the ground below the atmosphere, dimensionless, used for its multiple-scattering bounce. */
-  readonly groundAlbedo: CitedValue<Rgb>
-}
+import type { AtmosphereTable } from '@luovi/core'
 
 const demo = 'Bruneton 2017, precomputed_atmospheric_scattering, atmosphere/demo/demo.cc, Demo::InitModel'
 const lambdas = 'at 680, 550 and 440 nm (Model::kLambdaR, kLambdaG, kLambdaB in atmosphere/model.cc)'

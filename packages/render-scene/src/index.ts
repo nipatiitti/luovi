@@ -12,7 +12,6 @@ export {
   type OrbitCamera,
   type Vec3,
 } from './camera.ts'
-export type { AtmosphereConstants } from './atmosphere/constants.ts'
 export type { RenderSettings } from './settings.ts'
 export {
   createSceneRenderer,

@@ -1,5 +1,5 @@
+import type { AtmosphereTable } from '@luovi/core'
 import { type Atmosphere, atmosphereWgsl, createAtmosphere } from './atmosphere/atmosphere.ts'
-import type { AtmosphereConstants } from './atmosphere/constants.ts'
 import { CAMERA_UNIFORM_BYTES, cameraPose, cameraUniform, cameraWgsl, type Vec3, viewProjection } from './camera.ts'
 import type { Gpu } from './gpu.ts'
 import { createMarkerPass } from './markers.ts'
@@ -87,7 +87,7 @@ export interface SceneRenderer {
 export const createSceneRenderer = async (
   gpu: Gpu,
   canvas: HTMLCanvasElement,
-  constants: AtmosphereConstants,
+  constants: AtmosphereTable,
 ): Promise<SceneRenderer> => {
   const { device } = gpu
   const context = canvas.getContext('webgpu')

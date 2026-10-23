@@ -4,25 +4,8 @@
 // its ten coefficients) at S 7, T 20 C, lambda 550 nm; the paper's survey value of 1.333 for fresh water is 0.003 low
 // for this state. Pope and Fry 1997 values are read from their table as tabulated by the Oregon Medical Laser Center
 // (omlc.org/spectra/water/data/pope97.txt, cm^-1 there).
-import type { CitedValue } from '@luovi/core'
-import { brunetonAtmosphere, type Rgb } from './atmosphere.ts'
-
-export interface WaterOpticsTable {
-  /** Real refractive index of the water relative to air, dimensionless, at 550 nm. */
-  readonly refractiveIndex: CitedValue
-  /** nm, the wavelength of each RGB channel: the atmosphere table's, red, green, blue. */
-  readonly wavelengths: CitedValue<Rgb>
-  /** m^-1, absorption by pure water at `wavelengths`. */
-  readonly pureWaterAbsorption: CitedValue<Rgb>
-  /** nm, where the CDOM absorption below is stated. */
-  readonly cdomReferenceWavelength: CitedValue
-  /** m^-1, CDOM absorption at the reference wavelength: a_cdom(lambda) = a_ref exp(-S (lambda - lambda_ref)). */
-  readonly cdomAbsorption: CitedValue
-  /** nm^-1, the exponential spectral slope S of the CDOM absorption. */
-  readonly cdomSlope: CitedValue
-  /** m^-1, backscattering by water and particles, wavelength independent. */
-  readonly backscattering: CitedValue
-}
+import type { WaterOpticsTable } from '@luovi/core'
+import { brunetonAtmosphere } from './atmosphere.ts'
 
 const simis2017 =
   'Simis, Ylostalo, Kallio, Spilling and Kutser 2017, PLoS ONE 12(4), e0173357, doi:10.1371/journal.pone.0173357'

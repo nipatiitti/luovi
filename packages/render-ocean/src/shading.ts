@@ -1,38 +1,19 @@
-import type { CitedValue } from '@luovi/core'
+import type { CitedValue, CoxMunkTable, Rgb, WaterOpticsTable } from '@luovi/core'
 import { type SeaDescription, windProfile } from '@luovi/sim-world'
 
 // The CPU half of the sea's filtered shading (#36): the slope covariances the band contributes, whole and per ring, the
 // Cox and Munk target the floor fills up to, and the water's absorption per channel. Symmetric 2 by 2 slope covariances
 // travel as (xx, yy, xy), x east, y north.
 
-type Rgb = readonly [number, number, number]
-
 /**
  * The optical and foam constants the shading reads. Renderers cannot import `data`, so the tool passes its tables here:
- * `coxMunk`, `openSeaRoughnessLength`, `balticOptics`, `foamReflectance` and `foamDecayTime` match these shapes field
- * for field.
+ * `coxMunk`, `openSeaRoughnessLength`, `balticOptics`, `foamReflectance` and `foamDecayTime`.
  */
 export interface OceanOptics {
-  readonly coxMunk: {
-    readonly upwindIntercept: CitedValue
-    readonly upwindSlope: CitedValue
-    readonly crosswindIntercept: CitedValue
-    readonly crosswindSlope: CitedValue
-    /** m, where the fits' wind was measured. */
-    readonly windHeight: CitedValue
-  }
+  readonly coxMunk: CoxMunkTable
   /** m, the log profile's z0 that carries the sea's U10 to the Cox and Munk anemometer height. */
   readonly roughnessLength: CitedValue
-  readonly water: {
-    readonly refractiveIndex: CitedValue
-    /** nm per channel, red, green, blue: the atmosphere's, so sky light and water share channels. */
-    readonly wavelengths: CitedValue<Rgb>
-    readonly pureWaterAbsorption: CitedValue<Rgb>
-    readonly cdomReferenceWavelength: CitedValue
-    readonly cdomAbsorption: CitedValue
-    readonly cdomSlope: CitedValue
-    readonly backscattering: CitedValue
-  }
+  readonly water: WaterOpticsTable
   /** Lambertian reflectances of foam: fresh at injection, thin as it fades, and the lifetime average for far coverage. */
   readonly foamReflectance: {
     readonly fresh: CitedValue

@@ -1,19 +1,7 @@
 // Cox and Munk 1954 (J. Opt. Soc. Am. 44(11), 838-850), clean-surface fits from sun glitter photographs; the slick
 // surface fits are not carried. Their wind was measured 41 ft (12.5 m) above the sea, not at 10 m, so a caller with U10
 // converts through the log profile first.
-import type { CitedValue } from '@luovi/core'
-
-/** Mean square slope = intercept + slope U, U in m/s at windHeight; total, upwind and crosswind components. */
-export interface CoxMunkTable {
-  readonly intercept: CitedValue
-  readonly slope: CitedValue
-  readonly upwindIntercept: CitedValue
-  readonly upwindSlope: CitedValue
-  readonly crosswindIntercept: CitedValue
-  readonly crosswindSlope: CitedValue
-  /** m above the mean sea level */
-  readonly windHeight: CitedValue
-}
+import type { CoxMunkTable } from '@luovi/core'
 
 const coxMunk1954 = 'Cox and Munk 1954, J. Opt. Soc. Am. 44(11), 838-850, clean surface'
 

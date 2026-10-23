@@ -1,5 +1,6 @@
 export { TICKS_PER_SECOND } from './clock.ts'
 export { type CitedValue, CitedValueSchema } from './cited.ts'
+export type { AtmosphereTable, CoxMunkTable, Rgb, WaterOpticsTable } from './tables.ts'
 export { FNV_OFFSET_BASIS, hashState } from './hash.ts'
 export { createRng, type Rng } from './rng.ts'
 
