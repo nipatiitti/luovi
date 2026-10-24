@@ -3,9 +3,9 @@ import { TICKS_PER_SECOND } from '@luovi/core'
 // The Worker's pacing (ADR 0003): a fixed-step accumulator of wall time, scaled by the speed multiplier. After a stall
 // (a throttled background tab, a debugger pause) it runs at most this many ticks in one wake and then drops the rest,
 // so simulated time falls behind real time instead of bursting.
-export const MAX_TICKS_PER_WAKE = 4
+const MAX_TICKS_PER_WAKE = 4
 
-export const TICK_MILLISECONDS = 1000 / TICKS_PER_SECOND
+const TICK_MILLISECONDS = 1000 / TICKS_PER_SECOND
 
 export interface Pacing {
   /** Ticks to run in this wake. */

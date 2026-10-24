@@ -25,7 +25,7 @@ const LOG_INTERVALS = 256
 const NORMAL_INTERVALS = 512
 
 /** The cited coverage law's fraction of surface at U10, the wind held to the law's fitted range rather than extrapolated. */
-export const coverageAt = (windSpeed: number): number => {
+const coverageAt = (windSpeed: number): number => {
   const wind = min(max(windSpeed, whitecapCoverage.lowerLimit.value), whitecapCoverage.upperLimit.value)
   // The law states percent.
   const percent =
@@ -55,7 +55,7 @@ const cascadeVariance = (sea: SpectrumSource, layout: CascadeLayout, c: number):
  * band's clamped lambda, and each cascade lambda_c^2 times the integral of k^2 F over its annulus. Band and cascades share
  * no wave, and distinct waves are uncorrelated, so the variances add.
  */
-export const jacobianVariance = (sea: BreakingSource): number => {
+const jacobianVariance = (sea: BreakingSource): number => {
   const { k, amplitude, count } = sea.components
   let band = 0
   for (let i = 0; i < count; i += 1) {

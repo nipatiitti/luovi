@@ -8,10 +8,10 @@
 // filterable without an optional feature and transmittance ratios near the horizon need the precision.
 
 export const TRANSMITTANCE_SIZE = [256, 64] as const
-export const SCATTERING_R_SIZE = 32
-export const SCATTERING_MU_SIZE = 128
-export const SCATTERING_MU_S_SIZE = 32
-export const SCATTERING_NU_SIZE = 8
+const SCATTERING_R_SIZE = 32
+const SCATTERING_MU_SIZE = 128
+const SCATTERING_MU_S_SIZE = 32
+const SCATTERING_NU_SIZE = 8
 /** The 4D scattering table packed in 3D as Bruneton does: nu and mu_s share the x axis. */
 export const SCATTERING_SIZE = [
   SCATTERING_NU_SIZE * SCATTERING_MU_S_SIZE,

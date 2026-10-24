@@ -14,7 +14,7 @@ import { frequencyDensity, type SpectrumSource, spreadingQuantile, spreadingWidt
  * displacement map a contraction, so the band never folds and the query's two fixed-point iterations converge; 0.8 leaves
  * the iteration's error shrinking by at least that factor per step.
  */
-export const CONTRACTION_BOUND = 0.8
+const CONTRACTION_BOUND = 0.8
 
 // Trapezoid intervals over [0, omega_s] for m0_band and the strip quantiles. Even a cut ratio of 20 leaves the step under
 // a sixtieth of the narrowest JONSWAP peak width, so the integral's discretisation error stays orders below the 5% Hs gate.

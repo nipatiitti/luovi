@@ -12,7 +12,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "boundaries": "depcruise packages --config .dependency-cruiser.cjs",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm boundaries",
+    "banned-characters": "node scripts/banned-characters.js",
+    "unused": "knip",
+    "check": "pnpm typecheck && pnpm lint && pnpm banned-characters && pnpm format:check && pnpm boundaries && pnpm unused",
     "validate": "pnpm --filter @luovi/tool-scenario sync && tsc -b && node packages/tool-validate/dist/cli.js"
   },
   "devDependencies": {
@@ -22,6 +24,7 @@
     "dependency-cruiser": "^18.6.0",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
+    "knip": "^6.42.1",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.2"
