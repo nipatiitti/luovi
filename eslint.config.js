@@ -81,6 +81,8 @@ export default defineConfig(
     'packages/tool-validate/.engines/**',
     '**/node_modules/**',
     'eslint.config.js',
+    // Repository scripts run as plain Node modules, outside every package's tsconfig.
+    'scripts/**',
     '.dependency-cruiser.cjs',
     // SvelteKit's generated types and build output, and the tool's Vite config, which no tsconfig covers.
     'packages/tool-scenario/.svelte-kit/**',

@@ -21,8 +21,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
+      - run: pnpm banned-characters
       - run: pnpm format:check
       - run: pnpm boundaries
+      - run: pnpm unused
 
   # The quick tier in Node and in the three browser engines. One OS is enough: the engines are compared with each
   # other inside the run, and Playwright's Linux builds carry the same JavaScript engines as the macOS ones.

@@ -25,8 +25,8 @@ export const measureEachSea = (
 }
 
 // The spec's sample: 64 by 64 cell centres over a 2 km square, for one minute of ticks.
-export const GRID_SIDE = 64
-export const GRID_SPAN = 2000
+const GRID_SIDE = 64
+const GRID_SPAN = 2000
 export const GRID_TICKS = 3600
 
 /** The grid's cell centres as query points (x, y, z), every one at height `z`. */

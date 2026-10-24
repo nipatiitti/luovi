@@ -6,7 +6,7 @@ export const FNV_OFFSET_BASIS = 0x811c9dc5
 const FNV_PRIME = 0x01000193
 
 /** One FNV-1a 32 step over a 32-bit word, signed or unsigned; the result is a signed int32. */
-export const fnvStep = (hash: number, word: number): number => imul(hash ^ word, FNV_PRIME)
+const fnvStep = (hash: number, word: number): number => imul(hash ^ word, FNV_PRIME)
 
 /** FNV-1a 32 over the character codes of an ASCII string, one byte each; unsigned. */
 export const fnv1a32 = (text: string): number => {

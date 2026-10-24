@@ -69,7 +69,7 @@ export const spreadingWidth = (model: SpectrumSource, omega: number, k: number):
 }
 
 /** D = beta / (2 tanh(beta pi)) sech^2(beta delta), delta in [-pi, pi]; the normaliser is the exact integral over it. */
-export const spreading = (beta: number, delta: number): number => {
+const spreading = (beta: number, delta: number): number => {
   const sech = 1 / cosh(beta * delta)
   return (beta / (2 * tanh(beta * PI))) * sech * sech
 }
