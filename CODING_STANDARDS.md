@@ -12,7 +12,7 @@ One meaning lives in one place. A function does one thing and is named for it. A
 
 ## Functional first
 
-Pure functions over methods with hidden state, immutable inputs over mutation, higher-order functions where they shorten the code. The exception is the hot path: a per-tick loop that writes into a caller-owned array is the project's own pattern (see the environment query) and is correct where allocation would show in the budget.
+Pure functions over methods with hidden state, immutable inputs over mutation, higher-order functions where they shorten the code. The exception is the hot path: a per-tick loop that writes into a caller-owned array is the project's own pattern (see the environment query) and is correct where allocation would show in a profile.
 
 ## Modern TypeScript, narrowed not asserted
 

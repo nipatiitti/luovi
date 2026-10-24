@@ -34,3 +34,7 @@ Node 26 on an Apple M1 Pro, one thread, aero evaluated every substep, median of 
 - The ship state carries, per cloth node, position and velocity; per rod segment, orientation and angular velocity plus its end particles; no multipliers, since they reset every substep; lines carry no state beyond their rest-length controls.
 - The full-rigged ship stand-in meets the 2 ms budget at 8 to 12 substeps and exceeds it at 16 on an M1 Pro; the step 6 effort chooses between the lower count and a faster sweep.
 - The aero chapter's GPU costing and cloth resolution, and the rigging chapter's "well under 1 ms" and Cosserat-under-Gauss-Seidel claims, are corrections for the design doc corrections ticket.
+
+## Amendment, 2026-10-24
+
+The 1 ms and 2 ms budgets this ADR measures against are dropped by `docs/adr/0013`; the decision and its measured costs stand. The full-rigged ship's substep count is chosen by profiling at step 6, not against 2 ms.

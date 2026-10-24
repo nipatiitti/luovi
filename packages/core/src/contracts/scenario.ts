@@ -8,7 +8,7 @@ import { parseContract } from './parse.ts'
 
 /** The contract version; inputs and recordings carry the same one (input.ts says why). */
 export const SCENARIO_VERSION = 1
-/** The band is summed per query point every tick, so its component count is a CPU budget, not a free choice. */
+/** The band is summed per query point every tick, so its component count is a CPU cost, not a free choice. */
 export const MAX_BAND_COMPONENTS = 48
 
 const finite = v.pipe(v.number(), v.finite())

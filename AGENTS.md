@@ -16,7 +16,7 @@
 
 - Tests are scenarios. A behaviour claim is proven by a scenario in `tool-validate` with a numeric target (polar within 5%, sternway 1–2 kn, drift speed, broach sequence), run headless. The only unit-level tests are `core` math against golden vectors and unit conversions.
 
-- Performance budgets are requirements: 60 Hz fixed tick, hero boat under 1 ms CPU, full-rigged ship rig and sails under 2 ms, renderer under 5 ms GPU at 1440p on an RTX 4060 class card. Profile before optimising, and never trade determinism for speed in `sim-*`.
+- Performance has no millisecond budget: the game is playable on a normal GPU and CPU, at whatever frame rate they reach. Profile it, and address a task that costs too much for what it brings case by case (`docs/adr/0013`). The 60 Hz fixed tick is the determinism clock, not a budget, and determinism is never traded for speed in `sim-*`.
 
 - The design doc is the source of truth for intent; code is the source of truth for behaviour. When they disagree, open the question rather than silently changing either. Once the question is decided, the source doc is corrected and re-exported naming the ADR that decided it; only schedule deviations are recorded on the wayfinder map.
 

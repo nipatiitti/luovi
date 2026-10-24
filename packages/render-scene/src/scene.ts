@@ -12,7 +12,7 @@ import { createTonemapPass } from './tonemap.ts'
 
 /**
  * Timed passes, in frame order. The sea's compute work and its surface each have a pass of their own so the ocean's
- * budget lines (#23: FFT with post and mips, foam, surface draw) read one by one.
+ * costs (FFT with post and mips, foam, surface draw) read one by one.
  */
 const PASSES = ['ocean FFT', 'ocean foam', 'ocean surface', 'scene', 'tonemap'] as const
 type PassName = (typeof PASSES)[number]

@@ -165,7 +165,7 @@ export interface OceanFoam {
   /** The buffer written this frame, for the surface to bind; one of two that alternate. */
   readonly current: 0 | 1
   readonly views: readonly [GPUTextureView, GPUTextureView]
-  /** The update as one render pass carrying `timestampWrites`, so the foam's budget line reads this pass alone. */
+  /** The update as one render pass carrying `timestampWrites`, so the foam's timing reads this pass alone. */
   encode(encoder: GPUCommandEncoder, timestampWrites: GPURenderPassTimestampWrites | undefined): void
   destroy(): void
 }
