@@ -6,6 +6,8 @@ The alternatives were a camera-centred band texture (rejected because hardware f
 
 Decided by the render-ocean v1 ticket ([#23](https://github.com/nipatiitti/luovi/issues/23)) on 2026-10-22, from the ocean wave survey ([#18](https://github.com/nipatiitti/luovi/issues/18)) and the ocean contract ([#8](https://github.com/nipatiitti/luovi/issues/8), `docs/adr/0005`).
 
+The band is now 128 components (ADR 0005, amended 2026-10-24). Drawing them per vertex runs at 114 to 120 fps on an M1 Pro at 2560x1440; the comparison against a band texture was not re-measured at that size.
+
 ## Consequences
 
 - The GPU receives the band's wave vectors, frequencies and amplitudes and never recomputes them; phases are reduced on the CPU in f64 at the published slot's tick time, with the camera origin's phase folded in, so the shader works on camera-relative positions in f32. The tail's time uniform is the same tick time; pause freezes the whole sea.

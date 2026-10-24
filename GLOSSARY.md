@@ -100,6 +100,10 @@ _Avoid_: Low band, CPU sea, swell (as a generic term)
 The visual part of the sea, every wave shorter than the cut, drawn by the renderer and felt by nothing.
 _Avoid_: FFT sea, detail, high band
 
+**Bound waves**:
+The second-order part of the band's surface height, locked to pairs of wave components rather than travelling freely. It raises crests and flattens troughs.
+_Avoid_: Stokes correction, crest sharpening, second-order waves
+
 **Cut wavenumber**:
 The single wavenumber that separates band from tail. One value per scenario, shared by both.
 _Avoid_: Split, cutoff, k_s (in prose)
@@ -197,7 +201,7 @@ An authored scenario and its input stream in one file. Replaying a recording rep
 _Avoid_: Replay file, log, session
 
 **Reference sea**:
-One of the three named sea states, light, moderate and storm, that ocean benchmarks and cost figures are stated on.
+One of the three named Baltic sea states, archipelago, gulf and storm, each tied to a measured case, that ocean benchmarks and cost figures are stated on.
 _Avoid_: Test sea, sea preset, sample sea
 
 **Steady-state window**:

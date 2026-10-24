@@ -27,7 +27,7 @@
 A grilling session (`/grilling`, a wayfinder ticket, any design decision put to Niilo) runs in rounds. Niilo's input is the scarce resource: spend it on decisions, and on nothing a lookup could settle.
 
 1. Settle every fact first. A question that waits on the filesystem, a paper or a web page goes to a subagent; only decisions reach Niilo.
-2. Ask the whole frontier in one round as numbered questions in the chat, each with a recommended answer, worded so "yes" takes the recommendation. Nothing is left silently assumed: a decision that goes unasked is a decision the agent made.
+2. Ask the whole frontier in one round as numbered questions in the chat, each with a recommended answer, worded so "yes" takes the recommendation. Nothing is left silently assumed: a decision that goes unasked is a decision the agent made. State every option's trade-off as quality and frame rate: what the eye sees (screenshots side by side when the choice is visual) and the fps it costs, measured on this machine. Raw figures (µs, correlations, ratios) back those up and never stand alone.
 3. Collect the answers with one "ask user a question" call: the first question asks whether the recommendations stand, with "Yes to all" first and "Yes with exceptions, named by number" second. Add a separate question in the same call only for a genuine fork, the one or two decisions whose answer reshapes the work, with the recommended option first.
 4. An exception is the answer to that question. A second round happens only when an exception reshapes the frontier; otherwise record and act.
 5. A question that reopens a closed decision ticket gets a round of its own, after research. It is never a seat in a close-out round.
