@@ -30,6 +30,7 @@ A grilling session (`/grilling`, a wayfinder ticket, any design decision put to 
 2. Ask the whole frontier in one round as numbered questions in the chat, each with a recommended answer, worded so "yes" takes the recommendation. Nothing is left silently assumed: a decision that goes unasked is a decision the agent made.
 3. Collect the answers with one "ask user a question" call: the first question asks whether the recommendations stand, with "Yes to all" first and "Yes with exceptions, named by number" second. Add a separate question in the same call only for a genuine fork, the one or two decisions whose answer reshapes the work, with the recommended option first.
 4. An exception is the answer to that question. A second round happens only when an exception reshapes the frontier; otherwise record and act.
+5. A question that reopens a closed decision ticket gets a round of its own, after research. It is never a seat in a close-out round.
 
 ## Agentic workflow
 
