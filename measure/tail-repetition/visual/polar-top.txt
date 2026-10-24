@@ -1,0 +1,15 @@
+top bothnian L0 ring 349 px: 0.068 at 89 deg 357 px; ring 363 px: 0.068 at 89 deg 357 px; ring 250 px: 0.031 at 69 deg 246 px
+top bothnian L1 ring 349 px: 0.067 at 178 deg 351 px; ring 363 px: 0.058 at 178 deg 355 px; ring 250 px: 0.032 at 79 deg 256 px
+top bothnian L2 ring 349 px: 0.092 at 42 deg 349 px; ring 363 px: 0.043 at 41 deg 355 px; ring 250 px: 0.026 at 0 deg 256 px
+top bothnian L3 ring 349 px: 0.037 at 98 deg 343 px; ring 363 px: 0.033 at 46 deg 355 px; ring 250 px: 0.033 at 113 deg 242 px
+top bothnian L4 ring 349 px: 0.079 at 43 deg 357 px; ring 363 px: 0.101 at 42 deg 361 px; ring 250 px: 0.029 at 94 deg 242 px
+top moderate L0 ring 170 px: 0.109 at 0 deg 176 px; ring 176 px: 0.109 at 0 deg 176 px; ring 339 px: 0.052 at 84 deg 347 px; ring 250 px: 0.041 at 43 deg 258 px
+top moderate L1 ring 170 px: 0.071 at 0 deg 178 px; ring 176 px: 0.120 at 0 deg 182 px; ring 339 px: 0.044 at 144 deg 341 px; ring 250 px: 0.063 at 178 deg 250 px
+top moderate L2 ring 170 px: 0.091 at 128 deg 166 px; ring 176 px: 0.082 at 41 deg 184 px; ring 339 px: 0.052 at 129 deg 331 px; ring 250 px: 0.166 at 178 deg 248 px
+top moderate L3 ring 170 px: 0.049 at 115 deg 170 px; ring 176 px: 0.049 at 115 deg 170 px; ring 339 px: 0.041 at 152 deg 347 px; ring 250 px: 0.038 at 160 deg 254 px
+top moderate L4 ring 170 px: 0.078 at 127 deg 170 px; ring 176 px: 0.078 at 127 deg 170 px; ring 339 px: 0.047 at 174 deg 347 px; ring 250 px: 0.152 at 178 deg 258 px
+top helsinki L0 ring 282 px: 0.232 at 0 deg 282 px; ring 564 px: 0.109 at 0 deg 572 px; ring 200 px: 0.052 at 67 deg 194 px
+top helsinki L1 ring 282 px: 0.232 at 0 deg 282 px; ring 564 px: 0.109 at 0 deg 572 px; ring 200 px: 0.052 at 67 deg 194 px
+top helsinki L2 ring 282 px: 0.231 at 0 deg 284 px; ring 564 px: 0.116 at 0 deg 568 px; ring 200 px: 0.056 at 24 deg 202 px
+top helsinki L3 ring 282 px: 0.041 at 51 deg 278 px; ring 564 px: 0.116 at 0 deg 568 px; ring 200 px: 0.051 at 147 deg 198 px
+top helsinki L4 ring 282 px: 0.231 at 0 deg 284 px; ring 564 px: 0.116 at 0 deg 568 px; ring 200 px: 0.056 at 24 deg 202 px

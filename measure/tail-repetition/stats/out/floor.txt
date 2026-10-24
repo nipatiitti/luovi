@@ -1,0 +1,3 @@
+cascade 2 slope lobe (offset as fraction of t2 -> mean rho2): 0.0025: 0.856, 0.005: 0.595, 0.0075: 0.443, 0.01: 0.376, 0.015: 0.237, 0.02: 0.162, 0.03: 0.051, 0.05: -0.035
+cascade 1 slope lobe: 0.0025: 0.955, 0.005: 0.834, 0.01: 0.506, 0.02: 0.197
+t1 36.11 m, t2 3.755 m, cascade 1 lattice points in window 4625, expected best offset 0.0083 t2

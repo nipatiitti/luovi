@@ -176,7 +176,8 @@ const openTool = async (browser: Browser, url: string): Promise<{ page: Page; er
   const page = await browser.newPage({ viewport: VIEWPORT })
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
-  await page.goto(`${url}?shots`)
+  // PROTOTYPE (tail repetition, #44): the cascade layout from LAYOUT, L0 by default.
+  await page.goto(`${url}?shots&layout=${process.env.LAYOUT ?? 'L0'}`)
   // The panel would cover part of every view.
   await page.addStyleTag({ content: 'aside, .prototype-bar { display: none !important; }' })
   // Ready once the opening scenario has loaded and drawn, so the first view's load is not mistaken for the opening one.

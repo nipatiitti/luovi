@@ -1,0 +1,658 @@
+diff --git a/packages/render-ocean/src/foam.ts b/packages/render-ocean/src/foam.ts
+index 3e1efd7..16a0526 100644
+--- a/packages/render-ocean/src/foam.ts
++++ b/packages/render-ocean/src/foam.ts
+@@ -1,6 +1,6 @@
+ import { TICKS_PER_SECOND } from '@luovi/core'
+ import type { RenderOceanSettings } from './settings.ts'
+-import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
++import { cascadeOffset, cascadeWgsl, coverageWgsl, hexUniform, hexWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
+ import { MAX_CASCADES, type TailFields } from './tail.ts'
+ 
+ // The near-field foam buffer of ADR 0011: a world-aligned, camera-centred, toroidal r16float density buffer. Each frame
+@@ -35,9 +35,13 @@ const FOAM_WORD = {
+   stampCount: 11,
+   keep: 12,
+   cascades: 16,
++  /** PROTOTYPE (tail repetition, #44): cos and sin of each cascade's lattice turn. */
++  turns: 16 + 4 * MAX_CASCADES,
++  /** PROTOTYPE (tail repetition, #44, L5): hex and hex_id (shared.ts hexUniform). */
++  hex: 16 + 8 * MAX_CASCADES,
+ } as const
+ 
+-const FOAM_UNIFORM_BYTES = 4 * (FOAM_WORD.cascades + 4 * MAX_CASCADES)
++const FOAM_UNIFORM_BYTES = 4 * (FOAM_WORD.hex + 8)
+ 
+ const FOAM_FORMAT: GPUTextureFormat = 'r16float'
+ 
+@@ -46,6 +50,7 @@ ${phaseWgsl}
+ ${waveWgsl}
+ ${cascadeWgsl}
+ ${coverageWgsl}
++${hexWgsl}
+ 
+ struct Foam {
+   // The world texel index of the window's first texel, and how far the window moved since the previous frame, texels.
+@@ -66,6 +71,9 @@ struct Foam {
+   _pad1: vec2u,
+   // Per cascade: tile L (m), the clipmap origin modulo L plus half a texel (m), and the mip matching a buffer texel.
+   cascades: array<vec4f, ${String(MAX_CASCADES)}>,
++  turns: array<vec4f, ${String(MAX_CASCADES)}>,
++  hex: vec4f,
++  hex_id: vec4f,
+ }
+ 
+ @group(0) @binding(0) var<uniform> foam: Foam;
+@@ -108,11 +116,24 @@ fn fragment_main(@builtin(position) position: vec4f) -> @location(0) f32 {
+   }
+   for (var c = 0u; c < foam.cascade_count; c++) {
+     let cascade = foam.cascades[c];
+-    let uv = cascade_uv(cascade, x);
+-    let divergence = cascade_divergence(
+-      textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w),
+-      textureSampleLevel(moments, tail_sampler, uv, c, cascade.w),
+-    );
++    let uv = cascade_uv(cascade, foam.turns[c].xy, x);
++    var derivative = textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w);
++    var second = textureSampleLevel(moments, tail_sampler, uv, c, cascade.w);
++    // PROTOTYPE (tail repetition, #44, L5): cascade 0 hex-blended as the surface blends it (surface.ts tail_pixel).
++    if (c == 0u && foam.hex.w != 0.0) {
++      let t = hex_taps(x, foam.hex, foam.hex_id);
++      let d0 = textureSampleLevel(derivatives, tail_sampler, uv + t.offset0, c, cascade.w);
++      let d1 = textureSampleLevel(derivatives, tail_sampler, uv + t.offset1, c, cascade.w);
++      let d2 = textureSampleLevel(derivatives, tail_sampler, uv + t.offset2, c, cascade.w);
++      let m0 = textureSampleLevel(moments, tail_sampler, uv + t.offset0, c, cascade.w);
++      let m1 = textureSampleLevel(moments, tail_sampler, uv + t.offset1, c, cascade.w);
++      let m2 = textureSampleLevel(moments, tail_sampler, uv + t.offset2, c, cascade.w);
++      derivative = t.weight.x * d0 + t.weight.y * d1 + t.weight.z * d2;
++      let w2 = t.weight * t.weight;
++      second = w2.x * (m0 - hex_square(d0)) + w2.y * (m1 - hex_square(d1)) + w2.z * (m2 - hex_square(d2))
++        + hex_square(derivative);
++    }
++    let divergence = cascade_divergence(derivative, second);
+     mean += divergence.x;
+     variance += divergence.y;
+   }
+@@ -207,6 +228,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
+     readonly band: BandTables
+     readonly tail: TailFields
+     readonly resolution: number
++    readonly hex: boolean | 'linear'
+   }
+ 
+   const texture = (size: number): GPUTexture =>
+@@ -255,6 +277,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
+         band,
+         tail,
+         resolution: settings.cascadeRule.resolution,
++        hex: settings.hexCascade0 ?? false,
+       }
+       last = undefined
+     },
+@@ -297,9 +320,15 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
+       words[FOAM_WORD.keep] = kept === undefined ? 0 : 1
+       tail.tiles.forEach((tile, c) => {
+         const texel = tile / resolution
+-        const offset = (x: number): number => wrap(x, tile) + texel / 2
+-        floats.set([tile, offset(x0), offset(y0), Math.max(0, Math.log2(spacing / texel))], FOAM_WORD.cascades + 4 * c)
++        const turn = tail.rotations[c] ?? 0
++        floats.set(
++          [tile, ...cascadeOffset(tile, texel, turn, x0, y0), Math.max(0, Math.log2(spacing / texel))],
++          FOAM_WORD.cascades + 4 * c,
++        )
++        floats.set([Math.cos(turn), Math.sin(turn)], FOAM_WORD.turns + 4 * c)
+       })
++      const tile0 = tail.tiles[0]
++      floats.set(hexUniform(tile0 ?? 1, x0, y0, tile0 === undefined ? false : state.hex), FOAM_WORD.hex)
+       device.queue.writeBuffer(uniform, 0, uniformData)
+       current = current === 0 ? 1 : 0
+       last = enabled ? { tick: frame.tick, window } : undefined
+diff --git a/packages/render-ocean/src/settings.ts b/packages/render-ocean/src/settings.ts
+index 4d7226b..b3ed77b 100644
+--- a/packages/render-ocean/src/settings.ts
++++ b/packages/render-ocean/src/settings.ts
+@@ -19,6 +19,8 @@ export interface RenderOceanSettings {
+   readonly foamBufferSize: number
+   /** m per foam buffer texel. */
+   readonly foamSpacing: number
++  /** PROTOTYPE (tail repetition, #44): hex-tile cascade 0 (shared.ts hexWgsl); absent is off. */
++  readonly hexCascade0?: boolean | 'linear'
+ }
+ 
+ /** What the debug panel can switch off or overlay; not render settings, since they show the machinery, not the sea. */
+diff --git a/packages/render-ocean/src/shared.ts b/packages/render-ocean/src/shared.ts
+index 7790634..9453371 100644
+--- a/packages/render-ocean/src/shared.ts
++++ b/packages/render-ocean/src/shared.ts
+@@ -36,8 +36,11 @@ fn wave_divergence(wave: Wave, d: f32, c: f32) -> f32 {
+ /** How the tail's per-cascade fields are sampled and what their derivative and moment channels mean (tail.ts). */
+ export const cascadeWgsl = /* wgsl */ `
+ // Where a cascade (tile L, the origin modulo L plus half a texel) samples the point x from the clipmap origin.
+-fn cascade_uv(cascade: vec4f, x: vec2f) -> vec2f {
+-  return (x + cascade.yz) / cascade.x;
++// PROTOTYPE (tail repetition, #44): turn is (cos, sin) of the lattice's turn; x is taken into the lattice's frame, and
++// the origin offset is the lattice-frame origin modulo L (cascadeOffset).
++fn cascade_uv(cascade: vec4f, turn: vec2f, x: vec2f) -> vec2f {
++  let lattice = vec2f(turn.x * x.x + turn.y * x.y, -turn.y * x.x + turn.x * x.y);
++  return (lattice + cascade.yz) / cascade.x;
+ }
+ 
+ // The cascade's displacement divergence and its variance over a filtered footprint, from the derivatives
+@@ -65,3 +68,92 @@ fn coverage_below(threshold: f32, mean: f32, variance: f32) -> f32 {
+   return select(1.0 - tail, tail, z < 0.0);
+ }
+ `
++
++/**
++ * PROTOTYPE (tail repetition, #44): a cascade's sampling offset, the clipmap origin in the turned lattice's frame modulo
++ * the tile plus half a texel, in f64 so the f32 lookup never sees a large coordinate.
++ */
++export const cascadeOffset = (
++  tile: number,
++  texel: number,
++  turn: number,
++  x0: number,
++  y0: number,
++): readonly [number, number] => {
++  const c = Math.cos(turn)
++  const s = Math.sin(turn)
++  return [wrap(c * x0 + s * y0, tile) + texel / 2, wrap(-s * x0 + c * y0, tile) + texel / 2]
++}
++
++/**
++ * PROTOTYPE (tail repetition, #44, layout L5): hex tiling of cascade 0 after Heitz and Neyret 2018. The plane is cut by
++ * a triangular lattice of spacing a (one cascade 0 tile, so each vertex's Voronoi hexagon is one tile across); each
++ * lattice vertex samples the cascade at its own random offset, and a point blends its triangle's three samples with
++ * barycentric weights normalised to unit square sum, which keeps the variance of a zero-mean Gaussian field. `hex` is
++ * (a, the origin's fractional skewed coordinate, 1 when on) and `hex_id` the origin's integer skewed coordinate.
++ */
++export const hexWgsl = /* wgsl */ `
++struct HexTaps {
++  offset0: vec2f,
++  offset1: vec2f,
++  offset2: vec2f,
++  // Barycentric weights over the root of their square sum: a linear field blends with these, a variance with their squares.
++  weight: vec3f,
++}
++
++// pcg2d (Jarzynski and Olano 2020) of the vertex's integer coordinates, as a uv offset in [0, 1).
++fn hex_offset(id: vec2f) -> vec2f {
++  var v = vec2u(bitcast<u32>(i32(id.x)), bitcast<u32>(i32(id.y)));
++  v = v * 1664525u + 1013904223u;
++  v.x += v.y * 1664525u;
++  v.y += v.x * 1664525u;
++  v = v ^ (v >> vec2u(16u));
++  v.x += v.y * 1664525u;
++  v.y += v.x * 1664525u;
++  v = v ^ (v >> vec2u(16u));
++  return vec2f(v >> vec2u(8u)) / 16777216.0;
++}
++
++fn hex_taps(x: vec2f, hex: vec4f, hex_id: vec4f) -> HexTaps {
++  // Skewed coordinates: the triangular lattice's vertices at integer points.
++  let p = x / hex.x;
++  let q = vec2f(p.x - p.y * 0.57735026918962576, p.y * 1.15470053837925153) + hex.yz;
++  let base = floor(q);
++  let f = q - base;
++  let z = 1.0 - f.x - f.y;
++  var w: vec3f;
++  var v0: vec2f;
++  var v1: vec2f;
++  var v2: vec2f;
++  if (z > 0.0) {
++    w = vec3f(z, f.y, f.x);
++    v0 = base;
++    v1 = base + vec2f(0.0, 1.0);
++    v2 = base + vec2f(1.0, 0.0);
++  } else {
++    w = vec3f(-z, 1.0 - f.y, 1.0 - f.x);
++    v0 = base + vec2f(1.0, 1.0);
++    v1 = base + vec2f(1.0, 0.0);
++    v2 = base + vec2f(0.0, 1.0);
++  }
++  let id = hex_id.xy;
++  // hex.w 2 is a check only: plain barycentric weights, which lose variance toward a triangle's centre.
++  let norm = select(length(w), 1.0, hex.w > 1.5);
++  return HexTaps(hex_offset(v0 + id), hex_offset(v1 + id), hex_offset(v2 + id), w / norm);
++}
++
++// The second-moment channels (sx^2, sy^2, sx sy, div^2) of a texel whose first moments are d = (sx, sy, dDx/dx, dDy/dy).
++fn hex_square(d: vec4f) -> vec4f {
++  let divergence = d.z + d.w;
++  return vec4f(d.x * d.x, d.y * d.y, d.x * d.y, divergence * divergence);
++}
++`
++
++/** PROTOTYPE (tail repetition, #44): the `hex` and `hex_id` uniforms for cascade 0's tile, origin split in f64. */
++export const hexUniform = (tile: number, x0: number, y0: number, on: boolean | 'linear'): number[] => {
++  const qx = (x0 - y0 / Math.sqrt(3)) / tile
++  const qy = (2 * y0) / Math.sqrt(3) / tile
++  const ix = Math.floor(qx)
++  const iy = Math.floor(qy)
++  return [tile, qx - ix, qy - iy, on === 'linear' ? 2 : on ? 1 : 0, ix, iy, 0, 0]
++}
+diff --git a/packages/render-ocean/src/surface.ts b/packages/render-ocean/src/surface.ts
+index f58b643..ea83c3f 100644
+--- a/packages/render-ocean/src/surface.ts
++++ b/packages/render-ocean/src/surface.ts
+@@ -18,7 +18,7 @@ import {
+   unresolvedBandCovariance,
+   waterAbsorption,
+ } from './shading.ts'
+-import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
++import { cascadeOffset, cascadeWgsl, coverageWgsl, hexUniform, hexWgsl, phaseWgsl, waveWgsl } from './shared.ts'
+ import { createOceanTail, MAX_CASCADES, type TailFields } from './tail.ts'
+ 
+ // The sea surface draw: every ring of the clipmap as one indexed draw of the shared ring mesh, the band summed per vertex
+@@ -129,7 +129,11 @@ const OCEAN_WORD = (() => {
+     foamWindow: foam,
+     /** foam_sample.z: the threshold, then the lifetime, fresh and thin reflectances. */
+     foamThreshold: foam + 6,
+-    end: foam + 12,
++    /** PROTOTYPE (tail repetition, #44): cos and sin of each cascade's lattice turn. */
++    turns: foam + 12,
++    /** PROTOTYPE (tail repetition, #44, L5): hex and hex_id (shared.ts hexUniform). */
++    hex: foam + 12 + 4 * MAX_CASCADES,
++    end: foam + 12 + 4 * MAX_CASCADES + 8,
+   } as const
+ })()
+ 
+@@ -154,6 +158,7 @@ ${phaseWgsl}
+ ${waveWgsl}
+ ${cascadeWgsl}
+ ${coverageWgsl}
++${hexWgsl}
+ 
+ struct Ocean {
+   view_projection: mat4x4f,
+@@ -181,6 +186,11 @@ struct Ocean {
+   foam_sample: vec4f,
+   // Foam reflectance fresh and thin.
+   foam_albedo: vec4f,
++  // PROTOTYPE (tail repetition, #44): cos and sin of each cascade's lattice turn.
++  turns: array<vec4f, ${String(MAX_CASCADES)}>,
++  // PROTOTYPE (tail repetition, #44, L5): cascade 0's hex tiling (shared.ts hexWgsl).
++  hex: vec4f,
++  hex_id: vec4f,
+ }
+ 
+ struct Ring {
+@@ -236,7 +246,47 @@ struct Varying {
+ 
+ // Where cascade c samples the point x from the clipmap origin.
+ fn tail_uv(c: u32, x: vec2f) -> vec2f {
+-  return cascade_uv(ocean.cascades[c], x);
++  return cascade_uv(ocean.cascades[c], ocean.turns[c].xy, x);
++}
++
++// PROTOTYPE (tail repetition, #44, L5): a linear field of cascade c at x and a mip, hex-blended for cascade 0 when on.
++fn tail_level(field: texture_2d_array<f32>, c: u32, x: vec2f, lod: f32) -> vec4f {
++  let uv = tail_uv(c, x);
++  if (c != 0u || ocean.hex.w == 0.0) {
++    return textureSampleLevel(field, tail_sampler, uv, c, lod);
++  }
++  let t = hex_taps(x, ocean.hex, ocean.hex_id);
++  return t.weight.x * textureSampleLevel(field, tail_sampler, uv + t.offset0, c, lod)
++    + t.weight.y * textureSampleLevel(field, tail_sampler, uv + t.offset1, c, lod)
++    + t.weight.z * textureSampleLevel(field, tail_sampler, uv + t.offset2, c, lod);
++}
++
++struct TailPixel {
++  derivative: vec4f,
++  second: vec4f,
++}
++
++// PROTOTYPE (tail repetition, #44, L5): cascade c's derivatives and second moments over the pixel's footprint. Under the
++// hex tiling the first moments blend with the normalised weights and the central second moments with their squares,
++// with the gradient of the unshifted uv, so a tap whose vertex changes across a triangle edge keeps its mip.
++fn tail_pixel(c: u32, x: vec2f) -> TailPixel {
++  let uv = tail_uv(c, x);
++  let gx = dpdx(uv);
++  let gy = dpdy(uv);
++  if (c != 0u || ocean.hex.w == 0.0) {
++    return TailPixel(textureSample(derivatives, tail_sampler, uv, c), textureSample(moments, tail_sampler, uv, c));
++  }
++  let t = hex_taps(x, ocean.hex, ocean.hex_id);
++  let d0 = textureSampleGrad(derivatives, tail_sampler, uv + t.offset0, c, gx, gy);
++  let d1 = textureSampleGrad(derivatives, tail_sampler, uv + t.offset1, c, gx, gy);
++  let d2 = textureSampleGrad(derivatives, tail_sampler, uv + t.offset2, c, gx, gy);
++  let m0 = textureSampleGrad(moments, tail_sampler, uv + t.offset0, c, gx, gy);
++  let m1 = textureSampleGrad(moments, tail_sampler, uv + t.offset1, c, gx, gy);
++  let m2 = textureSampleGrad(moments, tail_sampler, uv + t.offset2, c, gx, gy);
++  let d = t.weight.x * d0 + t.weight.y * d1 + t.weight.z * d2;
++  let w2 = t.weight * t.weight;
++  let central = w2.x * (m0 - hex_square(d0)) + w2.y * (m1 - hex_square(d1)) + w2.z * (m2 - hex_square(d2));
++  return TailPixel(d, central + hex_square(d));
+ }
+ 
+ @vertex
+@@ -371,9 +421,8 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
+       }
+       // The mip whose texel matches the ring's spacing: the waves a ring cannot carry average out instead of aliasing.
+       let lod = max(0.0, log2(mix(1.0, 2.0, morph) * ring.spacing * texels / ocean.cascades[c].x));
+-      let uv = tail_uv(c, position);
+-      let field = textureSampleLevel(displacement, tail_sampler, uv, c, lod);
+-      let derivative = textureSampleLevel(derivatives, tail_sampler, uv, c, lod);
++      let field = tail_level(displacement, c, position, lod);
++      let derivative = tail_level(derivatives, c, position, lod);
+       height += weight * field.z;
+       shift += weight * field.xy;
+       // The stretch of the displacement the vertex carries, at the same filter, so the normal belongs to the drawn mesh.
+@@ -492,9 +541,9 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
+   var jacobian_variance = in.unresolved.w;
+   let whole = i32(textureNumLevels(moments)) - 1;
+   for (var c = 0u; c < ocean.cascade_count; c++) {
+-    let uv = tail_uv(c, in.lagrangian);
+-    let derivative = textureSample(derivatives, tail_sampler, uv, c);
+-    let second = textureSample(moments, tail_sampler, uv, c);
++    let pixel = tail_pixel(c, in.lagrangian);
++    let derivative = pixel.derivative;
++    let second = pixel.second;
+     let divergence = cascade_divergence(derivative, second);
+     jacobian += divergence.x;
+     jacobian_variance += divergence.y;
+@@ -866,12 +915,18 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
+       state.tail.tiles.forEach((tile, c) => {
+         // The origin modulo the tile in f64, so the f32 lookup never sees a large coordinate; texel i holds x = i L / N.
+         const texel = tile / settings.cascadeRule.resolution
+-        const offset = (x: number): number => wrap(x, tile) + texel / 2
++        const turn = state.tail.rotations[c] ?? 0
+         uniformFloats.set(
+-          [tile, offset(x0), offset(y0), frame.debug.cascades[c] === false ? 0 : 1],
++          [tile, ...cascadeOffset(tile, texel, turn, x0, y0), frame.debug.cascades[c] === false ? 0 : 1],
+           OCEAN_WORD.cascades + 4 * c,
+         )
++        uniformFloats.set([Math.cos(turn), Math.sin(turn)], OCEAN_WORD.turns + 4 * c)
+       })
++      const tile0 = state.tail.tiles[0]
++      uniformFloats.set(
++        hexUniform(tile0 ?? 1, x0, y0, tile0 === undefined ? false : (settings.hexCascade0 ?? false)),
++        OCEAN_WORD.hex,
++      )
+       const window = foam.prepare({
+         tick: frame.tick,
+         eye: frame.eye,
+diff --git a/packages/render-ocean/src/tail.ts b/packages/render-ocean/src/tail.ts
+index b07b16e..97b4a22 100644
+--- a/packages/render-ocean/src/tail.ts
++++ b/packages/render-ocean/src/tail.ts
+@@ -38,7 +38,8 @@ const fftWgsl = /* wgsl */ `
+ struct Cascade {
+   tile: f32,
+   lambda: f32,
+-  _pad: vec2f,
++  // PROTOTYPE (tail repetition, #44): cos and sin of the lattice's turn; bins evolve with world-frame wave vectors.
++  turn: vec2f,
+ }
+ 
+ struct Tail {
+@@ -86,7 +87,11 @@ fn bit_reversed(i: u32) -> u32 {
+ // k = (i - N/2) 2 pi / L, as sim-ocean's generator lays it out.
+ fn spectrum(c: u32, ix: u32, iy: u32) {
+   let cascade = tail.cascades[c];
+-  let kv = vec2f(f32(i32(ix) - i32(N / 2u)), f32(i32(iy) - i32(N / 2u))) * (TAU / cascade.tile);
++  let lattice = vec2f(f32(i32(ix) - i32(N / 2u)), f32(i32(iy) - i32(N / 2u))) * (TAU / cascade.tile);
++  let kv = vec2f(
++    cascade.turn.x * lattice.x - cascade.turn.y * lattice.y,
++    cascade.turn.y * lattice.x + cascade.turn.x * lattice.y,
++  );
+   let k = length(kv);
+   let slot = bit_reversed(ix);
+   if (k == 0.0) {
+@@ -227,6 +232,8 @@ export interface TailFields {
+   readonly count: number
+   /** m, cascade 0 first. */
+   readonly tiles: readonly number[]
++  /** PROTOTYPE (tail repetition, #44): rad, each cascade's lattice turn. */
++  readonly rotations: readonly number[]
+   /** m, the longest wave each cascade holds: the one the ring rule tests. */
+   readonly longest: readonly number[]
+   /** (Dx, Dy, h, dDx/dy) per cascade layer, mipmapped. */
+@@ -347,6 +354,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
+         fields: {
+           count: 0,
+           tiles: [],
++          rotations: [],
+           longest: [],
+           displacement: arrayView(textures[0]),
+           derivatives: arrayView(textures[1]),
+@@ -379,7 +387,8 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
+     })
+ 
+     layout.tiles.forEach((tile, c) => {
+-      uniformFloats.set([tile, layout.choppiness[c] ?? 0], TAIL_WORD.cascades + 4 * c)
++      const turn = layout.rotations?.[c] ?? 0
++      uniformFloats.set([tile, layout.choppiness[c] ?? 0, Math.cos(turn), Math.sin(turn)], TAIL_WORD.cascades + 4 * c)
+     })
+     uniformFloats.set([sea.gravity, sea.depth], TAIL_WORD.gravity)
+ 
+@@ -426,6 +435,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
+       fields: {
+         count,
+         tiles: layout.tiles,
++        rotations: layout.tiles.map((_, c) => layout.rotations?.[c] ?? 0),
+         longest: layout.kInner.map((k) => (2 * Math.PI) / k),
+         displacement: arrayView(displacement),
+         derivatives: arrayView(derivatives),
+diff --git a/packages/sim-ocean/src/tail.ts b/packages/sim-ocean/src/tail.ts
+index 516a002..b7ef1fe 100644
+--- a/packages/sim-ocean/src/tail.ts
++++ b/packages/sim-ocean/src/tail.ts
+@@ -18,6 +18,8 @@ export interface CascadeRule {
+   readonly resolution: number
+   readonly minCascades: number
+   readonly maxCascades: number
++  /** PROTOTYPE (tail repetition, #44): rad, cascade c's lattice is turned by c times this; absent is 0. */
++  readonly rotationStep?: number
+ }
+ 
+ /**
+@@ -52,6 +54,8 @@ export interface CascadeLayout {
+   readonly kOuter: readonly number[]
+   /** Per-cascade lambda for the GPU evolution, the scenario's unclamped lambda by default; generateTail ignores it. */
+   readonly choppiness: readonly number[]
++  /** PROTOTYPE (tail repetition, #44): rad, each cascade's lattice turned counter-clockwise; absent is unturned. */
++  readonly rotations?: readonly number[]
+ }
+ 
+ /** The tiles in metres, cascade 0 first, under `rule` for a cut tile of t0 = periodsPerTile cut wavelengths. */
+@@ -91,6 +95,7 @@ export const defaultCascadeLayout = (
+     kInner,
+     kOuter,
+     choppiness: tiles.map(() => sea.block.choppiness),
++    rotations: tiles.map((_, c) => c * (rule.rotationStep ?? 0)),
+   }
+ }
+ 
+@@ -171,6 +176,7 @@ export const generateTail = (sea: SeaDescription, layout: CascadeLayout, rng: Rn
+     const re = new Float64Array(n * n)
+     const im = new Float64Array(n * n)
+     const stream = rng.fork(`cascade.${String(c)}`)
++    const turn = layout.rotations?.[c] ?? 0
+     for (let iy = 0; iy < n; iy += 1) {
+       const ky = (iy - half) * dk
+       for (let ix = 0; ix < n; ix += 1) {
+@@ -178,7 +184,7 @@ export const generateTail = (sea: SeaDescription, layout: CascadeLayout, rng: Rn
+         const radiusSquared = (ix - half) * (ix - half) + (iy - half) * (iy - half)
+         if (radiusSquared <= innerSquared || radiusSquared > outerSquared) continue
+         const kx = (ix - half) * dk
+-        const amplitude = scale * sqrt(spectrum.directional(dk * sqrt(radiusSquared), atan2(ky, kx)))
++        const amplitude = scale * sqrt(spectrum.directional(dk * sqrt(radiusSquared), atan2(ky, kx) + turn))
+         const i = iy * n + ix
+         re[i] = amplitude * (normals[0] ?? 0)
+         im[i] = amplitude * (normals[1] ?? 0)
+diff --git a/packages/tool-scenario/shots/fps.ts b/packages/tool-scenario/shots/fps.ts
+index ccdb91e..fdd8cfa 100644
+--- a/packages/tool-scenario/shots/fps.ts
++++ b/packages/tool-scenario/shots/fps.ts
+@@ -64,6 +64,8 @@ const browser = await chromium.launch({
+     '--use-angle=metal',
+     '--disable-gpu-vsync',
+     '--disable-frame-rate-limit',
++    // PROTOTYPE (tail repetition, #44): headed Chrome on a Retina screen draws at 2x whatever the context's scale says.
++    `--force-device-scale-factor=${process.env.DSF ?? '1'}`,
+     // A window another one covers would otherwise be throttled.
+     '--disable-backgrounding-occluded-windows',
+     '--disable-renderer-backgrounding',
+@@ -72,12 +74,12 @@ const browser = await chromium.launch({
+ })
+ const results: Record<string, unknown>[] = []
+ try {
+-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 })
++  const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: Number(process.env.DSF ?? 1) })
+   const page = await context.newPage()
+   page.on('pageerror', (error) => {
+     console.error(`page error: ${error.message}`)
+   })
+-  await page.goto(`${url}?shots`)
++  await page.goto(`${url}?shots&layout=${process.env.LAYOUT ?? "L0"}`)
+   await page.addStyleTag({ content: 'aside, .prototype-bar { display: none !important; }' })
+   await page.waitForFunction(() => globalThis.luoviShots?.read().tick !== undefined, null, { timeout: 60_000 })
+   const names = await page.evaluate(() => (globalThis.luoviShots?.views ?? []).map((view) => view.name))
+diff --git a/packages/tool-scenario/shots/shots.ts b/packages/tool-scenario/shots/shots.ts
+index 6b81bf0..3e8017d 100644
+--- a/packages/tool-scenario/shots/shots.ts
++++ b/packages/tool-scenario/shots/shots.ts
+@@ -176,7 +176,8 @@ const openTool = async (browser: Browser, url: string): Promise<{ page: Page; er
+   const page = await browser.newPage({ viewport: VIEWPORT })
+   const errors: string[] = []
+   page.on('pageerror', (error) => errors.push(error.message))
+-  await page.goto(`${url}?shots`)
++  // PROTOTYPE (tail repetition, #44): the cascade layout from LAYOUT, L0 by default.
++  await page.goto(`${url}?shots&layout=${process.env.LAYOUT ?? 'L0'}`)
+   // The panel would cover part of every view.
+   await page.addStyleTag({ content: 'aside, .prototype-bar { display: none !important; }' })
+   // Ready once the opening scenario has loaded and drawn, so the first view's load is not mistaken for the opening one.
+diff --git a/packages/tool-scenario/src/lib/shots.ts b/packages/tool-scenario/src/lib/shots.ts
+index 7e178f8..b7b9d4b 100644
+--- a/packages/tool-scenario/src/lib/shots.ts
++++ b/packages/tool-scenario/src/lib/shots.ts
+@@ -1,5 +1,4 @@
+ import { bearingOf, toDegrees, toRadians } from './angles.ts'
+-import { BAND_VARIANTS } from './bandSize.ts'
+ import { initialSettings } from './settings.ts'
+ 
+ // The named views `pnpm shots` captures. Each is the page's own state, a showcase scenario, a camera, the Sun and the
+@@ -71,57 +70,42 @@ interface Scene {
+   readonly foam?: boolean
+ }
+ 
+-const helm = { eyeAboveWater: 2, yaw: EAST, pitch: toRadians(-6) }
+-const wide = { eyeAboveWater: 20, yaw: toRadians(45), pitch: toRadians(-22) }
++// PROTOTYPE (tail repetition, #44): the views of the cascade layout comparison. The layout comes from the page's
++// ?layout=, so every view is drawn in whichever layout the page was opened with.
++const oblique = { eyeAboveWater: 40, yaw: toRadians(45), pitch: toRadians(-20) }
+ 
+ const SCENES: readonly Scene[] = [
+-  { name: 'helm-downwind', label: '2 m eye at the helm, looking downwind', ...helm },
+-  { name: 'helm-across', label: '2 m eye at the helm, looking across the wind', ...helm, yaw: NORTH },
+-  { name: 'wide-20m', label: '20 m eye, looking across a wide area', ...wide },
+-  // In the lowest probe point's trough, low and level along the waves' travel, so the next crest stands against the
+-  // sky. The eye rises with the sea because the tail, which the CPU height leaves out, carries about 2 m Hs in the storm.
++  { name: 'oblique', label: '40 m eye, 20 degrees below the horizon', ...oblique },
++  { name: 'deck', label: '2.5 m eye, looking across the wind', eyeAboveWater: 2.5, yaw: NORTH, pitch: toRadians(-4) },
++  { name: 'top', label: '80 m eye, looking nearly straight down', eyeAboveWater: 80, yaw: EAST, pitch: toRadians(-80) },
++  { name: 'oblique-foam', label: '40 m eye, 20 degrees below the horizon, foam on', ...oblique, foam: true },
++  // High enough that the frame's height spans about three of the baseline's cascade 0 tiles (50 degree field of view).
+   {
+-    name: 'profile',
+-    label: 'Crests in profile from a trough, looking downwind',
+-    eyeAboveWater: { helsinki: 0.4, gulf: 1, bothnian: 3 },
++    name: 'top-wide',
++    label: 'Looking straight down from about three baseline tiles up',
++    eyeAboveWater: { bothnian: 1120, moderate: 545, helsinki: 90 },
+     yaw: EAST,
+-    pitch: 0,
+-    eyeAt: 'trough',
++    pitch: toRadians(-89),
+   },
+-  {
+-    name: 'check',
+-    label: 'Band only with the CPU probe markers, looking down',
+-    eyeAboveWater: 12,
+-    yaw: EAST,
+-    pitch: toRadians(-50),
+-    markers: true,
+-    tail: false,
+-  },
+-  // For the frame-rate runs: the 2 m and 20 m views with main's foam drawn.
+-  { name: 'helm-downwind-foam', label: '2 m eye at the helm, looking downwind, main foam on', ...helm, foam: true },
+-  { name: 'wide-20m-foam', label: '20 m eye, looking across a wide area, main foam on', ...wide, foam: true },
+ ]
+ 
+ const BAND_SEAS: readonly { readonly key: string; readonly scenario: string }[] = [
+-  { key: 'helsinki', scenario: 'Helsinki archipelago, 8 m/s over 15 km' },
+-  { key: 'gulf', scenario: 'Gulf of Finland, 12 m/s over 80 km' },
+   { key: 'bothnian', scenario: 'Bothnian Sea storm, 27 m/s over 194 km' },
++  { key: 'helsinki', scenario: 'Helsinki archipelago, 8 m/s over 15 km' },
++  { key: 'moderate', scenario: 'Moderate reference sea' },
+ ]
+ 
+-/** PROTOTYPE (band size, #43): every scene of every sea in every variant, named sea.scene.variant. */
++/** PROTOTYPE (tail repetition, #44): every scene of every sea with the 128-component band, named sea.scene. */
+ const SHOT_VIEWS: readonly ShotView[] = BAND_SEAS.flatMap((sea) =>
+-  SCENES.flatMap((scene) =>
+-    BAND_VARIANTS.map((variant) => ({
+-      ...daylight,
+-      ...scene,
+-      eyeAboveWater:
+-        typeof scene.eyeAboveWater === 'number' ? scene.eyeAboveWater : (scene.eyeAboveWater[sea.key] ?? 1),
+-      name: `${sea.key}.${scene.name}.${variant.key}`,
+-      label: `${sea.scenario}, ${scene.label}, ${variant.label}`,
+-      scenario: sea.scenario,
+-      bandVariant: variant.key,
+-    })),
+-  ),
++  SCENES.map((scene) => ({
++    ...daylight,
++    ...scene,
++    eyeAboveWater: typeof scene.eyeAboveWater === 'number' ? scene.eyeAboveWater : (scene.eyeAboveWater[sea.key] ?? 1),
++    name: `${sea.key}.${scene.name}`,
++    label: `${sea.scenario}, ${scene.label}`,
++    scenario: sea.scenario,
++    bandVariant: 'n128',
++  })),
+ )
+ 
+ /** What a captured view reports beside its picture. */
+@@ -148,6 +132,7 @@ export interface ShotsHook {
+   show(name: string): Promise<void>
+   /** PROTOTYPE (band size, #43): loads the view, lets it run, and records drawn frames for `ms` after `warmup` ms. */
+   measure(name: string, warmup: number, ms: number): Promise<FrameRun>
++  advance(tick: number): Promise<void>
+   /** The state the page draws now. */
+   read(): ShotResult
+ }
+@@ -203,6 +188,11 @@ export const installShotsHook = (page: ShotsPage): (() => void) => {
+       await page.record(warmup)
+       return page.record(ms)
+     },
++    // PROTOTYPE (tail repetition, #44): runs the paused sea on to a later tick under the same eye, for frame sequences.
++    advance: async (tick) => {
++      await page.seek(tick)
++      await page.frames(2)
++    },
+     read: () => page.read(),
+   }
+   return () => {
+diff --git a/packages/tool-scenario/src/lib/viewer.ts b/packages/tool-scenario/src/lib/viewer.ts
+index 3ee80e0..054a7ea 100644
+--- a/packages/tool-scenario/src/lib/viewer.ts
++++ b/packages/tool-scenario/src/lib/viewer.ts
+@@ -2,6 +2,7 @@ import type { SeaDescription } from '@luovi/core'
+ import { balticOptics, brunetonAtmosphere, coxMunk, foamDecayTime, foamReflectance } from '@luovi/data'
+ import { createOceanSurface, type OceanDebug } from '@luovi/render-ocean'
+ import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
++import { oceanSettingsFor, pageLayout } from './cascadeLayout.ts'
+ 
+ /** One frame's input to the renderer: what the viewer chose and what the simulation shows. */
+ export interface ViewerFrame {
+@@ -67,7 +68,7 @@ export const startViewer = async (
+     const next = frame(seconds)
+     if (next.sea !== sea) {
+       sea = next.sea
+-      ocean.setSea(sea)
++      ocean.setSea(sea, oceanSettingsFor(sea, pageLayout()))
+     }
+     renderer.render(next.settings, {
+       markers: next.markers,

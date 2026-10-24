@@ -1,0 +1,8 @@
+top-wide bothnian L0 ring 239 px: 0.602 at 0 deg 241 px; ring 479 px: 0.426 at 0 deg 481 px; ring 170 px: 0.066 at 4 deg 178 px
+top-wide bothnian L2 ring 239 px: 0.599 at 0 deg 241 px; ring 479 px: 0.427 at 0 deg 481 px; ring 170 px: 0.063 at 4 deg 178 px
+top-wide bothnian L5 ring 239 px: 0.121 at 0 deg 241 px; ring 479 px: 0.048 at 9 deg 485 px; ring 170 px: 0.038 at 90 deg 168 px
+top-wide bothnian L6 ring 239 px: 0.116 at 0 deg 239 px; ring 479 px: 0.046 at 9 deg 485 px; ring 170 px: 0.038 at 89 deg 166 px
+top-wide helsinki L0 ring 52 px: 0.202 at 0 deg 52 px; ring 104 px: 0.152 at 0 deg 104 px; ring 241 px: 0.330 at 0 deg 241 px; ring 482 px: 0.198 at 0 deg 484 px; ring 170 px: 0.133 at 71 deg 164 px
+top-wide helsinki L2 ring 52 px: 0.145 at 43 deg 52 px; ring 104 px: 0.122 at 42 deg 104 px; ring 241 px: 0.350 at 0 deg 241 px; ring 482 px: 0.207 at 0 deg 484 px; ring 170 px: 0.148 at 24 deg 164 px
+top-wide helsinki L5 ring 52 px: 0.224 at 0 deg 52 px; ring 104 px: 0.179 at 0 deg 104 px; ring 241 px: 0.094 at 57 deg 247 px; ring 482 px: 0.044 at 102 deg 474 px; ring 170 px: 0.128 at 71 deg 164 px
+top-wide helsinki L6 ring 52 px: 0.125 at 43 deg 52 px; ring 104 px: 0.118 at 42 deg 104 px; ring 241 px: 0.099 at 57 deg 247 px; ring 482 px: 0.062 at 173 deg 476 px; ring 170 px: 0.158 at 24 deg 164 px

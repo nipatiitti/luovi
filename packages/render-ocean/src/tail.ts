@@ -38,7 +38,8 @@ const fftWgsl = /* wgsl */ `
 struct Cascade {
   tile: f32,
   lambda: f32,
-  _pad: vec2f,
+  // PROTOTYPE (tail repetition, #44): cos and sin of the lattice's turn; bins evolve with world-frame wave vectors.
+  turn: vec2f,
 }
 
 struct Tail {
@@ -86,7 +87,11 @@ fn bit_reversed(i: u32) -> u32 {
 // k = (i - N/2) 2 pi / L, as sim-ocean's generator lays it out.
 fn spectrum(c: u32, ix: u32, iy: u32) {
   let cascade = tail.cascades[c];
-  let kv = vec2f(f32(i32(ix) - i32(N / 2u)), f32(i32(iy) - i32(N / 2u))) * (TAU / cascade.tile);
+  let lattice = vec2f(f32(i32(ix) - i32(N / 2u)), f32(i32(iy) - i32(N / 2u))) * (TAU / cascade.tile);
+  let kv = vec2f(
+    cascade.turn.x * lattice.x - cascade.turn.y * lattice.y,
+    cascade.turn.y * lattice.x + cascade.turn.x * lattice.y,
+  );
   let k = length(kv);
   let slot = bit_reversed(ix);
   if (k == 0.0) {
@@ -227,6 +232,8 @@ export interface TailFields {
   readonly count: number
   /** m, cascade 0 first. */
   readonly tiles: readonly number[]
+  /** PROTOTYPE (tail repetition, #44): rad, each cascade's lattice turn. */
+  readonly rotations: readonly number[]
   /** m, the longest wave each cascade holds: the one the ring rule tests. */
   readonly longest: readonly number[]
   /** (Dx, Dy, h, dDx/dy) per cascade layer, mipmapped. */
@@ -347,6 +354,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         fields: {
           count: 0,
           tiles: [],
+          rotations: [],
           longest: [],
           displacement: arrayView(textures[0]),
           derivatives: arrayView(textures[1]),
@@ -379,7 +387,8 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
     })
 
     layout.tiles.forEach((tile, c) => {
-      uniformFloats.set([tile, layout.choppiness[c] ?? 0], TAIL_WORD.cascades + 4 * c)
+      const turn = layout.rotations?.[c] ?? 0
+      uniformFloats.set([tile, layout.choppiness[c] ?? 0, Math.cos(turn), Math.sin(turn)], TAIL_WORD.cascades + 4 * c)
     })
     uniformFloats.set([sea.gravity, sea.depth], TAIL_WORD.gravity)
 
@@ -426,6 +435,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
       fields: {
         count,
         tiles: layout.tiles,
+        rotations: layout.tiles.map((_, c) => layout.rotations?.[c] ?? 0),
         longest: layout.kInner.map((k) => (2 * Math.PI) / k),
         displacement: arrayView(displacement),
         derivatives: arrayView(derivatives),

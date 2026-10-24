@@ -1,0 +1,8 @@
+top bothnian L0 ring 349 px: 0.068 at 89 deg 357 px; ring 250 px: 0.031 at 69 deg 246 px
+top bothnian L2 ring 349 px: 0.092 at 42 deg 349 px; ring 250 px: 0.026 at 0 deg 256 px
+top bothnian L5 ring 349 px: 0.068 at 179 deg 341 px; ring 250 px: 0.043 at 71 deg 242 px
+top bothnian L6 ring 349 px: 0.120 at 42 deg 345 px; ring 250 px: 0.029 at 72 deg 246 px
+top helsinki L0 ring 60 px: 0.194 at 0 deg 60 px; ring 120 px: 0.103 at 0 deg 122 px; ring 282 px: 0.232 at 0 deg 282 px; ring 564 px: 0.109 at 0 deg 572 px
+top helsinki L2 ring 60 px: 0.060 at 4 deg 54 px; ring 120 px: 0.075 at 160 deg 116 px; ring 282 px: 0.231 at 0 deg 284 px; ring 564 px: 0.116 at 0 deg 568 px
+top helsinki L5 ring 60 px: 0.173 at 0 deg 60 px; ring 120 px: 0.108 at 0 deg 122 px; ring 282 px: 0.047 at 43 deg 274 px; ring 564 px: 0.034 at 137 deg 556 px
+top helsinki L6 ring 60 px: 0.042 at 120 deg 66 px; ring 120 px: 0.047 at 174 deg 116 px; ring 282 px: 0.044 at 42 deg 276 px; ring 564 px: 0.036 at 67 deg 564 px

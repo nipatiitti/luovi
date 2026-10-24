@@ -19,6 +19,8 @@ export interface RenderOceanSettings {
   readonly foamBufferSize: number
   /** m per foam buffer texel. */
   readonly foamSpacing: number
+  /** PROTOTYPE (tail repetition, #44): hex-tile cascade 0 (shared.ts hexWgsl); absent is off. */
+  readonly hexCascade0?: boolean | 'linear'
 }
 
 /** What the debug panel can switch off or overlay; not render settings, since they show the machinery, not the sea. */

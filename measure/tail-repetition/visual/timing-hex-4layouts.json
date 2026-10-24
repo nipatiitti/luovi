@@ -1,0 +1,444 @@
+{
+ "adapter": {
+  "vendor": "apple",
+  "architecture": "metal-3",
+  "description": "",
+  "fallback": false,
+  "timestamps": true,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36"
+ },
+ "results": [
+  {
+   "round": 0,
+   "layout": "L0",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.346078,
+    "ocean foam": 4.201811,
+    "ocean surface": 8.38183,
+    "scene": 3.223326,
+    "tonemap": 2.143425
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L0",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.34512,
+    "ocean foam": 4.181561,
+    "ocean surface": 7.963628,
+    "scene": 3.63057,
+    "tonemap": 2.635877
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L0",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.39966,
+    "ocean foam": 12.377352,
+    "ocean surface": 8.415705,
+    "scene": 4.814177,
+    "tonemap": 3.063036
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L2",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.324995,
+    "ocean foam": 4.125228,
+    "ocean surface": 7.898755,
+    "scene": 3.215368,
+    "tonemap": 2.144217
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L2",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.374828,
+    "ocean foam": 4.588971,
+    "ocean surface": 7.924129,
+    "scene": 3.321867,
+    "tonemap": 2.586336
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L2",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.389953,
+    "ocean foam": 4.345934,
+    "ocean surface": 7.331638,
+    "scene": 4.17652,
+    "tonemap": 2.782957
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L5",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.354286,
+    "ocean foam": 4.976174,
+    "ocean surface": 9.064736,
+    "scene": 4.192728,
+    "tonemap": 2.80904
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L5",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.362828,
+    "ocean foam": 4.845801,
+    "ocean surface": 8.721658,
+    "scene": 4.171354,
+    "tonemap": 3.333199
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L5",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.402786,
+    "ocean foam": 5.112839,
+    "ocean surface": 8.955946,
+    "scene": 5.349085,
+    "tonemap": 3.713276
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L6",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.335495,
+    "ocean foam": 4.269894,
+    "ocean surface": 8.607869,
+    "scene": 3.636362,
+    "tonemap": 2.486796
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L6",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.329537,
+    "ocean foam": 4.265477,
+    "ocean surface": 8.275998,
+    "scene": 4.121103,
+    "tonemap": 3.228368
+   }
+  },
+  {
+   "round": 0,
+   "layout": "L6",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.383703,
+    "ocean foam": 4.954382,
+    "ocean surface": 8.485371,
+    "scene": 4.79001,
+    "tonemap": 3.260034
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L6",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.323953,
+    "ocean foam": 4.191686,
+    "ocean surface": 8.272581,
+    "scene": 3.530822,
+    "tonemap": 2.466047
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L6",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.321204,
+    "ocean foam": 4.308934,
+    "ocean surface": 7.998545,
+    "scene": 3.538238,
+    "tonemap": 2.786625
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L6",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.387244,
+    "ocean foam": 5.38096,
+    "ocean surface": 8.981905,
+    "scene": 5.251419,
+    "tonemap": 3.443906
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L5",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.396619,
+    "ocean foam": 5.103672,
+    "ocean surface": 10.495006,
+    "scene": 4.661179,
+    "tonemap": 3.270616
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L5",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.320412,
+    "ocean foam": 4.190145,
+    "ocean surface": 8.049461,
+    "scene": 3.551154,
+    "tonemap": 2.810874
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L5",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.394035,
+    "ocean foam": 3.864524,
+    "ocean surface": 8.837032,
+    "scene": 5.113255,
+    "tonemap": 3.656653
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L2",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.318828,
+    "ocean foam": 3.863524,
+    "ocean surface": 7.52151,
+    "scene": 3.181827,
+    "tonemap": 2.115593
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L2",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.31262,
+    "ocean foam": 4.265019,
+    "ocean surface": 7.596217,
+    "scene": 2.945706,
+    "tonemap": 2.197633
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L2",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.329287,
+    "ocean foam": 4.686887,
+    "ocean surface": 7.406471,
+    "scene": 4.146937,
+    "tonemap": 2.748041
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L0",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.376994,
+    "ocean foam": 4.606055,
+    "ocean surface": 8.34229,
+    "scene": 3.353449,
+    "tonemap": 2.134508
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L0",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.378994,
+    "ocean foam": 5.193086,
+    "ocean surface": 9.211068,
+    "scene": 3.880732,
+    "tonemap": 2.894039
+   }
+  },
+  {
+   "round": 1,
+   "layout": "L0",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.396244,
+    "ocean foam": 4.097355,
+    "ocean surface": 8.458746,
+    "scene": 5.20288,
+    "tonemap": 3.456365
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L0",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.318912,
+    "ocean foam": 3.867816,
+    "ocean surface": 7.693174,
+    "scene": 3.194284,
+    "tonemap": 2.138885
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L0",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.372994,
+    "ocean foam": 3.911941,
+    "ocean surface": 7.0186,
+    "scene": 2.944289,
+    "tonemap": 2.193009
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L0",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.387369,
+    "ocean foam": 3.778401,
+    "ocean surface": 6.833855,
+    "scene": 3.63807,
+    "tonemap": 2.295549
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L2",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.315037,
+    "ocean foam": 4.263977,
+    "ocean surface": 8.179501,
+    "scene": 3.217034,
+    "tonemap": 2.147092
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L2",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.319412,
+    "ocean foam": 4.441265,
+    "ocean surface": 8.156668,
+    "scene": 3.345657,
+    "tonemap": 2.417381
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L2",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.38366,
+    "ocean foam": 4.568972,
+    "ocean surface": 8.187625,
+    "scene": 4.589597,
+    "tonemap": 2.844707
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L5",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.387411,
+    "ocean foam": 4.977465,
+    "ocean surface": 10.076137,
+    "scene": 4.661471,
+    "tonemap": 3.268117
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L5",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.318412,
+    "ocean foam": 4.399642,
+    "ocean surface": 8.498453,
+    "scene": 3.947732,
+    "tonemap": 2.98408
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L5",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.346952,
+    "ocean foam": 4.204894,
+    "ocean surface": 8.069544,
+    "scene": 4.700846,
+    "tonemap": 3.248241
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L6",
+   "view": "bothnian.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.372536,
+    "ocean foam": 4.568513,
+    "ocean surface": 9.841725,
+    "scene": 4.657054,
+    "tonemap": 3.258284
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L6",
+   "view": "helsinki.oblique-foam",
+   "gpu": {
+    "ocean FFT": 0.377161,
+    "ocean foam": 5.038507,
+    "ocean surface": 10.049472,
+    "scene": 4.653638,
+    "tonemap": 3.682986
+   }
+  },
+  {
+   "round": 2,
+   "layout": "L6",
+   "view": "bothnian.oblique",
+   "gpu": {
+    "ocean FFT": 0.316995,
+    "ocean foam": 4.188562,
+    "ocean surface": 7.378346,
+    "scene": 4.037021,
+    "tonemap": 2.709251
+   }
+  }
+ ]
+}

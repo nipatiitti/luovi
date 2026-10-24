@@ -2,6 +2,7 @@ import type { SeaDescription } from '@luovi/core'
 import { balticOptics, brunetonAtmosphere, coxMunk, foamDecayTime, foamReflectance } from '@luovi/data'
 import { createOceanSurface, type OceanDebug } from '@luovi/render-ocean'
 import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
+import { oceanSettingsFor, pageLayout } from './cascadeLayout.ts'
 
 /** One frame's input to the renderer: what the viewer chose and what the simulation shows. */
 export interface ViewerFrame {
@@ -67,7 +68,7 @@ export const startViewer = async (
     const next = frame(seconds)
     if (next.sea !== sea) {
       sea = next.sea
-      ocean.setSea(sea)
+      ocean.setSea(sea, oceanSettingsFor(sea, pageLayout()))
     }
     renderer.render(next.settings, {
       markers: next.markers,

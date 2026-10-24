@@ -64,6 +64,8 @@ const browser = await chromium.launch({
     '--use-angle=metal',
     '--disable-gpu-vsync',
     '--disable-frame-rate-limit',
+    // PROTOTYPE (tail repetition, #44): headed Chrome on a Retina screen draws at 2x whatever the context's scale says.
+    `--force-device-scale-factor=${process.env.DSF ?? '1'}`,
     // A window another one covers would otherwise be throttled.
     '--disable-backgrounding-occluded-windows',
     '--disable-renderer-backgrounding',
@@ -72,12 +74,12 @@ const browser = await chromium.launch({
 })
 const results: Record<string, unknown>[] = []
 try {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 })
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: Number(process.env.DSF ?? 1) })
   const page = await context.newPage()
   page.on('pageerror', (error) => {
     console.error(`page error: ${error.message}`)
   })
-  await page.goto(`${url}?shots`)
+  await page.goto(`${url}?shots&layout=${process.env.LAYOUT ?? "L0"}`)
   await page.addStyleTag({ content: 'aside, .prototype-bar { display: none !important; }' })
   await page.waitForFunction(() => globalThis.luoviShots?.read().tick !== undefined, null, { timeout: 60_000 })
   const names = await page.evaluate(() => (globalThis.luoviShots?.views ?? []).map((view) => view.name))

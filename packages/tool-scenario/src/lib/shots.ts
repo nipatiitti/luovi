@@ -1,5 +1,4 @@
 import { bearingOf, toDegrees, toRadians } from './angles.ts'
-import { BAND_VARIANTS } from './bandSize.ts'
 import { initialSettings } from './settings.ts'
 
 // The named views `pnpm shots` captures. Each is the page's own state, a showcase scenario, a camera, the Sun and the
@@ -71,57 +70,42 @@ interface Scene {
   readonly foam?: boolean
 }
 
-const helm = { eyeAboveWater: 2, yaw: EAST, pitch: toRadians(-6) }
-const wide = { eyeAboveWater: 20, yaw: toRadians(45), pitch: toRadians(-22) }
+// PROTOTYPE (tail repetition, #44): the views of the cascade layout comparison. The layout comes from the page's
+// ?layout=, so every view is drawn in whichever layout the page was opened with.
+const oblique = { eyeAboveWater: 40, yaw: toRadians(45), pitch: toRadians(-20) }
 
 const SCENES: readonly Scene[] = [
-  { name: 'helm-downwind', label: '2 m eye at the helm, looking downwind', ...helm },
-  { name: 'helm-across', label: '2 m eye at the helm, looking across the wind', ...helm, yaw: NORTH },
-  { name: 'wide-20m', label: '20 m eye, looking across a wide area', ...wide },
-  // In the lowest probe point's trough, low and level along the waves' travel, so the next crest stands against the
-  // sky. The eye rises with the sea because the tail, which the CPU height leaves out, carries about 2 m Hs in the storm.
+  { name: 'oblique', label: '40 m eye, 20 degrees below the horizon', ...oblique },
+  { name: 'deck', label: '2.5 m eye, looking across the wind', eyeAboveWater: 2.5, yaw: NORTH, pitch: toRadians(-4) },
+  { name: 'top', label: '80 m eye, looking nearly straight down', eyeAboveWater: 80, yaw: EAST, pitch: toRadians(-80) },
+  { name: 'oblique-foam', label: '40 m eye, 20 degrees below the horizon, foam on', ...oblique, foam: true },
+  // High enough that the frame's height spans about three of the baseline's cascade 0 tiles (50 degree field of view).
   {
-    name: 'profile',
-    label: 'Crests in profile from a trough, looking downwind',
-    eyeAboveWater: { helsinki: 0.4, gulf: 1, bothnian: 3 },
+    name: 'top-wide',
+    label: 'Looking straight down from about three baseline tiles up',
+    eyeAboveWater: { bothnian: 1120, moderate: 545, helsinki: 90 },
     yaw: EAST,
-    pitch: 0,
-    eyeAt: 'trough',
+    pitch: toRadians(-89),
   },
-  {
-    name: 'check',
-    label: 'Band only with the CPU probe markers, looking down',
-    eyeAboveWater: 12,
-    yaw: EAST,
-    pitch: toRadians(-50),
-    markers: true,
-    tail: false,
-  },
-  // For the frame-rate runs: the 2 m and 20 m views with main's foam drawn.
-  { name: 'helm-downwind-foam', label: '2 m eye at the helm, looking downwind, main foam on', ...helm, foam: true },
-  { name: 'wide-20m-foam', label: '20 m eye, looking across a wide area, main foam on', ...wide, foam: true },
 ]
 
 const BAND_SEAS: readonly { readonly key: string; readonly scenario: string }[] = [
-  { key: 'helsinki', scenario: 'Helsinki archipelago, 8 m/s over 15 km' },
-  { key: 'gulf', scenario: 'Gulf of Finland, 12 m/s over 80 km' },
   { key: 'bothnian', scenario: 'Bothnian Sea storm, 27 m/s over 194 km' },
+  { key: 'helsinki', scenario: 'Helsinki archipelago, 8 m/s over 15 km' },
+  { key: 'moderate', scenario: 'Moderate reference sea' },
 ]
 
-/** PROTOTYPE (band size, #43): every scene of every sea in every variant, named sea.scene.variant. */
+/** PROTOTYPE (tail repetition, #44): every scene of every sea with the 128-component band, named sea.scene. */
 const SHOT_VIEWS: readonly ShotView[] = BAND_SEAS.flatMap((sea) =>
-  SCENES.flatMap((scene) =>
-    BAND_VARIANTS.map((variant) => ({
-      ...daylight,
-      ...scene,
-      eyeAboveWater:
-        typeof scene.eyeAboveWater === 'number' ? scene.eyeAboveWater : (scene.eyeAboveWater[sea.key] ?? 1),
-      name: `${sea.key}.${scene.name}.${variant.key}`,
-      label: `${sea.scenario}, ${scene.label}, ${variant.label}`,
-      scenario: sea.scenario,
-      bandVariant: variant.key,
-    })),
-  ),
+  SCENES.map((scene) => ({
+    ...daylight,
+    ...scene,
+    eyeAboveWater: typeof scene.eyeAboveWater === 'number' ? scene.eyeAboveWater : (scene.eyeAboveWater[sea.key] ?? 1),
+    name: `${sea.key}.${scene.name}`,
+    label: `${sea.scenario}, ${scene.label}`,
+    scenario: sea.scenario,
+    bandVariant: 'n128',
+  })),
 )
 
 /** What a captured view reports beside its picture. */
@@ -148,6 +132,7 @@ export interface ShotsHook {
   show(name: string): Promise<void>
   /** PROTOTYPE (band size, #43): loads the view, lets it run, and records drawn frames for `ms` after `warmup` ms. */
   measure(name: string, warmup: number, ms: number): Promise<FrameRun>
+  advance(tick: number): Promise<void>
   /** The state the page draws now. */
   read(): ShotResult
 }
@@ -202,6 +187,11 @@ export const installShotsHook = (page: ShotsPage): (() => void) => {
       page.play()
       await page.record(warmup)
       return page.record(ms)
+    },
+    // PROTOTYPE (tail repetition, #44): runs the paused sea on to a later tick under the same eye, for frame sequences.
+    advance: async (tick) => {
+      await page.seek(tick)
+      await page.frames(2)
     },
     read: () => page.read(),
   }

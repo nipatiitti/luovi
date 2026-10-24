@@ -18,7 +18,7 @@ import {
   unresolvedBandCovariance,
   waterAbsorption,
 } from './shading.ts'
-import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
+import { cascadeOffset, cascadeWgsl, coverageWgsl, hexUniform, hexWgsl, phaseWgsl, waveWgsl } from './shared.ts'
 import { createOceanTail, MAX_CASCADES, type TailFields } from './tail.ts'
 
 // The sea surface draw: every ring of the clipmap as one indexed draw of the shared ring mesh, the band summed per vertex
@@ -129,7 +129,11 @@ const OCEAN_WORD = (() => {
     foamWindow: foam,
     /** foam_sample.z: the threshold, then the lifetime, fresh and thin reflectances. */
     foamThreshold: foam + 6,
-    end: foam + 12,
+    /** PROTOTYPE (tail repetition, #44): cos and sin of each cascade's lattice turn. */
+    turns: foam + 12,
+    /** PROTOTYPE (tail repetition, #44, L5): hex and hex_id (shared.ts hexUniform). */
+    hex: foam + 12 + 4 * MAX_CASCADES,
+    end: foam + 12 + 4 * MAX_CASCADES + 8,
   } as const
 })()
 
@@ -154,6 +158,7 @@ ${phaseWgsl}
 ${waveWgsl}
 ${cascadeWgsl}
 ${coverageWgsl}
+${hexWgsl}
 
 struct Ocean {
   view_projection: mat4x4f,
@@ -181,6 +186,11 @@ struct Ocean {
   foam_sample: vec4f,
   // Foam reflectance fresh and thin.
   foam_albedo: vec4f,
+  // PROTOTYPE (tail repetition, #44): cos and sin of each cascade's lattice turn.
+  turns: array<vec4f, ${String(MAX_CASCADES)}>,
+  // PROTOTYPE (tail repetition, #44, L5): cascade 0's hex tiling (shared.ts hexWgsl).
+  hex: vec4f,
+  hex_id: vec4f,
 }
 
 struct Ring {
@@ -236,7 +246,47 @@ struct Varying {
 
 // Where cascade c samples the point x from the clipmap origin.
 fn tail_uv(c: u32, x: vec2f) -> vec2f {
-  return cascade_uv(ocean.cascades[c], x);
+  return cascade_uv(ocean.cascades[c], ocean.turns[c].xy, x);
+}
+
+// PROTOTYPE (tail repetition, #44, L5): a linear field of cascade c at x and a mip, hex-blended for cascade 0 when on.
+fn tail_level(field: texture_2d_array<f32>, c: u32, x: vec2f, lod: f32) -> vec4f {
+  let uv = tail_uv(c, x);
+  if (c != 0u || ocean.hex.w == 0.0) {
+    return textureSampleLevel(field, tail_sampler, uv, c, lod);
+  }
+  let t = hex_taps(x, ocean.hex, ocean.hex_id);
+  return t.weight.x * textureSampleLevel(field, tail_sampler, uv + t.offset0, c, lod)
+    + t.weight.y * textureSampleLevel(field, tail_sampler, uv + t.offset1, c, lod)
+    + t.weight.z * textureSampleLevel(field, tail_sampler, uv + t.offset2, c, lod);
+}
+
+struct TailPixel {
+  derivative: vec4f,
+  second: vec4f,
+}
+
+// PROTOTYPE (tail repetition, #44, L5): cascade c's derivatives and second moments over the pixel's footprint. Under the
+// hex tiling the first moments blend with the normalised weights and the central second moments with their squares,
+// with the gradient of the unshifted uv, so a tap whose vertex changes across a triangle edge keeps its mip.
+fn tail_pixel(c: u32, x: vec2f) -> TailPixel {
+  let uv = tail_uv(c, x);
+  let gx = dpdx(uv);
+  let gy = dpdy(uv);
+  if (c != 0u || ocean.hex.w == 0.0) {
+    return TailPixel(textureSample(derivatives, tail_sampler, uv, c), textureSample(moments, tail_sampler, uv, c));
+  }
+  let t = hex_taps(x, ocean.hex, ocean.hex_id);
+  let d0 = textureSampleGrad(derivatives, tail_sampler, uv + t.offset0, c, gx, gy);
+  let d1 = textureSampleGrad(derivatives, tail_sampler, uv + t.offset1, c, gx, gy);
+  let d2 = textureSampleGrad(derivatives, tail_sampler, uv + t.offset2, c, gx, gy);
+  let m0 = textureSampleGrad(moments, tail_sampler, uv + t.offset0, c, gx, gy);
+  let m1 = textureSampleGrad(moments, tail_sampler, uv + t.offset1, c, gx, gy);
+  let m2 = textureSampleGrad(moments, tail_sampler, uv + t.offset2, c, gx, gy);
+  let d = t.weight.x * d0 + t.weight.y * d1 + t.weight.z * d2;
+  let w2 = t.weight * t.weight;
+  let central = w2.x * (m0 - hex_square(d0)) + w2.y * (m1 - hex_square(d1)) + w2.z * (m2 - hex_square(d2));
+  return TailPixel(d, central + hex_square(d));
 }
 
 @vertex
@@ -371,9 +421,8 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       }
       // The mip whose texel matches the ring's spacing: the waves a ring cannot carry average out instead of aliasing.
       let lod = max(0.0, log2(mix(1.0, 2.0, morph) * ring.spacing * texels / ocean.cascades[c].x));
-      let uv = tail_uv(c, position);
-      let field = textureSampleLevel(displacement, tail_sampler, uv, c, lod);
-      let derivative = textureSampleLevel(derivatives, tail_sampler, uv, c, lod);
+      let field = tail_level(displacement, c, position, lod);
+      let derivative = tail_level(derivatives, c, position, lod);
       height += weight * field.z;
       shift += weight * field.xy;
       // The stretch of the displacement the vertex carries, at the same filter, so the normal belongs to the drawn mesh.
@@ -492,9 +541,9 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
   var jacobian_variance = in.unresolved.w;
   let whole = i32(textureNumLevels(moments)) - 1;
   for (var c = 0u; c < ocean.cascade_count; c++) {
-    let uv = tail_uv(c, in.lagrangian);
-    let derivative = textureSample(derivatives, tail_sampler, uv, c);
-    let second = textureSample(moments, tail_sampler, uv, c);
+    let pixel = tail_pixel(c, in.lagrangian);
+    let derivative = pixel.derivative;
+    let second = pixel.second;
     let divergence = cascade_divergence(derivative, second);
     jacobian += divergence.x;
     jacobian_variance += divergence.y;
@@ -866,12 +915,18 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       state.tail.tiles.forEach((tile, c) => {
         // The origin modulo the tile in f64, so the f32 lookup never sees a large coordinate; texel i holds x = i L / N.
         const texel = tile / settings.cascadeRule.resolution
-        const offset = (x: number): number => wrap(x, tile) + texel / 2
+        const turn = state.tail.rotations[c] ?? 0
         uniformFloats.set(
-          [tile, offset(x0), offset(y0), frame.debug.cascades[c] === false ? 0 : 1],
+          [tile, ...cascadeOffset(tile, texel, turn, x0, y0), frame.debug.cascades[c] === false ? 0 : 1],
           OCEAN_WORD.cascades + 4 * c,
         )
+        uniformFloats.set([Math.cos(turn), Math.sin(turn)], OCEAN_WORD.turns + 4 * c)
       })
+      const tile0 = state.tail.tiles[0]
+      uniformFloats.set(
+        hexUniform(tile0 ?? 1, x0, y0, tile0 === undefined ? false : (settings.hexCascade0 ?? false)),
+        OCEAN_WORD.hex,
+      )
       const window = foam.prepare({
         tick: frame.tick,
         eye: frame.eye,

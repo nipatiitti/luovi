@@ -1,0 +1,396 @@
+{
+ "720p": {
+  "L0|bothnian.oblique": {
+   "layout": "L0",
+   "view": "bothnian.oblique",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 5893,
+   "meanFps": 163.68432784351793,
+   "p5Fps": 158.47860532839263,
+   "medianFps": 165.2892558726609,
+   "roundMeans": [
+    163.949046603436,
+    163.51389868112798,
+    163.59012012282918
+   ],
+   "gpu": {
+    "ocean FFT": 0.299662,
+    "ocean foam": 3.679318,
+    "ocean surface": 5.438792,
+    "scene": 3.100036,
+    "tonemap": 2.035427
+   }
+  },
+  "L0|bothnian.oblique-foam": {
+   "layout": "L0",
+   "view": "bothnian.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4450,
+   "meanFps": 123.6193867423692,
+   "p5Fps": 120.33694340711124,
+   "medianFps": 123.91573740846523,
+   "roundMeans": [
+    123.4873939955643,
+    123.80406110678169,
+    123.56680627279795
+   ],
+   "gpu": {
+    "ocean FFT": 0.299121,
+    "ocean foam": 3.697068,
+    "ocean surface": 7.454677,
+    "scene": 3.14991,
+    "tonemap": 2.101801
+   }
+  },
+  "L0|helsinki.oblique-foam": {
+   "layout": "L0",
+   "view": "helsinki.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4859,
+   "meanFps": 134.9239681641635,
+   "p5Fps": 130.12361739619533,
+   "medianFps": 135.5013551011004,
+   "roundMeans": [
+    135.46607703659592,
+    135.54730034268584,
+    133.7588742266008
+   ],
+   "gpu": {
+    "ocean FFT": 0.29745350000000004,
+    "ocean foam": 3.673069,
+    "ocean surface": 6.792396,
+    "scene": 2.903497,
+    "tonemap": 2.156092
+   }
+  },
+  "L1|bothnian.oblique": {
+   "layout": "L1",
+   "view": "bothnian.oblique",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 5887,
+   "meanFps": 163.53500057405884,
+   "p5Fps": 158.1027670964003,
+   "medianFps": 165.2892558726609,
+   "roundMeans": [
+    163.896316208088,
+    163.6665304866559,
+    163.0423010211688
+   ],
+   "gpu": {
+    "ocean FFT": 0.29662,
+    "ocean foam": 3.72161,
+    "ocean surface": 5.451457,
+    "scene": 3.103286,
+    "tonemap": 2.038302
+   }
+  },
+  "L1|bothnian.oblique-foam": {
+   "layout": "L1",
+   "view": "bothnian.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4446,
+   "meanFps": 123.51202526799932,
+   "p5Fps": 120.40939182886994,
+   "medianFps": 123.76237649325587,
+   "roundMeans": [
+    123.37970353848182,
+    123.7116152197295,
+    123.44480988342967
+   ],
+   "gpu": {
+    "ocean FFT": 0.298205,
+    "ocean foam": 3.689611,
+    "ocean surface": 7.462011,
+    "scene": 3.141827,
+    "tonemap": 2.096093
+   }
+  },
+  "L1|helsinki.oblique-foam": {
+   "layout": "L1",
+   "view": "helsinki.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4870,
+   "meanFps": 135.28484265287616,
+   "p5Fps": 130.71895465576245,
+   "medianFps": 135.6852113216379,
+   "roundMeans": [
+    135.03854225073488,
+    135.44734484512205,
+    135.36852915029382
+   ],
+   "gpu": {
+    "ocean FFT": 0.295287,
+    "ocean foam": 3.677778,
+    "ocean surface": 6.768188,
+    "scene": 2.896456,
+    "tonemap": 2.154676
+   }
+  },
+  "L2|bothnian.oblique": {
+   "layout": "L2",
+   "view": "bothnian.oblique",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 5869,
+   "meanFps": 163.03554461012357,
+   "p5Fps": 157.35641180152078,
+   "medianFps": 164.74464599313765,
+   "roundMeans": [
+    162.0378088222195,
+    163.9476801033733,
+    163.1210607365098
+   ],
+   "gpu": {
+    "ocean FFT": 0.301329,
+    "ocean foam": 3.686777,
+    "ocean surface": 5.468458,
+    "scene": 3.103202,
+    "tonemap": 2.0317185
+   }
+  },
+  "L2|bothnian.oblique-foam": {
+   "layout": "L2",
+   "view": "bothnian.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4442,
+   "meanFps": 123.45480003480118,
+   "p5Fps": 120.1923077956349,
+   "medianFps": 123.76237558028404,
+   "roundMeans": [
+    123.1417743670116,
+    123.65824962269987,
+    123.56440794759358
+   ],
+   "gpu": {
+    "ocean FFT": 0.300912,
+    "ocean foam": 3.687735,
+    "ocean surface": 7.473469,
+    "scene": 3.156202,
+    "tonemap": 2.102302
+   }
+  },
+  "L2|helsinki.oblique-foam": {
+   "layout": "L2",
+   "view": "helsinki.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4850,
+   "meanFps": 134.6927581811471,
+   "p5Fps": 128.2051280091892,
+   "medianFps": 135.5013551011004,
+   "roundMeans": [
+    135.0997360058676,
+    135.51897265557943,
+    133.45985082805012
+   ],
+   "gpu": {
+    "ocean FFT": 0.301037,
+    "ocean foam": 3.67161,
+    "ocean surface": 6.786687,
+    "scene": 2.905789,
+    "tonemap": 2.159925
+   }
+  },
+  "L3|bothnian.oblique": {
+   "layout": "L3",
+   "view": "bothnian.oblique",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 5916,
+   "meanFps": 164.3240444604169,
+   "p5Fps": 159.23566800391458,
+   "medianFps": 165.97510274925605,
+   "roundMeans": [
+    164.64665369236337,
+    164.01205642750267,
+    164.31368415523713
+   ],
+   "gpu": {
+    "ocean FFT": 0.298912,
+    "ocean foam": 3.695819,
+    "ocean surface": 5.426459,
+    "scene": 3.084536,
+    "tonemap": 2.011552
+   }
+  },
+  "L3|bothnian.oblique-foam": {
+   "layout": "L3",
+   "view": "bothnian.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4444,
+   "meanFps": 123.4729632691469,
+   "p5Fps": 119.04761938551385,
+   "medianFps": 123.99256048302806,
+   "roundMeans": [
+    123.50792509166374,
+    124.00139501559538,
+    122.90922978299295
+   ],
+   "gpu": {
+    "ocean FFT": 0.295038,
+    "ocean foam": 3.687318,
+    "ocean surface": 7.453803,
+    "scene": 3.147035,
+    "tonemap": 2.079718
+   }
+  },
+  "L3|helsinki.oblique-foam": {
+   "layout": "L3",
+   "view": "helsinki.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4860,
+   "meanFps": 135.06252269287708,
+   "p5Fps": 127.95905314204455,
+   "medianFps": 136.14703827158638,
+   "roundMeans": [
+    136.06939539170384,
+    136.05833501091968,
+    133.0598769450218
+   ],
+   "gpu": {
+    "ocean FFT": 0.296412,
+    "ocean foam": 3.66361,
+    "ocean surface": 6.713607,
+    "scene": 2.876622,
+    "tonemap": 2.132343
+   }
+  },
+  "L4|bothnian.oblique": {
+   "layout": "L4",
+   "view": "bothnian.oblique",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 5886,
+   "meanFps": 163.49852397171273,
+   "p5Fps": 157.9778835128816,
+   "medianFps": 165.2892558726609,
+   "roundMeans": [
+    163.81620905148378,
+    163.33278889041165,
+    163.34676786238205
+   ],
+   "gpu": {
+    "ocean FFT": 0.29487,
+    "ocean foam": 3.682443,
+    "ocean surface": 5.446084,
+    "scene": 3.120411,
+    "tonemap": 2.042011
+   }
+  },
+  "L4|bothnian.oblique-foam": {
+   "layout": "L4",
+   "view": "bothnian.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4430,
+   "meanFps": 123.04716442259434,
+   "p5Fps": 118.62396193968391,
+   "medianFps": 123.6093938039668,
+   "roundMeans": [
+    123.52620246457076,
+    123.54293116875296,
+    122.07239768116233
+   ],
+   "gpu": {
+    "ocean FFT": 0.296162,
+    "ocean foam": 3.687069,
+    "ocean surface": 7.490552,
+    "scene": 3.171285,
+    "tonemap": 2.116884
+   }
+  },
+  "L4|helsinki.oblique-foam": {
+   "layout": "L4",
+   "view": "helsinki.oblique-foam",
+   "size": "1280x720",
+   "rounds": 3,
+   "frames": 4870,
+   "meanFps": 135.2814604398281,
+   "p5Fps": 130.63357229929312,
+   "medianFps": 135.77732501087937,
+   "roundMeans": [
+    135.46009571384775,
+    135.4439812030643,
+    134.94022498059599
+   ],
+   "gpu": {
+    "ocean FFT": 0.295995,
+    "ocean foam": 3.655527,
+    "ocean surface": 6.775397,
+    "scene": 2.904831,
+    "tonemap": 2.160759
+   }
+  }
+ },
+ "1440p": {
+  "L0|bothnian.oblique-foam": {
+   "layout": "L0",
+   "view": "bothnian.oblique-foam",
+   "size": "2560x1440",
+   "rounds": 1,
+   "frames": 967,
+   "meanFps": 80.60657489561743,
+   "p5Fps": 75.67158546988773,
+   "medianFps": 81.30081332331096,
+   "roundMeans": [
+    80.60657489561743
+   ],
+   "gpu": {
+    "ocean FFT": 0.37891,
+    "ocean foam": 3.796567,
+    "ocean surface": 10.942333,
+    "scene": 6.764794,
+    "tonemap": 6.139698
+   }
+  },
+  "L1|bothnian.oblique-foam": {
+   "layout": "L1",
+   "view": "bothnian.oblique-foam",
+   "size": "2560x1440",
+   "rounds": 1,
+   "frames": 965,
+   "meanFps": 80.44291116657861,
+   "p5Fps": 73.17965594070508,
+   "medianFps": 81.76614868687118,
+   "roundMeans": [
+    80.44291116657861
+   ],
+   "gpu": {
+    "ocean FFT": 0.388703,
+    "ocean foam": 3.7899,
+    "ocean surface": 10.949083,
+    "scene": 7.072142,
+    "tonemap": 6.149698
+   }
+  },
+  "L2|bothnian.oblique-foam": {
+   "layout": "L2",
+   "view": "bothnian.oblique-foam",
+   "size": "2560x1440",
+   "rounds": 1,
+   "frames": 983,
+   "meanFps": 81.8497544923529,
+   "p5Fps": 79.9041151532591,
+   "medianFps": 81.83306076402356,
+   "roundMeans": [
+    81.8497544923529
+   ],
+   "gpu": {
+    "ocean FFT": 0.371327,
+    "ocean foam": 3.795717,
+    "ocean surface": 10.931624,
+    "scene": 7.072183,
+    "tonemap": 6.155947
+   }
+  }
+ }
+}

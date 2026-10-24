@@ -1,0 +1,15 @@
+top-wide bothnian L0 ring 239 px: 0.602 at 0 deg 241 px; ring 170 px: 0.066 at 4 deg 178 px; ring 479 px: 0.426 at 0 deg 481 px
+top-wide bothnian L1 ring 239 px: 0.588 at 0 deg 241 px; ring 170 px: 0.064 at 4 deg 178 px; ring 479 px: 0.421 at 0 deg 481 px
+top-wide bothnian L2 ring 239 px: 0.599 at 0 deg 241 px; ring 170 px: 0.063 at 4 deg 178 px; ring 479 px: 0.427 at 0 deg 481 px
+top-wide bothnian L3 ring 239 px: 0.040 at 124 deg 231 px; ring 170 px: 0.044 at 52 deg 176 px; ring 479 px: 0.450 at 0 deg 481 px
+top-wide bothnian L4 ring 239 px: 0.595 at 0 deg 241 px; ring 170 px: 0.063 at 174 deg 162 px; ring 479 px: 0.425 at 0 deg 481 px
+top-wide helsinki L0 ring 241 px: 0.330 at 0 deg 241 px; ring 170 px: 0.133 at 71 deg 164 px; ring 481 px: 0.190 at 0 deg 483 px
+top-wide helsinki L1 ring 241 px: 0.330 at 0 deg 241 px; ring 170 px: 0.133 at 71 deg 164 px; ring 481 px: 0.190 at 0 deg 483 px
+top-wide helsinki L2 ring 241 px: 0.350 at 0 deg 241 px; ring 170 px: 0.148 at 24 deg 164 px; ring 481 px: 0.205 at 0 deg 483 px
+top-wide helsinki L3 ring 241 px: 0.047 at 5 deg 241 px; ring 170 px: 0.068 at 116 deg 164 px; ring 481 px: 0.256 at 0 deg 483 px
+top-wide helsinki L4 ring 241 px: 0.350 at 0 deg 241 px; ring 170 px: 0.148 at 24 deg 164 px; ring 481 px: 0.205 at 0 deg 483 px
+top-wide moderate L0 ring 239 px: 0.559 at 0 deg 241 px; ring 170 px: 0.068 at 24 deg 174 px; ring 478 px: 0.344 at 0 deg 482 px
+top-wide moderate L1 ring 239 px: 0.552 at 0 deg 241 px; ring 170 px: 0.064 at 24 deg 174 px; ring 478 px: 0.349 at 0 deg 482 px
+top-wide moderate L2 ring 239 px: 0.551 at 0 deg 241 px; ring 170 px: 0.064 at 24 deg 174 px; ring 478 px: 0.344 at 0 deg 482 px
+top-wide moderate L3 ring 239 px: 0.045 at 82 deg 245 px; ring 170 px: 0.046 at 175 deg 166 px; ring 478 px: 0.365 at 0 deg 482 px
+top-wide moderate L4 ring 239 px: 0.563 at 0 deg 241 px; ring 170 px: 0.070 at 24 deg 174 px; ring 478 px: 0.352 at 0 deg 482 px

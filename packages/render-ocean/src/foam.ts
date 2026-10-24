@@ -1,6 +1,6 @@
 import { TICKS_PER_SECOND } from '@luovi/core'
 import type { RenderOceanSettings } from './settings.ts'
-import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
+import { cascadeOffset, cascadeWgsl, coverageWgsl, hexUniform, hexWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
 import { MAX_CASCADES, type TailFields } from './tail.ts'
 
 // The near-field foam buffer of ADR 0011: a world-aligned, camera-centred, toroidal r16float density buffer. Each frame
@@ -35,9 +35,13 @@ const FOAM_WORD = {
   stampCount: 11,
   keep: 12,
   cascades: 16,
+  /** PROTOTYPE (tail repetition, #44): cos and sin of each cascade's lattice turn. */
+  turns: 16 + 4 * MAX_CASCADES,
+  /** PROTOTYPE (tail repetition, #44, L5): hex and hex_id (shared.ts hexUniform). */
+  hex: 16 + 8 * MAX_CASCADES,
 } as const
 
-const FOAM_UNIFORM_BYTES = 4 * (FOAM_WORD.cascades + 4 * MAX_CASCADES)
+const FOAM_UNIFORM_BYTES = 4 * (FOAM_WORD.hex + 8)
 
 const FOAM_FORMAT: GPUTextureFormat = 'r16float'
 
@@ -46,6 +50,7 @@ ${phaseWgsl}
 ${waveWgsl}
 ${cascadeWgsl}
 ${coverageWgsl}
+${hexWgsl}
 
 struct Foam {
   // The world texel index of the window's first texel, and how far the window moved since the previous frame, texels.
@@ -66,6 +71,9 @@ struct Foam {
   _pad1: vec2u,
   // Per cascade: tile L (m), the clipmap origin modulo L plus half a texel (m), and the mip matching a buffer texel.
   cascades: array<vec4f, ${String(MAX_CASCADES)}>,
+  turns: array<vec4f, ${String(MAX_CASCADES)}>,
+  hex: vec4f,
+  hex_id: vec4f,
 }
 
 @group(0) @binding(0) var<uniform> foam: Foam;
@@ -108,11 +116,24 @@ fn fragment_main(@builtin(position) position: vec4f) -> @location(0) f32 {
   }
   for (var c = 0u; c < foam.cascade_count; c++) {
     let cascade = foam.cascades[c];
-    let uv = cascade_uv(cascade, x);
-    let divergence = cascade_divergence(
-      textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w),
-      textureSampleLevel(moments, tail_sampler, uv, c, cascade.w),
-    );
+    let uv = cascade_uv(cascade, foam.turns[c].xy, x);
+    var derivative = textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w);
+    var second = textureSampleLevel(moments, tail_sampler, uv, c, cascade.w);
+    // PROTOTYPE (tail repetition, #44, L5): cascade 0 hex-blended as the surface blends it (surface.ts tail_pixel).
+    if (c == 0u && foam.hex.w != 0.0) {
+      let t = hex_taps(x, foam.hex, foam.hex_id);
+      let d0 = textureSampleLevel(derivatives, tail_sampler, uv + t.offset0, c, cascade.w);
+      let d1 = textureSampleLevel(derivatives, tail_sampler, uv + t.offset1, c, cascade.w);
+      let d2 = textureSampleLevel(derivatives, tail_sampler, uv + t.offset2, c, cascade.w);
+      let m0 = textureSampleLevel(moments, tail_sampler, uv + t.offset0, c, cascade.w);
+      let m1 = textureSampleLevel(moments, tail_sampler, uv + t.offset1, c, cascade.w);
+      let m2 = textureSampleLevel(moments, tail_sampler, uv + t.offset2, c, cascade.w);
+      derivative = t.weight.x * d0 + t.weight.y * d1 + t.weight.z * d2;
+      let w2 = t.weight * t.weight;
+      second = w2.x * (m0 - hex_square(d0)) + w2.y * (m1 - hex_square(d1)) + w2.z * (m2 - hex_square(d2))
+        + hex_square(derivative);
+    }
+    let divergence = cascade_divergence(derivative, second);
     mean += divergence.x;
     variance += divergence.y;
   }
@@ -207,6 +228,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
     readonly band: BandTables
     readonly tail: TailFields
     readonly resolution: number
+    readonly hex: boolean | 'linear'
   }
 
   const texture = (size: number): GPUTexture =>
@@ -255,6 +277,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
         band,
         tail,
         resolution: settings.cascadeRule.resolution,
+        hex: settings.hexCascade0 ?? false,
       }
       last = undefined
     },
@@ -297,9 +320,15 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
       words[FOAM_WORD.keep] = kept === undefined ? 0 : 1
       tail.tiles.forEach((tile, c) => {
         const texel = tile / resolution
-        const offset = (x: number): number => wrap(x, tile) + texel / 2
-        floats.set([tile, offset(x0), offset(y0), Math.max(0, Math.log2(spacing / texel))], FOAM_WORD.cascades + 4 * c)
+        const turn = tail.rotations[c] ?? 0
+        floats.set(
+          [tile, ...cascadeOffset(tile, texel, turn, x0, y0), Math.max(0, Math.log2(spacing / texel))],
+          FOAM_WORD.cascades + 4 * c,
+        )
+        floats.set([Math.cos(turn), Math.sin(turn)], FOAM_WORD.turns + 4 * c)
       })
+      const tile0 = tail.tiles[0]
+      floats.set(hexUniform(tile0 ?? 1, x0, y0, tile0 === undefined ? false : state.hex), FOAM_WORD.hex)
       device.queue.writeBuffer(uniform, 0, uniformData)
       current = current === 0 ? 1 : 0
       last = enabled ? { tick: frame.tick, window } : undefined

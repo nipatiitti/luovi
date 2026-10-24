@@ -18,6 +18,8 @@ export interface CascadeRule {
   readonly resolution: number
   readonly minCascades: number
   readonly maxCascades: number
+  /** PROTOTYPE (tail repetition, #44): rad, cascade c's lattice is turned by c times this; absent is 0. */
+  readonly rotationStep?: number
 }
 
 /**
@@ -52,6 +54,8 @@ export interface CascadeLayout {
   readonly kOuter: readonly number[]
   /** Per-cascade lambda for the GPU evolution, the scenario's unclamped lambda by default; generateTail ignores it. */
   readonly choppiness: readonly number[]
+  /** PROTOTYPE (tail repetition, #44): rad, each cascade's lattice turned counter-clockwise; absent is unturned. */
+  readonly rotations?: readonly number[]
 }
 
 /** The tiles in metres, cascade 0 first, under `rule` for a cut tile of t0 = periodsPerTile cut wavelengths. */
@@ -91,6 +95,7 @@ export const defaultCascadeLayout = (
     kInner,
     kOuter,
     choppiness: tiles.map(() => sea.block.choppiness),
+    rotations: tiles.map((_, c) => c * (rule.rotationStep ?? 0)),
   }
 }
 
@@ -171,6 +176,7 @@ export const generateTail = (sea: SeaDescription, layout: CascadeLayout, rng: Rn
     const re = new Float64Array(n * n)
     const im = new Float64Array(n * n)
     const stream = rng.fork(`cascade.${String(c)}`)
+    const turn = layout.rotations?.[c] ?? 0
     for (let iy = 0; iy < n; iy += 1) {
       const ky = (iy - half) * dk
       for (let ix = 0; ix < n; ix += 1) {
@@ -178,7 +184,7 @@ export const generateTail = (sea: SeaDescription, layout: CascadeLayout, rng: Rn
         const radiusSquared = (ix - half) * (ix - half) + (iy - half) * (iy - half)
         if (radiusSquared <= innerSquared || radiusSquared > outerSquared) continue
         const kx = (ix - half) * dk
-        const amplitude = scale * sqrt(spectrum.directional(dk * sqrt(radiusSquared), atan2(ky, kx)))
+        const amplitude = scale * sqrt(spectrum.directional(dk * sqrt(radiusSquared), atan2(ky, kx) + turn))
         const i = iy * n + ix
         re[i] = amplitude * (normals[0] ?? 0)
         im[i] = amplitude * (normals[1] ?? 0)
