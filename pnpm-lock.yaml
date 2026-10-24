@@ -65,9 +65,6 @@ importers:
       '@luovi/core':
         specifier: workspace:*
         version: link:../core
-      '@luovi/sim-world':
-        specifier: workspace:*
-        version: link:../sim-world
 
   packages/render-ship:
     dependencies:
@@ -165,9 +162,6 @@ importers:
       '@luovi/core':
         specifier: workspace:*
         version: link:../core
-      '@luovi/data':
-        specifier: workspace:*
-        version: link:../data
       '@luovi/sim-world':
         specifier: workspace:*
         version: link:../sim-world

@@ -12,9 +12,6 @@
     },
     {
       "path": "../sim-world"
-    },
-    {
-      "path": "../data"
     }
   ]
 }
