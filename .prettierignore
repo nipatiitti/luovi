@@ -6,3 +6,4 @@ packages/core/golden/
 .engines/
 .svelte-kit/
 packages/tool-scenario/build/
+packages/tool-scenario/.shots/

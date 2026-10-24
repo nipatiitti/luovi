@@ -32,6 +32,9 @@
       "path": "./packages/tool-scenario"
     },
     {
+      "path": "./packages/tool-scenario/shots"
+    },
+    {
       "path": "./packages/tool-validate"
     }
   ]
