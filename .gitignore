@@ -8,3 +8,4 @@ packages/tool-validate/report.json
 packages/tool-validate/.engines/
 .svelte-kit/
 packages/tool-scenario/build/
+packages/tool-scenario/.shots/

@@ -15,7 +15,8 @@
     "banned-characters": "node scripts/banned-characters.js",
     "unused": "knip",
     "check": "pnpm typecheck && pnpm lint && pnpm banned-characters && pnpm format:check && pnpm boundaries && pnpm unused",
-    "validate": "pnpm --filter @luovi/tool-scenario sync && tsc -b && node packages/tool-validate/dist/cli.js"
+    "validate": "pnpm --filter @luovi/tool-scenario sync && tsc -b && node packages/tool-validate/dist/cli.js",
+    "shots": "pnpm --filter @luovi/tool-scenario shots"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

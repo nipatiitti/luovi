@@ -21,6 +21,7 @@
   import { isolationProblem } from '../lib/isolation.ts'
   import { azimuthOf, bearingOf, toDegrees, toRadians } from '../lib/angles.ts'
   import { initialSettings } from '../lib/settings.ts'
+  import { frameCounter, installShotsHook } from '../lib/shots.ts'
   import { startViewer, type Viewer } from '../lib/viewer.ts'
 
   // The panel works in degrees and compass bearings; the render settings it builds are radians.
@@ -61,6 +62,9 @@
   let form = $state<EnvironmentForm | undefined>(undefined)
   let lastApplied = $state<string | undefined>(undefined)
   const blocks = createBlockSender((input) => host?.send(input))
+  // pnpm shots waits on loads and drawn frames; see lib/shots.ts.
+  const frames = frameCounter()
+  let loadWaiter: { resolve: () => void; reject: (error: Error) => void } | undefined
 
   const edit = (block: Block) => {
     if (form === undefined || effective === undefined) return
@@ -136,6 +140,8 @@
         problem = undefined
         lastApplied = undefined
         scenarioName = pendingName
+        loadWaiter?.resolve()
+        loadWaiter = undefined
       },
       environment: (change) => {
         if ('sea' in change) sea = change.sea ?? null
@@ -145,6 +151,8 @@
       },
       error: (message) => {
         problem = message
+        loadWaiter?.reject(new Error(message))
+        loadWaiter = undefined
       },
       status: (status) => {
         running = status.running
@@ -155,6 +163,32 @@
     load(OPENING_SHOWCASE.name, OPENING_SHOWCASE.document)
     const controls = attachCameraControls(canvas, initialSettings.camera)
     let viewer: Viewer | undefined
+    const uninstallShots = new URLSearchParams(location.search).has('shots')
+      ? installShotsHook({
+          load: (name) =>
+            new Promise((resolve, reject) => {
+              const entry = SHOWCASE.find((candidate) => candidate.name === name)
+              if (entry === undefined) {
+                reject(new Error(`no showcase scenario named ${name}`))
+                return
+              }
+              loadWaiter = { resolve, reject }
+              showcase = entry.name
+              load(entry.name, entry.document)
+            }),
+          apply: (view) => {
+            controls.set(view.camera)
+            cameraMode = view.camera.mode
+            sunElevation = view.sunElevation
+            sunBearing = view.sunBearing
+            exposureValue = view.exposureValue
+            foam = view.foam
+          },
+          pause: () => host?.pause(),
+          frames: frames.after,
+          read: () => ({ tick, timings: viewer?.timings === undefined ? null : Object.fromEntries(viewer.timings) }),
+        })
+      : undefined
     let stopped = false
     // The renderer reads the newest slot once per frame it draws; until it has started, or if it never does, the run bar
     // reads it here instead, so the slot is still read once per frame.
@@ -176,6 +210,7 @@
     const start = async (target: HTMLCanvasElement): Promise<void> => {
       try {
         const started = await startViewer(target, (seconds) => {
+          frames.drawn()
           if (controls.camera.mode !== cameraMode) controls.setMode(cameraMode)
           controls.update(seconds)
           const slot = readFrame()
@@ -203,6 +238,7 @@
     void start(canvas)
     return () => {
       stopped = true
+      uninstallShots?.()
       clearInterval(timer)
       cancelAnimationFrame(poll)
       simulation.stop()

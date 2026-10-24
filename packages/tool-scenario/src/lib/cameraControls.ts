@@ -12,6 +12,8 @@ export interface CameraControls {
   readonly camera: Camera
   /** Switches mode keeping the eye and view direction where they are. */
   setMode(mode: Camera['mode']): void
+  /** Replaces the camera outright, as a named view of `pnpm shots` does. */
+  set(camera: Camera): void
   /** Advances free flight by held keys; call once per frame. */
   update(seconds: number): void
   detach(): void
@@ -107,6 +109,9 @@ export const attachCameraControls = (element: HTMLElement, initial: Camera): Cam
     },
     setMode: (mode) => {
       camera = mode === 'free' ? toFree(camera) : toOrbit(camera)
+    },
+    set: (next) => {
+      camera = next
     },
     update: (seconds) => {
       if (camera.mode !== 'free') return

@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "sync": "svelte-kit sync",
-    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings --output human"
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings --output human",
+    "shots": "node shots/shots.ts"
   },
   "dependencies": {
     "@luovi/core": "workspace:*",
@@ -22,6 +23,7 @@
     "@sveltejs/adapter-static": "4.0.0",
     "@sveltejs/kit": "3.1.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "playwright": "1.62.1",
     "svelte": "5.57.2",
     "svelte-check": "4.7.7",
     "vite": "8.3.4"
