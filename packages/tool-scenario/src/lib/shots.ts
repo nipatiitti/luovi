@@ -34,16 +34,16 @@ const daylight = {
   paused: false,
 }
 
-/** The opening orbit, 40 m out with the eye about 6 m up, facing south toward the afternoon Sun's glitter. */
+/** The opening orbit, 40 m out with the eye about 6 m up, facing east, the afternoon Sun's glitter out of frame. */
 const surface: Camera = initialSettings.camera
 
-/** 300 m above the origin, looking south and down so the near sea and the horizon share the frame. */
-const high: Camera = { mode: 'free', position: [0, 0, 300], yaw: toRadians(-90), pitch: toRadians(-25) }
+/** 300 m above the origin, looking east and down so the near sea and the horizon share the frame. */
+const high: Camera = { mode: 'free', position: [0, 0, 300], yaw: toRadians(0), pitch: toRadians(-25) }
 
 /** The opening orbit turned west, toward a Sun on the horizon. */
 
-/** PROTOTYPE (#41): 4 m above the water looking south and down at 30 degrees, for near detail. */
-const close: Camera = { mode: 'free', position: [0, 0, 4], yaw: toRadians(-90), pitch: toRadians(-30) }
+/** PROTOTYPE (#41): 4 m above the water looking east and down at 30 degrees, for near detail. */
+const close: Camera = { mode: 'free', position: [0, 0, 4], yaw: toRadians(0), pitch: toRadians(-30) }
 
 /** PROTOTYPE (#41): each scene once per whitecap variant, named scene.variant. */
 const SCENES: readonly Omit<ShotView, 'foamVariant'>[] = [
@@ -104,9 +104,9 @@ export interface ShotsPage {
   read(): ShotResult
 }
 
-// Frames drawn before a view counts as settled: two seconds at 60 Hz, which runs the sea long enough for foam to build
-// up from its empty start (the storm's foam decays over seconds, data's foamDecayTime) and for the timer queries to land.
-const RUN_FRAMES = 120
+// Frames drawn before a view counts as settled: 4.5 seconds at 60 Hz (PROTOTYPE #41: two seconds caught no good wave),
+// which runs the sea long enough for foam to build up from its empty start and for the timer queries to land.
+const RUN_FRAMES = 270
 // Frames drawn after a pause, so the picture is of the frozen state rather than the frame the pause arrived on.
 const PAUSED_FRAMES = 30
 
