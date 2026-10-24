@@ -13,7 +13,6 @@
     "dist"
   ],
   "dependencies": {
-    "@luovi/core": "workspace:*",
-    "@luovi/sim-world": "workspace:*"
+    "@luovi/core": "workspace:*"
   }
 }

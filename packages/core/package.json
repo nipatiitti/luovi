@@ -7,9 +7,16 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./math": {
+      "types": "./dist/math/index.d.ts",
+      "default": "./dist/math/index.js"
     }
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "valibot": "1.5.0"
+  }
 }

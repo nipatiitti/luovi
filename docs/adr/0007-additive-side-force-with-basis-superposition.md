@@ -20,3 +20,7 @@ Decided by the VLM lattice, heel bins, inverse strategy and cross-flow blend tic
 - Heel-induced side force at zero leeway comes from the heeled mid-surface geometry; its check against the Delft series heeled intercepts is outside this map, and the cited zero-lift leeway regression is the fallback if that check ever fails.
 - The DSYHS regression is used without its leeway and induced terms; wave drag due to side force has no owner and graduates to a ticket only if the H-boat polar misses upwind.
 - A `hullBody` lifting surface (Suomen Joutsen, step 6) still needs a relief chord and a Munk split of its own; neither is decided here.
+
+## Amendment, 2026-10-24
+
+The millisecond budget the full product was weighed against (the hero boat's 1 ms) is dropped by `docs/adr/0013`; the decision above stands without it.

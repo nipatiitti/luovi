@@ -16,6 +16,7 @@
     "@luovi/core": "workspace:*",
     "@luovi/sim-ocean": "workspace:*",
     "@luovi/sim-hull": "workspace:*",
-    "@luovi/sim-rig": "workspace:*"
+    "@luovi/sim-rig": "workspace:*",
+    "@luovi/data": "workspace:*"
   }
 }

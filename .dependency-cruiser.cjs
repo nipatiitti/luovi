@@ -23,6 +23,17 @@ const mayImport = (name, from, allowed) => ({
   },
 })
 
+// mayImport lets a package import its own layer's glob so it can import itself, which also lets one tool import another
+// (or one renderer, model or game another). Siblings in a layer stay independent: each is built, tested and replaced on
+// its own, and anything two of them share belongs in the layer below them. $1 is the importing package's name.
+const keepsToItself = (name, layer, kind) => ({
+  name,
+  severity: 'error',
+  comment: `A ${kind} may not import another ${kind}; what two share moves down a layer.`,
+  from: { path: pkg(layer) },
+  to: { path: pkg(layer), pathNot: '^packages/$1/' },
+})
+
 module.exports = {
   forbidden: [
     mayImport('data-imports-only-core', data, core),
@@ -39,6 +50,10 @@ module.exports = {
     mayImport('render-imports-core-and-world', render, `${core}|${world}`),
     mayImport('tools-import-core-data-world-render', tools, `${core}|${data}|${world}|${render}`),
     mayImport('games-import-core-world-render', games, `${core}|${world}|${render}`),
+    keepsToItself('model-imports-no-other-model', models, 'model'),
+    keepsToItself('renderer-imports-no-other-renderer', render, 'renderer'),
+    keepsToItself('tool-imports-no-other-tool', tools, 'tool'),
+    keepsToItself('game-imports-no-other-game', games, 'game'),
     {
       name: 'no-circular',
       severity: 'error',
@@ -52,11 +67,18 @@ module.exports = {
       from: { path: pkg(`${core}|${data}|${models}|${world}`) },
       to: { path: 'node_modules/(@webgpu|three|@babylonjs|pixi\\.js)' },
     },
+    {
+      name: 'validate-harness-has-no-node-deps',
+      severity: 'error',
+      comment: 'The harness and benchmarks also run in a browser page; file access comes through HarnessIo.',
+      from: { path: '^packages/tool-validate/src/(harness|benchmarks)/' },
+      to: { dependencyTypes: ['core'] },
+    },
   ],
   options: {
     tsConfig: { fileName: 'tsconfig.base.json' },
     tsPreCompilationDeps: true,
-    exclude: { path: 'node_modules|/dist/' },
+    exclude: { path: 'node_modules|/dist/|/[.]engines/' },
     enhancedResolveOptions: {
       exportsFields: ['exports'],
       conditionNames: ['import', 'types', 'default'],

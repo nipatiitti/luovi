@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // A type or interface that names part of an exported signature stays exported so a caller can name it too.
+  "ignoreExportsUsedInFile": { "interface": true, "type": true },
+  "workspaces": {
+    ".": { "entry": ["scripts/*.js"] },
+    "packages/tool-validate": {
+      // The CLI that `pnpm validate` runs, the explicit benchmark list, and the browser page that run-browsers.ts
+      // hands to Vite by URL rather than by import.
+      "entry": ["src/cli.ts", "src/benchmarks/index.ts", "src/engines/page.ts"],
+    },
+    // render-ship, sim-hull and sim-rig are still empty: they declare their layer's workspace dependencies ahead of
+    // using them, and their dependents declare them ahead of importing them. .dependency-cruiser.cjs already polices
+    // which edges may exist. Drop each ignore once the package it names has code.
+    "packages/render-ship": { "ignoreDependencies": ["@luovi/core", "@luovi/sim-world"] },
+    "packages/sim-hull": { "ignoreDependencies": ["@luovi/core"] },
+    "packages/sim-rig": { "ignoreDependencies": ["@luovi/core"] },
+    "packages/sim-world": { "ignoreDependencies": ["@luovi/sim-hull", "@luovi/sim-rig"] },
+    "packages/tool-scenario": {
+      "ignoreDependencies": ["@luovi/render-ship"],
+      // Step 2 scaffolding (ADR 0003): the keyboard driver lands before the page binds keys to it.
+      "entry": ["src/lib/host/keyboard.ts"],
+    },
+  },
+}

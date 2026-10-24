@@ -13,6 +13,7 @@
     "dist"
   ],
   "dependencies": {
-    "@luovi/core": "workspace:*"
+    "@luovi/core": "workspace:*",
+    "@luovi/data": "workspace:*"
   }
 }

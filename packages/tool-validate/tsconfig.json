@@ -5,16 +5,13 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
-  "include": ["src"],
+  "include": ["src", "src/**/*.json"],
   "references": [
     {
       "path": "../core"
     },
     {
       "path": "../sim-world"
-    },
-    {
-      "path": "../data"
     }
   ]
 }

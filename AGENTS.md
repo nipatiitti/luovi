@@ -16,7 +16,7 @@
 
 - Tests are scenarios. A behaviour claim is proven by a scenario in `tool-validate` with a numeric target (polar within 5%, sternway 1–2 kn, drift speed, broach sequence), run headless. The only unit-level tests are `core` math against golden vectors and unit conversions.
 
-- Performance budgets are requirements: 60 Hz fixed tick, hero boat under 1 ms CPU, full-rigged ship rig and sails under 2 ms, renderer under 5 ms GPU at 1440p on an RTX 4060 class card. Profile before optimising, and never trade determinism for speed in `sim-*`.
+- Performance has no millisecond budget: the game is playable on a normal GPU and CPU, at whatever frame rate they reach. Profile it, and address a task that costs too much for what it brings case by case (`docs/adr/0013`). The 60 Hz fixed tick is the determinism clock, not a budget, and determinism is never traded for speed in `sim-*`.
 
 - The design doc is the source of truth for intent; code is the source of truth for behaviour. When they disagree, open the question rather than silently changing either. Once the question is decided, the source doc is corrected and re-exported naming the ADR that decided it; only schedule deviations are recorded on the wayfinder map.
 
@@ -30,26 +30,11 @@ A grilling session (`/grilling`, a wayfinder ticket, any design decision put to 
 2. Ask the whole frontier in one round as numbered questions in the chat, each with a recommended answer, worded so "yes" takes the recommendation. Nothing is left silently assumed: a decision that goes unasked is a decision the agent made.
 3. Collect the answers with one "ask user a question" call: the first question asks whether the recommendations stand, with "Yes to all" first and "Yes with exceptions, named by number" second. Add a separate question in the same call only for a genuine fork, the one or two decisions whose answer reshapes the work, with the recommended option first.
 4. An exception is the answer to that question. A second round happens only when an exception reshapes the frontier; otherwise record and act.
+5. A question that reopens a closed decision ticket gets a round of its own, after research. It is never a seat in a close-out round.
 
 ## Agentic workflow
 
-- Work is cut into small slices. A slice brief says "this file needs something like this", never code. The agent that takes a slice has implementation authority within it.
-
-- An agent ends its slice with context under 200k tokens. If a slice will not fit, split it before starting.
-
-- A slice's benchmark is written by a second agent from the ticket's acceptance criteria, in parallel with the code. The implementer's brief names the benchmark its code must make pass; the benchmark author's brief names the public surface it may read. A ticket that carries a benchmark is therefore two briefs.
-
-- A slice agent's own check is `pnpm check`: the tree compiles, lints and respects the package boundaries. Verification of behaviour belongs to the sweeper and the benchmarks.
-
-- `pnpm validate` is the quick benchmark tier and is run once per batch by the sweeper, never by a slice agent. `pnpm validate --full` is run by the coordinator's final sweep or by CI on main.
-
-- One agent writes one slice.
-
-- After a few slices land, a separate sweeper reads the diffs and reports problems. A separate fixer fixes them. At most two sweep-and-fix rounds per batch.
-
-- The coordinator spends no context on sweeping or fixing; it delegates both and reads only the reports.
-
-- The coordinator ends with one final sweep of all changes against the plan and leaves the tree ready for hand-off to a fresh designer and coordinator pair.
+Coordinating a multi-slice build, or taking one of its slices as implementer, sweeper or fixer: read `docs/agents/workflow.md` first.
 
 ## Agent skills
 
