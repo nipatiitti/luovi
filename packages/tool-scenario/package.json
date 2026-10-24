@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "sync": "svelte-kit sync",
     "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings --output human",
-    "shots": "node shots/shots.ts"
+    "shots": "node shots/shots.ts",
+    "fps": "node shots/fps.ts"
   },
   "dependencies": {
     "@luovi/core": "workspace:*",

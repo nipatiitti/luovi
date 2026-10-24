@@ -120,6 +120,9 @@ const OCEAN_WORD = (() => {
     wireframe: 23,
     band: 24,
     cascadeCount: 25,
+    /** PROTOTYPE (band size, #43): 0 none, 1 pairs, 2 factorised; then the factorised form's calibration. */
+    boundForm: 26,
+    boundScale: 27,
     cascades: 28,
     shading,
     coxMunk: shading + 4,
@@ -131,6 +134,13 @@ const OCEAN_WORD = (() => {
 })()
 
 const OCEAN_UNIFORM_BYTES = 4 * OCEAN_WORD.end
+
+/**
+ * PROTOTYPE (band size, #43): the most components the vertex stage's exact pair sum holds A cos and A sin for, private
+ * arrays sized at compile time; the pair form is the N = 32 variant's.
+ */
+const PAIR_LIMIT = 32
+const BOUND_FORM = { none: 0, pairs: 1, factorised: 2 } as const
 
 /**
  * Where across the foam buffer's half-width the near buffer starts handing over to the far coverage: the blend runs over
@@ -154,7 +164,9 @@ struct Ocean {
   wireframe: u32,
   band: u32,
   cascade_count: u32,
-  _pad: vec2u,
+  // PROTOTYPE (band size, #43): 0 none, 1 the exact pair sum, 2 the factorised form; its calibration.
+  bound_form: u32,
+  bound_scale: f32,
   // Per cascade: tile L (m), the clipmap origin modulo L plus half a texel (m), and 1 when the debug panel draws it.
   cascades: array<vec4f, ${String(MAX_CASCADES)}>,
   // The band's exact slope covariance (xx, yy, xy) and the water's refractive index.
@@ -197,6 +209,8 @@ struct Ring {
 @group(2) @binding(8) var moments: texture_2d_array<f32>;
 // Near-field foam density, indexed by undisplaced position (foam.ts).
 @group(2) @binding(9) var foam: texture_2d<f32>;
+// PROTOTYPE (band size, #43): the pair form's (P, Q) per ordered pair, row-major N x N (core's BoundWaves).
+@group(2) @binding(10) var<storage, read> pairs: array<vec2f>;
 
 struct Varying {
   @builtin(position) position: vec4f,
@@ -254,6 +268,15 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
   var slope = vec2f(0.0);
   var stretch = vec3f(0.0); // d(shift.x)/dx, d(shift.x)/dy = d(shift.y)/dx, d(shift.y)/dy
   var band_divergence = 0.0;
+  // PROTOTYPE (band size, #43): the extra running sums the bound waves and their gradient need. eta_k = sum a |k| c;
+  // H = sum a k_hat s; G = sum a |k| k s; curvature = sum a c k k^T and spread = sum a c k k^T / |k|, both (xx, xy, yy).
+  var height_k = 0.0;
+  var h_unit = vec2f(0.0);
+  var g_sum = vec2f(0.0);
+  var curvature = vec3f(0.0);
+  var spread = vec3f(0.0);
+  var pair_c: array<f32, ${String(PAIR_LIMIT)}>;
+  var pair_s: array<f32, ${String(PAIR_LIMIT)}>;
   // Rings are ordered by carry, so a ring that carries nothing also morphs towards a ring that carries nothing.
   if (ring.carry > 0.0 && ocean.band != 0u) {
     let row = slot * ocean.count;
@@ -275,6 +298,67 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       slope -= a * s * wave.k;
       stretch -= d * c * vec3f(wave.k.x * wave.k.x, wave.k.x * wave.k.y, wave.k.y * wave.k.y);
       band_divergence += wave_divergence(wave, d, c);
+      if (ocean.bound_form != 0u) {
+        let magnitude = length(wave.k);
+        let kk = vec3f(wave.k.x * wave.k.x, wave.k.x * wave.k.y, wave.k.y * wave.k.y);
+        height_k += a * magnitude * c;
+        h_unit += a * s * wave.k / magnitude;
+        g_sum += a * magnitude * s * wave.k;
+        curvature += a * c * kk;
+        spread += a * c * kk / magnitude;
+        if (ocean.bound_form == 1u) {
+          pair_c[i] = a * c;
+          pair_s[i] = a * s;
+        }
+      }
+    }
+    // PROTOTYPE (band size, #43): the bound waves at this label, eta2 + lambda H . H_k, and their gradient in the label,
+    // added to the height and the slope the normal is formed from. With the band alone so far, shift = -lambda H and
+    // slope = -H_k, so lambda H . H_k = shift . slope and its gradient is stretch^T slope - curvature shift.
+    if (ocean.bound_form != 0u) {
+      let chop = dot(shift, slope);
+      let chop_gradient = vec2f(
+        stretch.x * slope.x + stretch.y * slope.y - (shift.x * curvature.x + shift.y * curvature.y),
+        stretch.y * slope.x + stretch.z * slope.y - (shift.x * curvature.y + shift.y * curvature.z),
+      );
+      var second = 0.0;
+      var second_gradient = vec2f(0.0);
+      if (ocean.bound_form == 1u) {
+        // eta2 = C^T P C + S^T Q S; its gradient is 2 sum k_i (C_i (Q S)_i - S_i (P C)_i). P and Q are symmetric, so
+        // each unordered pair is visited once and adds to both rows.
+        for (var i = 0u; i < ocean.count; i++) {
+          let ci = pair_c[i];
+          let si = pair_s[i];
+          if (ci == 0.0 && si == 0.0) {
+            continue;
+          }
+          let ki = waves[i].k;
+          let pair_row = i * ocean.count;
+          let own = pairs[pair_row + i];
+          second += own.x * ci * ci + own.y * si * si;
+          second_gradient += 2.0 * ki * ci * si * (own.y - own.x);
+          for (var j = i + 1u; j < ocean.count; j++) {
+            let entry = pairs[pair_row + j];
+            let cj = pair_c[j];
+            let sj = pair_s[j];
+            second += 2.0 * (entry.x * ci * cj + entry.y * si * sj);
+            second_gradient += 2.0 * (ki * (ci * entry.y * sj - si * entry.x * cj) + waves[j].k * (cj * entry.y * si - sj * entry.x * ci));
+          }
+        }
+      } else {
+        // calibration 1/2 (eta eta_k - H . H_k), with H_k = -slope; grad eta = slope, grad eta_k = -G, and
+        // grad (H . H_k) = spread H_k + curvature H.
+        let h_hk = -dot(h_unit, slope);
+        let hk = -slope;
+        let grad_h_hk = vec2f(
+          spread.x * hk.x + spread.y * hk.y + curvature.x * h_unit.x + curvature.y * h_unit.y,
+          spread.y * hk.x + spread.z * hk.y + curvature.y * h_unit.x + curvature.z * h_unit.y,
+        );
+        second = ocean.bound_scale * 0.5 * (height * height_k - h_hk);
+        second_gradient = ocean.bound_scale * 0.5 * (slope * height_k - height * g_sum - grad_h_hk);
+      }
+      height += second + chop;
+      slope += second_gradient + chop_gradient;
     }
   }
   if (ring.carry > 0.0) {
@@ -554,6 +638,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       { binding: 7, visibility: both, sampler: { type: 'filtering' } },
       { binding: 8, visibility: GPUShaderStage.FRAGMENT, texture: fieldTexture },
       { binding: 9, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+      { binding: 10, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
     ],
   })
   const tail = createOceanTail(device)
@@ -600,6 +685,8 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     readonly phases: GPUBuffer
     readonly weights: GPUBuffer
     readonly rings: GPUBuffer
+    /** PROTOTYPE (band size, #43): the pair form's (P, Q) table, a placeholder otherwise. */
+    readonly pairs: GPUBuffer
     readonly tail: TailFields
     /** groups[i] samples foam buffer i. */
     readonly groups: readonly [GPUBindGroup, GPUBindGroup]
@@ -619,7 +706,8 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     if (reuseMesh === undefined) device.queue.writeBuffer(indices, 0, mesh.indices)
     if (previous !== undefined) {
       if (reuseMesh === undefined) previous.indices.destroy()
-      for (const old of [previous.waves, previous.phases, previous.weights, previous.rings]) old.destroy()
+      for (const old of [previous.waves, previous.phases, previous.weights, previous.rings, previous.pairs])
+        old.destroy()
     }
 
     const count = sea?.components.count ?? 0
@@ -634,6 +722,20 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     }
     const waves = storage('waves', waveData.byteLength)
     device.queue.writeBuffer(waves, 0, waveData)
+    const bound = sea?.boundWaves ?? null
+    if (bound?.form === 'pairs' && count > PAIR_LIMIT) {
+      throw new RangeError(
+        `The vertex stage's pair sum holds at most ${String(PAIR_LIMIT)} components, got ${String(count)}`,
+      )
+    }
+    const pairData = new Float32Array(bound?.form === 'pairs' ? 2 * count * count : 4)
+    if (bound?.form === 'pairs') {
+      for (let q = 0; q < count * count; q += 1) pairData.set([bound.cosine[q] ?? 0, bound.sine[q] ?? 0], 2 * q)
+    }
+    const pairs = storage('pairs', pairData.byteLength)
+    device.queue.writeBuffer(pairs, 0, pairData)
+    uniformWords[OCEAN_WORD.boundForm] = BOUND_FORM[bound?.form ?? 'none']
+    uniformFloats[OCEAN_WORD.boundScale] = bound?.calibration ?? 0
     const phaseData = new Float32Array(Math.max(1, count))
     const weightData = new Float32Array(Math.max(1, (ringSlots + 1) * count))
     const ringData = new Float32Array(ringSlots * RING_FLOATS)
@@ -681,6 +783,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
           { binding: 7, resource: tailSampler },
           { binding: 8, resource: fields.moments },
           { binding: 9, resource: foamView },
+          { binding: 10, resource: { buffer: pairs } },
         ],
       })
     return {
@@ -693,6 +796,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       phases,
       weights,
       rings,
+      pairs,
       tail: fields,
       groups: [group(foam.views[0]), group(foam.views[1])],
       phaseScratch: new Float64Array(count),
@@ -805,7 +909,9 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       })
     },
     destroy: () => {
-      for (const old of [uniform, state.indices, state.waves, state.phases, state.weights, state.rings]) old.destroy()
+      for (const old of [uniform, state.indices, state.waves, state.phases, state.weights, state.rings, state.pairs]) {
+        old.destroy()
+      }
       tail.destroy()
       foam.destroy()
     },

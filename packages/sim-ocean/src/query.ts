@@ -97,6 +97,37 @@ export const createEnvironmentQuery = (
     decayDepth = z
   }
 
+  // PROTOTYPE (band size, #43): the bound waves' tables and the per-point A cos and A sin they multiply.
+  const bound = sea?.boundWaves ?? null
+  const unitX = Float64Array.from({ length: count }, (_, i) => (kx[i] ?? 0) / (k[i] ?? 1))
+  const unitY = Float64Array.from({ length: count }, (_, i) => (ky[i] ?? 0) / (k[i] ?? 1))
+  const cosines = new Float64Array(count)
+  const sines = new Float64Array(count)
+
+  /**
+   * eta2 + lambda H . H_k at the label whose A cos and A sin fill cosines and sines (core's BoundWaves says why), from the
+   * linear height and eta_k and the two H sums already formed.
+   */
+  const boundHeight = (height: number, heightK: number, hX: number, hY: number, hkX: number, hkY: number): number => {
+    if (bound === null) return 0
+    const chop = lambda * (hX * hkX + hY * hkY)
+    if (bound.form === 'factorised') return bound.calibration * 0.5 * (height * heightK - hX * hkX - hY * hkY) + chop
+    // The symmetric pair sum over i <= j, each off-diagonal pair counted twice.
+    let pairs = 0
+    for (let i = 0; i < count; i += 1) {
+      const ci = cosines[i] ?? 0
+      const si = sines[i] ?? 0
+      const row = i * count
+      let rowSum = 0.5 * ((bound.cosine[row + i] ?? 0) * ci * ci + (bound.sine[row + i] ?? 0) * si * si)
+      for (let j = i + 1; j < count; j += 1) {
+        rowSum +=
+          (bound.cosine[row + j] ?? 0) * ci * (cosines[j] ?? 0) + (bound.sine[row + j] ?? 0) * si * (sines[j] ?? 0)
+      }
+      pairs += 2 * rowSum
+    }
+    return pairs + chop
+  }
+
   const phases = new Float64Array(count)
   let phaseTick = Number.NaN
   const trig = new Float64Array(2)
@@ -145,17 +176,33 @@ export const createEnvironmentQuery = (
         let east = 0
         let north = 0
         let up = 0
+        let heightK = 0
+        let hX = 0
+        let hY = 0
+        let hkX = 0
+        let hkY = 0
         for (let i = 0; i < count; i += 1) {
           sincos((kx[i] ?? 0) * x + (ky[i] ?? 0) * y + (phases[i] ?? 0), trig, 0)
           const s = trig[0] ?? 0
           const c = trig[1] ?? 0
           const horizontal = (horizontalDecay[i] ?? 0) * c
-          height += (amplitude[i] ?? 0) * c
+          const aI = amplitude[i] ?? 0
+          if (bound !== null) {
+            const aS = aI * s
+            cosines[i] = aI * c
+            sines[i] = aS
+            heightK += aI * (k[i] ?? 0) * c
+            hX += aS * (unitX[i] ?? 0)
+            hY += aS * (unitY[i] ?? 0)
+            hkX += aS * (kx[i] ?? 0)
+            hkY += aS * (ky[i] ?? 0)
+          }
+          height += aI * c
           east += (velocityX[i] ?? 0) * horizontal
           north += (velocityY[i] ?? 0) * horizontal
           up += (velocityZ[i] ?? 0) * (verticalDecay[i] ?? 0) * s
         }
-        out[4 * p] = height
+        out[4 * p] = height + boundHeight(height, heightK, hX, hY, hkX, hkY)
         out[4 * p + 1] = east + currentEast
         out[4 * p + 2] = north + currentNorth
         out[4 * p + 3] = up

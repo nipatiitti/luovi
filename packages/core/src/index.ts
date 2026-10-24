@@ -43,5 +43,5 @@ export {
   RecordingSchema,
 } from './contracts/input.ts'
 export type { EnvironmentConstants, EnvironmentQuery } from './contracts/environment.ts'
-export type { SeaDescription, SpectrumParameters, WaveComponents } from './contracts/sea.ts'
+export type { BoundWaves, SeaDescription, SpectrumParameters, WaveComponents } from './contracts/sea.ts'
 export { layoutFor, type ShipDefinition, STATE_HEADER, STATE_VERSION, type StateLayout } from './contracts/layout.ts'

@@ -50,6 +50,29 @@ export interface SeaDescription {
    */
   readonly breakingThreshold: number
   readonly components: WaveComponents
+  /** PROTOTYPE (band size, #43): the band's second-order correction, null when the sea block asks for none. */
+  readonly boundWaves: BoundWaves | null
+}
+
+/**
+ * PROTOTYPE (band size, #43). The vertical position of the surface point labelled x0 is, to second order,
+ *
+ *   z = eta(x0) + eta2(x0) + lambda H . H_k
+ *
+ * with eta = sum A cos theta, H = sum A k_hat sin theta, H_k = sum A k sin theta; the last term is the linear surface's
+ * own height change under the choppy displacement, D . grad eta. With C_i = A_i cos theta_i and S_i = A_i sin theta_i,
+ * the pair form is eta2 = C^T P C + S^T Q S (Sharma and Dean 1979 as Forristall 2000 eq. 12 to 19 print them, finite
+ * depth), and the factorised form is eta2 = calibration 1/2 (eta eta_k - H . H_k) with eta_k = sum A |k| cos theta,
+ * exact for collinear deep-water waves.
+ */
+export interface BoundWaves {
+  readonly form: 'pairs' | 'factorised'
+  /** N x N row-major, symmetric: P = (K+ + K-) / 4, m^-1. Empty for the factorised form. */
+  readonly cosine: Float64Array
+  /** N x N row-major, symmetric: Q = (K- - K+) / 4, m^-1. Empty for the factorised form. */
+  readonly sine: Float64Array
+  /** The factorised form's factor, solved so its expected E[eta^2 eta2] equals the pair sum's; 1 for the pair form. */
+  readonly calibration: number
 }
 
 /** What the tail generator and the renderer need to evaluate F without rebuilding the sea. */

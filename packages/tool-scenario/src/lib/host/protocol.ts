@@ -12,6 +12,8 @@ export type ToWorker =
   | { readonly kind: 'pause' }
   /** Pauses, then runs exactly one tick. */
   | { readonly kind: 'step' }
+  /** PROTOTYPE (band size, #43): pauses, then runs ticks until the world reaches this one. */
+  | { readonly kind: 'seek'; readonly tick: number }
   /** Multiplier on real time, greater than zero. */
   | { readonly kind: 'speed'; readonly multiplier: number }
   /** One input as the contract defines it, applied at the later of its tick and the next tick. */

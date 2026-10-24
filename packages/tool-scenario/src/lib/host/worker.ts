@@ -163,6 +163,11 @@ const handle = (message: ToWorker): void => {
       if (session !== undefined) runTick(session)
       sendStatus(performance.now())
       return
+    case 'seek':
+      if (running) pause()
+      if (session !== undefined) while (session.world.tick < message.tick) runTick(session)
+      sendStatus(performance.now())
+      return
     case 'speed':
       if (message.multiplier > 0) speed = message.multiplier
       return

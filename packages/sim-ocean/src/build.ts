@@ -2,6 +2,7 @@ import type { EffectiveSeaBlock, SeaDescription, SpectrumParameters } from '@luo
 import { createRng } from '@luovi/core'
 import { atan2, hypot, pow, sincos, sqrt, TWO_PI } from '@luovi/core/math'
 import { jonswap, piersonMoskowitz } from '@luovi/data'
+import { boundWaves } from './bound.ts'
 import { breakingThreshold } from './breaking.ts'
 import { dispersionFrequency, dispersionWavenumber } from './dispersion.ts'
 import { frequencyDensity, type SpectrumSource, spreadingQuantile, spreadingWidth } from './spectrum.ts'
@@ -139,6 +140,7 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
   // bound / s * s can round one ulp above the bound; step lambda down until the recorded K honours it exactly.
   while (choppiness * slopeSum > CONTRACTION_BOUND) choppiness *= 1 - Number.EPSILON
 
+  const components = { count, kx, ky, k, omega, amplitude: new Float64Array(count).fill(amplitude), phase }
   const built = {
     seed,
     block,
@@ -150,7 +152,8 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
     choppiness,
     contraction: choppiness * slopeSum,
     bandVariance,
-    components: { count, kx, ky, k, omega, amplitude: new Float64Array(count).fill(amplitude), phase },
+    components,
+    boundWaves: boundWaves(block, components, depth, gravity),
   }
   return { ...built, ...breakingThreshold(built) }
 }

@@ -34,6 +34,8 @@ export interface Host {
   play(): void
   pause(): void
   step(): void
+  /** PROTOTYPE (band size, #43): pauses and runs to this tick. */
+  seek(tick: number): void
   setSpeed(multiplier: number): void
   /** One input to the newest world; the Worker stamps it with the tick it applies at. */
   send(input: Input): void
@@ -98,6 +100,9 @@ export const startHost = (events: HostEvents): Host => {
     },
     step: () => {
       send({ kind: 'step' })
+    },
+    seek: (tick) => {
+      send({ kind: 'seek', tick })
     },
     setSpeed: (multiplier) => {
       send({ kind: 'speed', multiplier })

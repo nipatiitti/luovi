@@ -23,6 +23,7 @@
   import { initialSettings } from '../lib/settings.ts'
   import { frameCounter, installShotsHook } from '../lib/shots.ts'
   import { startViewer, type Viewer } from '../lib/viewer.ts'
+  import { BAND_VARIANTS, bandVariantNamed, withBandVariant } from '../lib/bandSize.ts'
 
   // The panel works in degrees and compass bearings; the render settings it builds are radians.
   let sunElevation = $state(Math.round(toDegrees(initialSettings.sunElevation)))
@@ -34,6 +35,29 @@
   let cascades = $state<boolean[]>([])
   let wireframe = $state(false)
   let foam = $state(true)
+  // PROTOTYPE (band size, #43): the band variant, from ?band= and the bar at the bottom; a change reloads the scenario.
+  let bandVariant = $state(bandVariantNamed(new URLSearchParams(location.search).get('band')))
+  // The shots' own probe overlay switch and eye placement: markers hidden and no crest clamp while a shot view is applied.
+  let markersShown = $state(true)
+  let crestClamp = $state(true)
+  let tail = $state(true)
+  let lastDocument: { name: string; document: unknown } | undefined
+  // More entries than any sea has cascades, since a missing entry draws its cascade.
+  const NO_CASCADES = Array.from({ length: 8 }, () => false)
+  const cycleBand = (step: number) => {
+    const at = BAND_VARIANTS.indexOf(bandVariant)
+    bandVariant = BAND_VARIANTS[(at + step + BAND_VARIANTS.length) % BAND_VARIANTS.length] ?? bandVariant
+    const url = new URL(location.href)
+    url.searchParams.set('band', bandVariant.key)
+    history.replaceState(history.state, '', url)
+    if (lastDocument !== undefined) load(lastDocument.name, lastDocument.document)
+  }
+  const onBandKey = (event: KeyboardEvent) => {
+    const target = event.target
+    if (target instanceof HTMLElement && (target.closest('input, textarea, select') || target.isContentEditable)) return
+    if (event.key === 'ArrowLeft') cycleBand(-1)
+    else if (event.key === 'ArrowRight') cycleBand(1)
+  }
   let refusal = $state<string | undefined>(undefined)
   let failure = $state<string | undefined>(undefined)
   let timings = $state<string | undefined>(undefined)
@@ -92,8 +116,9 @@
 
   const load = (name: string, document: unknown) => {
     pendingName = name
+    lastDocument = { name, document }
     blocks.clear()
-    host?.load(document)
+    host?.load(withBandVariant(document, bandVariant))
     host?.play()
   }
 
@@ -165,7 +190,7 @@
     let viewer: Viewer | undefined
     const uninstallShots = new URLSearchParams(location.search).has('shots')
       ? installShotsHook({
-          load: (name) =>
+          load: (name, variant) =>
             new Promise((resolve, reject) => {
               const entry = SHOWCASE.find((candidate) => candidate.name === name)
               if (entry === undefined) {
@@ -174,18 +199,55 @@
               }
               loadWaiter = { resolve, reject }
               showcase = entry.name
+              bandVariant = bandVariantNamed(variant)
               load(entry.name, entry.document)
             }),
-          apply: (view) => {
-            controls.set(view.camera)
-            cameraMode = view.camera.mode
+          seek: async (target) => {
+            host?.seek(target)
+            // Two frames first, so the tick read is the new world's and not the last view's.
+            await frames.after(2)
+            while (tick !== target) await frames.after(1)
+          },
+          water: (at) => {
+            const markers = host?.frame()?.markers ?? noMarkers
+            let best: readonly [number, number, number] | undefined
+            for (let i = 0; i + 2 < markers.length; i += 3) {
+              const point = [markers[i] ?? 0, markers[i + 1] ?? 0, markers[i + 2] ?? 0] as const
+              if (at === 'origin' ? point[0] === 0 && point[1] === 0 : best === undefined || point[2] < best[2]) {
+                best = point
+              }
+            }
+            if (best === undefined) throw new Error('no probe point to place the eye over')
+            return best
+          },
+          apply: (view, eye) => {
+            const camera = { mode: 'free', position: eye, yaw: view.yaw, pitch: view.pitch } as const
+            controls.set(camera)
+            cameraMode = camera.mode
             sunElevation = view.sunElevation
             sunBearing = view.sunBearing
             exposureValue = view.exposureValue
             foam = view.foam
+            markersShown = view.markers
+            tail = view.tail
+            crestClamp = false
           },
-          pause: () => host?.pause(),
+          play: () => host?.play(),
           frames: frames.after,
+          record: async (ms) => {
+            const reads: Record<string, number>[] = []
+            const sampler = setInterval(() => {
+              if (viewer?.timings !== undefined) reads.push(Object.fromEntries(viewer.timings))
+            }, 200)
+            const intervals = await frames.intervals(ms)
+            clearInterval(sampler)
+            return {
+              intervals,
+              width: canvas?.width ?? 0,
+              height: canvas?.height ?? 0,
+              timings: viewer?.timings === undefined ? null : reads,
+            }
+          },
           read: () => ({ tick, timings: viewer?.timings === undefined ? null : Object.fromEntries(viewer.timings) }),
         })
       : undefined
@@ -225,8 +287,9 @@
             // Before the first load there is no sea, and the floor it would set is zero whatever z0 is.
             roughnessLength: effective?.environment.wind.z0.value ?? openSeaRoughnessLength.value,
             tick: slot?.tick ?? 0,
-            oceanDebug: { band, cascades, wireframe, foam },
-            markers: slot?.markers ?? noMarkers,
+            oceanDebug: { band, cascades: tail ? cascades : NO_CASCADES, wireframe, foam },
+            markers: markersShown ? (slot?.markers ?? noMarkers) : noMarkers,
+            crestClamp,
           }
         })
         if (stopped) started.stop()
@@ -248,6 +311,8 @@
   })
 </script>
 
+<svelte:window onkeydown={onBandKey} />
+
 {#if refusal !== undefined}
   <main class="message">
     <h1>Cross-origin isolation required</h1>
@@ -255,6 +320,11 @@
   </main>
 {:else}
   <canvas bind:this={canvas}></canvas>
+  <div class="prototype-bar">
+    <button onclick={() => cycleBand(-1)} aria-label="Previous band variant">&larr;</button>
+    <div><strong>{bandVariant.key}</strong> {bandVariant.label}</div>
+    <button onclick={() => cycleBand(1)} aria-label="Next band variant">&rarr;</button>
+  </div>
   <aside>
     <h1>Run</h1>
     <div class="buttons">
@@ -362,6 +432,37 @@
     background: #0b0e12;
     color: #e6e9ee;
     font: 13px/1.4 system-ui, sans-serif;
+  }
+  /* PROTOTYPE (band size, #43): the band variant switcher, deliberately unlike the tool's own panel. */
+  .prototype-bar {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #ffd84d;
+    color: #111;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 40%);
+    font: 13px/1.3 system-ui, sans-serif;
+    z-index: 10;
+  }
+  .prototype-bar div {
+    min-width: 360px;
+    text-align: center;
+  }
+  .prototype-bar button {
+    border: 0;
+    border-radius: 999px;
+    width: 32px;
+    height: 32px;
+    background: #111;
+    color: #ffd84d;
+    font-size: 16px;
+    cursor: pointer;
   }
   canvas {
     position: fixed;

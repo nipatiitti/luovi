@@ -1,5 +1,5 @@
-import type { Camera } from '@luovi/render-scene'
 import { bearingOf, toDegrees, toRadians } from './angles.ts'
+import { BAND_VARIANTS } from './bandSize.ts'
 import { initialSettings } from './settings.ts'
 
 // The named views `pnpm shots` captures. Each is the page's own state, a showcase scenario, a camera, the Sun and the
@@ -12,71 +12,117 @@ export interface ShotView {
   readonly label: string
   /** A showcase entry's name. */
   readonly scenario: string
-  readonly camera: Camera
+  /**
+   * PROTOTYPE (band size, #43): a free eye this many metres above the CPU water height over the world origin, or over
+   * the probe point with the lowest water.
+   */
+  readonly eyeAboveWater: number
+  readonly eyeAt: 'origin' | 'trough'
+  /** Radians counter-clockwise from east, and up from the horizontal. */
+  readonly yaw: number
+  readonly pitch: number
   /** Degrees above the horizon. */
   readonly sunElevation: number
   /** Compass degrees the Sun stands in. */
   readonly sunBearing: number
   readonly exposureValue: number
   readonly foam: boolean
-  /** Pause the simulation once the sea has run, then draw the frozen state. */
-  readonly paused: boolean
+  /** PROTOTYPE (band size, #43): the band variant's key, the tick the sea is drawn at, and what is drawn. */
+  readonly bandVariant: string
+  readonly tick: number
+  readonly markers: boolean
+  /** Draw the tail's cascades; off shows the band alone, the surface the CPU query answers for. */
+  readonly tail: boolean
 }
 
+/** PROTOTYPE (band size, #43): the time in the run every view is drawn at, 10 s, paused there. */
+const SHOT_TICK = 600
+
+/**
+ * The Sun as the tool opens with it, 35 degrees up in the south-west, behind every view below, which face north or east.
+ * Foam is off in the pictures: main's near foam buffer keeps injecting while the run is paused, so its cover depends on
+ * the frames drawn rather than the variant, and it hides the wave shape the comparison is about.
+ */
 const daylight = {
   sunElevation: Math.round(toDegrees(initialSettings.sunElevation)),
   sunBearing: Math.round(bearingOf(initialSettings.sunAzimuth)),
   exposureValue: initialSettings.exposureValue,
-  foam: true,
-  paused: false,
+  foam: false,
+  tick: SHOT_TICK,
+  markers: false,
+  tail: true,
+  eyeAt: 'origin',
+} as const
+
+// The wind blows toward the east in every sea, so east is downwind and north is across the wind.
+const EAST = 0
+const NORTH = toRadians(90)
+
+interface Scene {
+  readonly name: string
+  readonly label: string
+  /** m above the water under the eye, per sea key; a number is every sea's. */
+  readonly eyeAboveWater: number | Readonly<Record<string, number>>
+  readonly yaw: number
+  readonly pitch: number
+  readonly eyeAt?: ShotView['eyeAt']
+  readonly markers?: boolean
+  readonly tail?: boolean
+  readonly foam?: boolean
 }
 
-/** The opening orbit, 40 m out with the eye about 6 m up, facing south toward the afternoon Sun's glitter. */
-const surface: Camera = initialSettings.camera
+const helm = { eyeAboveWater: 2, yaw: EAST, pitch: toRadians(-6) }
+const wide = { eyeAboveWater: 20, yaw: toRadians(45), pitch: toRadians(-22) }
 
-/** 300 m above the origin, looking south and down so the near sea and the horizon share the frame. */
-const high: Camera = { mode: 'free', position: [0, 0, 300], yaw: toRadians(-90), pitch: toRadians(-25) }
-
-/** The opening orbit turned west, toward a Sun on the horizon. */
-const westward: Camera = { mode: 'orbit', distance: 40, yaw: toRadians(180), pitch: toRadians(-4) }
-
-const SHOT_VIEWS: readonly ShotView[] = [
-  { name: 'light', label: 'Light sea from the surface', scenario: 'Light reference sea', camera: surface, ...daylight },
+const SCENES: readonly Scene[] = [
+  { name: 'helm-downwind', label: '2 m eye at the helm, looking downwind', ...helm },
+  { name: 'helm-across', label: '2 m eye at the helm, looking across the wind', ...helm, yaw: NORTH },
+  { name: 'wide-20m', label: '20 m eye, looking across a wide area', ...wide },
+  // In the lowest probe point's trough, low and level along the waves' travel, so the next crest stands against the
+  // sky. The eye rises with the sea because the tail, which the CPU height leaves out, carries about 2 m Hs in the storm.
   {
-    name: 'moderate',
-    label: 'Moderate sea from the surface',
-    scenario: 'Moderate reference sea',
-    camera: surface,
-    ...daylight,
-  },
-  { name: 'storm', label: 'Storm sea from the surface', scenario: 'Storm reference sea', camera: surface, ...daylight },
-  { name: 'storm-300m', label: 'Storm sea from 300 m', scenario: 'Storm reference sea', camera: high, ...daylight },
-  {
-    name: 'sunset',
-    label: 'Moderate sea at sunset, Sun 3 degrees up in the west',
-    scenario: 'Moderate reference sea',
-    camera: westward,
-    ...daylight,
-    sunElevation: 3,
-    sunBearing: 270,
+    name: 'profile',
+    label: 'Crests in profile from a trough, looking downwind',
+    eyeAboveWater: { helsinki: 0.4, gulf: 1, bothnian: 3 },
+    yaw: EAST,
+    pitch: 0,
+    eyeAt: 'trough',
   },
   {
-    name: 'paused',
-    label: 'Moderate sea, simulation paused',
-    scenario: 'Moderate reference sea',
-    camera: surface,
-    ...daylight,
-    paused: true,
+    name: 'check',
+    label: 'Band only with the CPU probe markers, looking down',
+    eyeAboveWater: 12,
+    yaw: EAST,
+    pitch: toRadians(-50),
+    markers: true,
+    tail: false,
   },
-  {
-    name: 'foam-off',
-    label: 'Storm sea from the surface, foam off',
-    scenario: 'Storm reference sea',
-    camera: surface,
-    ...daylight,
-    foam: false,
-  },
+  // For the frame-rate runs: the 2 m and 20 m views with main's foam drawn.
+  { name: 'helm-downwind-foam', label: '2 m eye at the helm, looking downwind, main foam on', ...helm, foam: true },
+  { name: 'wide-20m-foam', label: '20 m eye, looking across a wide area, main foam on', ...wide, foam: true },
 ]
+
+const BAND_SEAS: readonly { readonly key: string; readonly scenario: string }[] = [
+  { key: 'helsinki', scenario: 'Helsinki archipelago, 8 m/s over 15 km' },
+  { key: 'gulf', scenario: 'Gulf of Finland, 12 m/s over 80 km' },
+  { key: 'bothnian', scenario: 'Bothnian Sea storm, 27 m/s over 194 km' },
+]
+
+/** PROTOTYPE (band size, #43): every scene of every sea in every variant, named sea.scene.variant. */
+const SHOT_VIEWS: readonly ShotView[] = BAND_SEAS.flatMap((sea) =>
+  SCENES.flatMap((scene) =>
+    BAND_VARIANTS.map((variant) => ({
+      ...daylight,
+      ...scene,
+      eyeAboveWater:
+        typeof scene.eyeAboveWater === 'number' ? scene.eyeAboveWater : (scene.eyeAboveWater[sea.key] ?? 1),
+      name: `${sea.key}.${scene.name}.${variant.key}`,
+      label: `${sea.scenario}, ${scene.label}, ${variant.label}`,
+      scenario: sea.scenario,
+      bandVariant: variant.key,
+    })),
+  ),
+)
 
 /** What a captured view reports beside its picture. */
 export interface ShotResult {
@@ -85,10 +131,23 @@ export interface ShotResult {
   readonly timings: Readonly<Record<string, number>> | null
 }
 
+/** PROTOTYPE (band size, #43): what a frame-rate run of a view measured. */
+export interface FrameRun {
+  /** ms between consecutive drawn frames. */
+  readonly intervals: readonly number[]
+  /** The canvas's backing store, device pixels. */
+  readonly width: number
+  readonly height: number
+  /** GPU milliseconds per pass, one read every 200 ms of the run, null without `timestamp-query`. */
+  readonly timings: readonly Readonly<Record<string, number>>[] | null
+}
+
 export interface ShotsHook {
   readonly views: readonly ShotView[]
-  /** Loads the view's scenario, applies its camera, Sun and toggles, and settles once the sea has run and drawn. */
+  /** Loads the view's scenario, runs it to the view's tick, applies its camera, Sun and toggles, and settles once drawn. */
   show(name: string): Promise<void>
+  /** PROTOTYPE (band size, #43): loads the view, lets it run, and records drawn frames for `ms` after `warmup` ms. */
+  measure(name: string, warmup: number, ms: number): Promise<FrameRun>
   /** The state the page draws now. */
   read(): ShotResult
 }
@@ -99,21 +158,29 @@ declare global {
 
 /** What the page lends the hook: its own load, settings and simulation controls. */
 export interface ShotsPage {
-  /** Loads a showcase entry from tick 0 and settles once the Worker has accepted it. */
-  load(scenario: string): Promise<void>
-  /** Sets the view's camera, Sun, exposure and toggles. */
-  apply(view: ShotView): void
-  pause(): void
+  /** Loads a showcase entry in a band variant from tick 0 and settles once the Worker has accepted it. */
+  load(scenario: string, bandVariant: string): Promise<void>
+  /** PROTOTYPE (band size, #43): pauses and runs to the tick; settles once the drawn slot shows it. */
+  seek(tick: number): Promise<void>
+  /** PROTOTYPE (band size, #43): a probe point of the drawn slot, x, y and the CPU water height, m. */
+  water(at: ShotView['eyeAt']): readonly [number, number, number]
+  /** Sets the view's camera, Sun, exposure and toggles, the eye at this world position. */
+  apply(view: ShotView, eye: readonly [number, number, number]): void
+  play(): void
   /** Settles once this many more frames have been drawn. */
   frames(count: number): Promise<void>
+  /** PROTOTYPE (band size, #43): wall times of the frames drawn for `ms`, the canvas size and GPU timing reads. */
+  record(ms: number): Promise<FrameRun>
   read(): ShotResult
 }
 
-// Frames drawn before a view counts as settled: two seconds at 60 Hz, which runs the sea long enough for foam to build
-// up from its empty start (the storm's foam decays over seconds, data's foamDecayTime) and for the timer queries to land.
-const RUN_FRAMES = 120
-// Frames drawn after a pause, so the picture is of the frozen state rather than the frame the pause arrived on.
+// Frames drawn after the seek, so the picture is of the frozen state and the timer queries have landed.
 const PAUSED_FRAMES = 30
+
+const eyeOf = (page: ShotsPage, view: ShotView): readonly [number, number, number] => {
+  const [x, y, z] = page.water(view.eyeAt)
+  return [x, y, z + view.eyeAboveWater]
+}
 
 export const installShotsHook = (page: ShotsPage): (() => void) => {
   globalThis.luoviShots = {
@@ -121,13 +188,20 @@ export const installShotsHook = (page: ShotsPage): (() => void) => {
     show: async (name) => {
       const view = SHOT_VIEWS.find((candidate) => candidate.name === name)
       if (view === undefined) throw new Error(`no view named ${name}`)
-      await page.load(view.scenario)
-      page.apply(view)
-      await page.frames(RUN_FRAMES)
-      if (view.paused) {
-        page.pause()
-        await page.frames(PAUSED_FRAMES)
-      }
+      await page.load(view.scenario, view.bandVariant)
+      await page.seek(view.tick)
+      page.apply(view, eyeOf(page, view))
+      await page.frames(PAUSED_FRAMES)
+    },
+    measure: async (name, warmup, ms) => {
+      const view = SHOT_VIEWS.find((candidate) => candidate.name === name)
+      if (view === undefined) throw new Error(`no view named ${name}`)
+      await page.load(view.scenario, view.bandVariant)
+      await page.seek(view.tick)
+      page.apply(view, eyeOf(page, view))
+      page.play()
+      await page.record(warmup)
+      return page.record(ms)
     },
     read: () => page.read(),
   }
@@ -136,13 +210,22 @@ export const installShotsHook = (page: ShotsPage): (() => void) => {
   }
 }
 
-/** Counts drawn frames and settles waits on a count; `drawn` is called once per frame the viewer draws. */
-export const frameCounter = (): { drawn(): void; after(count: number): Promise<void> } => {
+/**
+ * Counts drawn frames and settles waits on a count; `drawn` is called once per frame the viewer draws. PROTOTYPE (band
+ * size, #43): `intervals` records the wall time between drawn frames for a while.
+ */
+export const frameCounter = (): {
+  drawn(): void
+  after(count: number): Promise<void>
+  intervals(ms: number): Promise<number[]>
+} => {
   let drawn = 0
   let waiters: { readonly at: number; readonly resolve: () => void }[] = []
+  let stamps: number[] | undefined
   return {
     drawn: () => {
       drawn += 1
+      stamps?.push(performance.now())
       const due = waiters.filter((waiter) => waiter.at <= drawn)
       waiters = waiters.filter((waiter) => waiter.at > drawn)
       for (const waiter of due) waiter.resolve()
@@ -151,5 +234,14 @@ export const frameCounter = (): { drawn(): void; after(count: number): Promise<v
       new Promise((resolve) => {
         waiters.push({ at: drawn + count, resolve })
       }),
+    intervals: async (ms) => {
+      const recorded: number[] = []
+      stamps = recorded
+      await new Promise((resolve) => {
+        setTimeout(resolve, ms)
+      })
+      stamps = undefined
+      return recorded.slice(1).map((stamp, i) => stamp - (recorded[i] ?? stamp))
+    },
   }
 }

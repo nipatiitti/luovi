@@ -8,8 +8,11 @@ import { parseContract } from './parse.ts'
 
 /** The contract version; inputs and recordings carry the same one (input.ts says why). */
 export const SCENARIO_VERSION = 1
-/** The band is summed per query point every tick, so its component count is a CPU cost, not a free choice. */
-export const MAX_BAND_COMPONENTS = 48
+/**
+ * The band is summed per query point every tick, so its component count is a CPU cost, not a free choice. PROTOTYPE
+ * (band size, #43): raised from 48 to 128 on the prototype/band-size branch only, never merged.
+ */
+export const MAX_BAND_COMPONENTS = 128
 
 const finite = v.pipe(v.number(), v.finite())
 const positive = v.pipe(v.number(), v.finite(), v.gtValue(0))
@@ -55,6 +58,12 @@ export const SeaBlockSchema = v.pipe(
     sectors: v.optional(integerAtLeast(1), 4),
     /** Lambda before the contraction clamp; sim-world records the effective value. */
     choppiness: v.optional(v.pipe(v.number(), v.finite(), v.minValue(0)), 1),
+    /**
+     * PROTOTYPE (band size, #43): the band's second-order bound waves, a vertical correction at each point's Lagrangian
+     * label. none: linear, as main; pairs: the exact Sharma and Dean pair sum; factorised: the O(N) collinear form times
+     * the one constant solved at build so its skewness matches the pair sum's.
+     */
+    boundWaves: v.optional(v.picklist(['none', 'pairs', 'factorised']), 'none'),
   }),
   v.forward(
     v.check(

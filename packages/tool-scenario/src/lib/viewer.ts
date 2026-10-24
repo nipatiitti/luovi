@@ -15,6 +15,11 @@ export interface ViewerFrame {
   readonly oceanDebug: OceanDebug
   /** xyz per probe marker in world metres. */
   readonly markers: Float32Array<ArrayBuffer>
+  /**
+   * PROTOTYPE (band size, #43): keep the eye above the band's highest possible crest. Off for the shots, whose eye sits a
+   * stated height above the water under it, which the sum of 128 amplitudes would otherwise lift by metres.
+   */
+  readonly crestClamp: boolean
 }
 
 export interface Viewer {
@@ -66,7 +71,7 @@ export const startViewer = async (
     }
     renderer.render(next.settings, {
       markers: next.markers,
-      crest: ocean.crest,
+      crest: next.crestClamp ? ocean.crest : Number.NEGATIVE_INFINITY,
       sea: {
         prepare: (view) => {
           ocean.prepare({ ...view, tick: next.tick, roughnessLength: next.roughnessLength, debug: next.oceanDebug })

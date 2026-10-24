@@ -16,11 +16,19 @@ interface ShotResult {
   readonly tick: number | undefined
   readonly timings: Readonly<Record<string, number>> | null
 }
+// PROTOTYPE (band size, #43): a frame-rate run as the hook reports it; fps.ts reads it, and both scripts declare the hook alike.
+interface FrameRun {
+  readonly intervals: readonly number[]
+  readonly width: number
+  readonly height: number
+  readonly timings: readonly Readonly<Record<string, number>>[] | null
+}
 declare global {
   var luoviShots:
     | {
         readonly views: readonly { readonly name: string; readonly label: string }[]
         show(name: string): Promise<void>
+        measure(name: string, warmup: number, ms: number): Promise<FrameRun>
         read(): ShotResult
       }
     | undefined
@@ -170,7 +178,7 @@ const openTool = async (browser: Browser, url: string): Promise<{ page: Page; er
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto(`${url}?shots`)
   // The panel would cover part of every view.
-  await page.addStyleTag({ content: 'aside { display: none !important; }' })
+  await page.addStyleTag({ content: 'aside, .prototype-bar { display: none !important; }' })
   // Ready once the opening scenario has loaded and drawn, so the first view's load is not mistaken for the opening one.
   await page.waitForFunction(() => globalThis.luoviShots?.read().tick !== undefined, null, {
     timeout: PAGE_READY_TIMEOUT_MS,
@@ -239,6 +247,8 @@ const run = async (options: Options, started: { server?: ViteDevServer; browser?
   const sheetPath = resolve(options.out, 'sheet.png')
   const timingsPath = resolve(options.out, 'timings.json')
   await sheet.screenshot({ path: sheetPath, fullPage: true, type: 'png' })
+  // PROTOTYPE (band size, #43): every view's own picture beside the sheet, for the comparison page.
+  for (const shot of shots) if (shot.png !== null) await writeFile(resolve(options.out, `${shot.name}.png`), shot.png)
   const report = {
     browser: options.browser,
     viewport: VIEWPORT,
