@@ -34,6 +34,7 @@ const FOAM_WORD = {
   cascadeCount: 10,
   stampCount: 11,
   keep: 12,
+  inject: 13,
   cascades: 16,
 } as const
 
@@ -62,7 +63,8 @@ struct Foam {
   stamp_count: u32,
   // 1 when the previous buffer holds this sea's foam, 0 after a new sea, a step back in time or the toggle.
   keep: u32,
-  _pad0: u32,
+  // PROTOTYPE (#41): 0 under the rework, where breaking never enters the buffer.
+  inject: u32,
   _pad1: vec2u,
   // Per cascade: tile L (m), the clipmap origin modulo L plus half a texel (m), and the mip matching a buffer texel.
   cascades: array<vec4f, ${String(MAX_CASCADES)}>,
@@ -72,11 +74,10 @@ struct Foam {
 @group(0) @binding(1) var<storage, read> waves: array<Wave>;
 @group(0) @binding(2) var<storage, read> phases: array<f32>;
 @group(0) @binding(3) var previous: texture_2d<f32>;
-@group(0) @binding(4) var derivatives: texture_2d_array<f32>;
-@group(0) @binding(5) var moments: texture_2d_array<f32>;
 @group(0) @binding(6) var tail_sampler: sampler;
 // World-space stamps from the clipmap origin: centre x and y (m), radius (m), density.
 @group(0) @binding(7) var<storage, read> stamps: array<vec4f>;
+@group(0) @binding(8) var breaking: texture_2d_array<f32>;
 
 @vertex
 fn vertex_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
@@ -109,14 +110,13 @@ fn fragment_main(@builtin(position) position: vec4f) -> @location(0) f32 {
   for (var c = 0u; c < foam.cascade_count; c++) {
     let cascade = foam.cascades[c];
     let uv = cascade_uv(cascade, x);
-    let divergence = cascade_divergence(
-      textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w),
-      textureSampleLevel(moments, tail_sampler, uv, c, cascade.w),
-    );
+    let divergence = breaking_divergence(textureSampleLevel(breaking, tail_sampler, uv, c, cascade.w));
     mean += divergence.x;
     variance += divergence.y;
   }
-  density = max(density, coverage_below(foam.threshold, mean, variance));
+  if (foam.inject != 0u) {
+    density = max(density, coverage_below(foam.threshold, mean, variance));
+  }
 
   for (var s = 0u; s < foam.stamp_count; s++) {
     let stamp = stamps[s];
@@ -207,6 +207,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
     readonly band: BandTables
     readonly tail: TailFields
     readonly resolution: number
+    readonly inject: boolean
   }
 
   const texture = (size: number): GPUTexture =>
@@ -239,10 +240,9 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
             { binding: 1, resource: { buffer: band.waves } },
             { binding: 2, resource: { buffer: band.phases } },
             { binding: 3, resource: read },
-            { binding: 4, resource: tail.derivatives },
-            { binding: 5, resource: tail.moments },
             { binding: 6, resource: tailSampler },
             { binding: 7, resource: { buffer: stampBuffer } },
+            { binding: 8, resource: tail.breaking },
           ],
         })
       state = {
@@ -255,6 +255,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
         band,
         tail,
         resolution: settings.cascadeRule.resolution,
+        inject: !settings.whitecapRework,
       }
       last = undefined
     },
@@ -295,6 +296,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
       if (stampCount > 0) device.queue.writeBuffer(stampBuffer, 0, stampData, 0, 4 * stampCount)
       words[FOAM_WORD.stampCount] = stampCount
       words[FOAM_WORD.keep] = kept === undefined ? 0 : 1
+      words[FOAM_WORD.inject] = state.inject ? 1 : 0
       tail.tiles.forEach((tile, c) => {
         const texel = tile / resolution
         const offset = (x: number): number => wrap(x, tile) + texel / 2

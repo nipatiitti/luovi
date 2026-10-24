@@ -27,7 +27,7 @@ export const MAX_CASCADES = 4
 const PERIOD_TICKS = 60_000
 
 /** Where each field of the `Tail` uniform starts, in 4-byte words; the WGSL struct below lists them in this order. */
-const TAIL_WORD = { gravity: 0, depth: 1, tick: 2, cascades: 4 } as const
+const TAIL_WORD = { gravity: 0, depth: 1, tick: 2, cutoff: 3, cascades: 4 } as const
 
 const TAIL_UNIFORM_BYTES = 4 * (TAIL_WORD.cascades + 4 * MAX_CASCADES)
 
@@ -46,7 +46,8 @@ struct Tail {
   depth: f32,
   // The slot's tick modulo the tail's period.
   tick: u32,
-  _pad: u32,
+  // PROTOTYPE (#41): the breaking cutoff, m; 0 weighs every wave 1.
+  cutoff: f32,
   cascades: array<Cascade, ${String(MAX_CASCADES)}>,
 }
 
@@ -61,6 +62,8 @@ override OMEGA_STEP: f32;
 @group(0) @binding(3) var displacement: texture_storage_2d_array<rgba16float, write>;
 @group(0) @binding(4) var derivatives: texture_storage_2d_array<rgba16float, write>;
 @group(0) @binding(5) var moments: texture_storage_2d_array<rgba16float, write>;
+@group(0) @binding(6) var<storage, read_write> rows_breaking: array<vec2f>;
+@group(0) @binding(7) var breaking: texture_storage_2d_array<rgba16float, write>;
 
 ${phaseWgsl}
 const PI: f32 = 3.14159265358979324;
@@ -69,6 +72,16 @@ const PI: f32 = 3.14159265358979324;
 // outputs: (Dx, Dy), (h, dDx/dy), (dh/dx, dh/dy), (dDx/dx, dDy/dy). Real parts in re, imaginary parts in im.
 var<workgroup> re: array<vec4f, N>;
 var<workgroup> im: array<vec4f, N>;
+// PROTOTYPE (#41): a fifth complex field, the breaking-weighted divergence w(k) (dDx/dx + dDy/dy), real in x.
+var<workgroup> wb: array<vec2f, N>;
+
+// sim-ocean's breakingWeight: a smoothstep in ln L over L_c / sqrt 2 to L_c sqrt 2.
+fn breaking_weight(k: f32) -> f32 {
+  if (tail.cutoff <= 0.0) {
+    return 1.0;
+  }
+  return smoothstep(0.0, 1.0, (log(TAU / k / tail.cutoff) + 0.5 * log(2.0)) / log(2.0));
+}
 
 fn cmul(a: vec2f, b: vec2f) -> vec2f {
   return vec2f(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
@@ -92,6 +105,7 @@ fn spectrum(c: u32, ix: u32, iy: u32) {
   if (k == 0.0) {
     re[slot] = vec4f(0.0);
     im[slot] = vec4f(0.0);
+    wb[slot] = vec2f(0.0);
     return;
   }
   let base = c * N * N;
@@ -118,6 +132,7 @@ fn spectrum(c: u32, ix: u32, iy: u32) {
   // X + iY for real-valued X and Y.
   re[slot] = vec4f(dx.x - dy.y, h.x - jxy.y, sx.x - sy.y, jxx.x - jyy.y);
   im[slot] = vec4f(dx.y + dy.x, h.y + jxy.x, sx.y + sy.x, jxx.y + jyy.x);
+  wb[slot] = breaking_weight(k) * (jxx + jyy);
 }
 
 // In-place radix-2 decimation in time on the bit-reversed workgroup arrays, inverse sign, unnormalised: h(x) is the
@@ -140,6 +155,10 @@ fn transform(t: u32) {
     im[i0] = ai + ti;
     re[i1] = ar - tr;
     im[i1] = ai - ti;
+    let b = cmul(w, wb[i1]);
+    let a = wb[i0];
+    wb[i0] = a + b;
+    wb[i1] = a - b;
   }
   workgroupBarrier();
 }
@@ -157,6 +176,7 @@ fn rows_main(@builtin(local_invocation_id) local: vec3u, @builtin(workgroup_id) 
     let o = 2u * ((c * N + iy) * N + ix);
     rows[o] = re[ix];
     rows[o + 1u] = im[ix];
+    rows_breaking[(c * N + iy) * N + ix] = wb[ix];
   }
 }
 
@@ -171,6 +191,7 @@ fn columns_main(@builtin(local_invocation_id) local: vec3u, @builtin(workgroup_i
     let slot = bit_reversed(iy);
     re[slot] = rows[o];
     im[slot] = rows[o + 1u];
+    wb[slot] = rows_breaking[(c * N + iy) * N + ix];
   }
   transform(t);
   for (var e = 0u; e < 2u; e++) {
@@ -185,6 +206,8 @@ fn columns_main(@builtin(local_invocation_id) local: vec3u, @builtin(workgroup_i
     // reads, so the mips hold the variance each texel averages, not only the mean.
     let divergence = r.w + i.w;
     textureStore(moments, vec2u(ix, iy), c, vec4f(r.z * r.z, i.z * i.z, r.z * i.z, divergence * divergence));
+    let weighted = wb[iy].x * sign;
+    textureStore(breaking, vec2u(ix, iy), c, vec4f(weighted, weighted * weighted, 0.0, 0.0));
   }
 }
 `
@@ -198,6 +221,8 @@ const mipWgsl = /* wgsl */ `
 @group(0) @binding(3) var target_a: texture_storage_2d_array<rgba16float, write>;
 @group(0) @binding(4) var target_b: texture_storage_2d_array<rgba16float, write>;
 @group(0) @binding(5) var target_c: texture_storage_2d_array<rgba16float, write>;
+@group(0) @binding(6) var source_d: texture_2d_array<f32>;
+@group(0) @binding(7) var target_d: texture_storage_2d_array<rgba16float, write>;
 
 @compute @workgroup_size(8, 8)
 fn mip_main(@builtin(global_invocation_id) id: vec3u) {
@@ -209,15 +234,18 @@ fn mip_main(@builtin(global_invocation_id) id: vec3u) {
   var a = vec4f(0.0);
   var b = vec4f(0.0);
   var m = vec4f(0.0);
+  var d = vec4f(0.0);
   for (var j = 0; j < 4; j++) {
     let q = p + vec2i(j & 1, j >> 1);
     a += textureLoad(source_a, q, layer, 0);
     b += textureLoad(source_b, q, layer, 0);
     m += textureLoad(source_c, q, layer, 0);
+    d += textureLoad(source_d, q, layer, 0);
   }
   textureStore(target_a, id.xy, id.z, a * 0.25);
   textureStore(target_b, id.xy, id.z, b * 0.25);
   textureStore(target_c, id.xy, id.z, m * 0.25);
+  textureStore(target_d, id.xy, id.z, d * 0.25);
 }
 `
 
@@ -239,6 +267,11 @@ export interface TailFields {
    * footprint, and the last mip's is the cascade's whole.
    */
   readonly moments: GPUTextureView
+  /**
+   * PROTOTYPE (#41): (w div D, (w div D)^2, 0, 0) per cascade layer, mipmapped: the divergence weighted by the breaking
+   * cutoff, the only Jacobian foam reads.
+   */
+  readonly breaking: GPUTextureView
 }
 
 export interface OceanTail {
@@ -335,6 +368,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         fieldTexture('displacement', 1, 1),
         fieldTexture('derivatives', 1, 1),
         fieldTexture('moments', 1, 1),
+        fieldTexture('breaking', 1, 1),
       ] as const
       return {
         count: 0,
@@ -351,6 +385,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
           displacement: arrayView(textures[0]),
           derivatives: arrayView(textures[1]),
           moments: arrayView(textures[2]),
+          breaking: arrayView(textures[3]),
         },
       }
     }
@@ -377,15 +412,22 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
       size: count * n * n * 32,
       usage: GPUBufferUsage.STORAGE,
     })
+    const rowsBreaking = device.createBuffer({
+      label: `${label} rows breaking`,
+      size: count * n * n * 8,
+      usage: GPUBufferUsage.STORAGE,
+    })
 
     layout.tiles.forEach((tile, c) => {
       uniformFloats.set([tile, layout.choppiness[c] ?? 0], TAIL_WORD.cascades + 4 * c)
     })
     uniformFloats.set([sea.gravity, sea.depth], TAIL_WORD.gravity)
+    uniformFloats[TAIL_WORD.cutoff] = settings.breakingCutoff
 
     const displacement = fieldTexture('displacement', n, count)
     const derivatives = fieldTexture('derivatives', n, count)
     const moments = fieldTexture('moments', n, count)
+    const breaking = fieldTexture('breaking', n, count)
     const pipelines = fftPipelinesFor(n)
     const group = (pipeline: GPUComputePipeline, entries: readonly GPUBindingResource[]): GPUBindGroup =>
       device.createBindGroup({
@@ -393,7 +435,16 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         layout: pipeline.getBindGroupLayout(0),
         entries: entries.map((resource, binding) => ({ binding, resource })),
       })
-    const rowsGroup = group(pipelines.rows, [{ buffer: uniform }, { buffer: h0Buffer }, { buffer: rows }])
+    const rowsGroup = device.createBindGroup({
+      label,
+      layout: pipelines.rows.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniform } },
+        { binding: 1, resource: { buffer: h0Buffer } },
+        { binding: 2, resource: { buffer: rows } },
+        { binding: 6, resource: { buffer: rowsBreaking } },
+      ],
+    })
     // Auto layouts keep only the bindings an entry point uses, so the column pass's group has no uniform or h0.
     const columnsGroup = device.createBindGroup({
       label,
@@ -403,6 +454,8 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         { binding: 3, resource: arrayView(displacement, 0) },
         { binding: 4, resource: arrayView(derivatives, 0) },
         { binding: 5, resource: arrayView(moments, 0) },
+        { binding: 6, resource: { buffer: rowsBreaking } },
+        { binding: 7, resource: arrayView(breaking, 0) },
       ],
     })
     const mipGroups = Array.from({ length: displacement.mipLevelCount - 1 }, (_, level) =>
@@ -413,13 +466,15 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         arrayView(displacement, level + 1),
         arrayView(derivatives, level + 1),
         arrayView(moments, level + 1),
+        arrayView(breaking, level),
+        arrayView(breaking, level + 1),
       ]),
     )
     return {
       count,
       resolution: n,
-      buffers: [h0Buffer, rows],
-      textures: [displacement, derivatives, moments],
+      buffers: [h0Buffer, rows, rowsBreaking],
+      textures: [displacement, derivatives, moments, breaking],
       rowsGroup,
       columnsGroup,
       mipGroups,
@@ -430,6 +485,7 @@ export const createOceanTail = (device: GPUDevice): OceanTail => {
         displacement: arrayView(displacement),
         derivatives: arrayView(derivatives),
         moments: arrayView(moments),
+        breaking: arrayView(breaking),
       },
     }
   }

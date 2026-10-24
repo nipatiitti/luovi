@@ -23,6 +23,7 @@
   import { initialSettings } from '../lib/settings.ts'
   import { frameCounter, installShotsHook } from '../lib/shots.ts'
   import { startViewer, type Viewer } from '../lib/viewer.ts'
+  import { FOAM_VARIANTS, type FoamReadout, variantNamed } from '../lib/foamPrototype.ts'
 
   // The panel works in degrees and compass bearings; the render settings it builds are radians.
   let sunElevation = $state(Math.round(toDegrees(initialSettings.sunElevation)))
@@ -34,6 +35,23 @@
   let cascades = $state<boolean[]>([])
   let wireframe = $state(false)
   let foam = $state(true)
+  // PROTOTYPE (#41): the whitecap variant, from ?foam= and the bar at the bottom.
+  let foamVariant = $state(variantNamed(new URLSearchParams(location.search).get('foam')))
+  let foamReadout = $state<FoamReadout | null>(null)
+  const cycleFoam = (step: number) => {
+    const at = FOAM_VARIANTS.indexOf(foamVariant)
+    foamVariant = FOAM_VARIANTS[(at + step + FOAM_VARIANTS.length) % FOAM_VARIANTS.length] ?? foamVariant
+    const url = new URL(location.href)
+    url.searchParams.set('foam', foamVariant.key)
+    history.replaceState(history.state, '', url)
+  }
+  const onFoamKey = (event: KeyboardEvent) => {
+    const target = event.target
+    if (target instanceof HTMLElement && (target.closest('input, textarea, select') || target.isContentEditable)) return
+    if (event.key === 'ArrowLeft') cycleFoam(-1)
+    else if (event.key === 'ArrowRight') cycleFoam(1)
+  }
+  const percent = (fraction: number) => `${(fraction * 100).toPrecision(2)}%`
   let refusal = $state<string | undefined>(undefined)
   let failure = $state<string | undefined>(undefined)
   let timings = $state<string | undefined>(undefined)
@@ -183,6 +201,7 @@
             sunBearing = view.sunBearing
             exposureValue = view.exposureValue
             foam = view.foam
+            foamVariant = variantNamed(view.foamVariant)
           },
           pause: () => host?.pause(),
           frames: frames.after,
@@ -202,6 +221,7 @@
       const latest = viewer?.timings
       const count = viewer?.cascadeCount ?? 0
       if (count !== cascades.length) cascades = Array.from({ length: count }, (_, c) => cascades[c] ?? true)
+      foamReadout = viewer?.foamReadout ?? null
       timings =
         latest === undefined
           ? undefined
@@ -227,6 +247,7 @@
             tick: slot?.tick ?? 0,
             oceanDebug: { band, cascades, wireframe, foam },
             markers: slot?.markers ?? noMarkers,
+            foamVariant,
           }
         })
         if (stopped) started.stop()
@@ -248,6 +269,8 @@
   })
 </script>
 
+<svelte:window onkeydown={onFoamKey} />
+
 {#if refusal !== undefined}
   <main class="message">
     <h1>Cross-origin isolation required</h1>
@@ -255,6 +278,22 @@
   </main>
 {:else}
   <canvas bind:this={canvas}></canvas>
+  <div class="prototype-bar">
+    <button onclick={() => cycleFoam(-1)} aria-label="Previous foam variant">&larr;</button>
+    <div>
+      <strong>{foamVariant.key}</strong> {foamVariant.label}
+      <small>
+        {#if foamReadout === null}
+          Flat water
+        {:else if foamReadout.threshold === null}
+          At or below the 4.23 m/s onset, so no whitecaps
+        {:else}
+          Target coverage {percent(foamReadout.targetCoverage)}, threshold {foamReadout.threshold.toFixed(3)}
+        {/if}
+      </small>
+    </div>
+    <button onclick={() => cycleFoam(1)} aria-label="Next foam variant">&rarr;</button>
+  </div>
   <aside>
     <h1>Run</h1>
     <div class="buttons">
@@ -439,5 +478,38 @@
   .message h1 {
     font-size: 20px;
     margin-bottom: 12px;
+  }
+  /* PROTOTYPE (#41): the whitecap variant switcher, deliberately unlike the tool's own panel. */
+  .prototype-bar {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #ffd84d;
+    color: #111;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 40%);
+    font: 13px/1.3 system-ui, sans-serif;
+    z-index: 10;
+  }
+  .prototype-bar div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 360px;
+  }
+  .prototype-bar button {
+    border: 0;
+    border-radius: 999px;
+    width: 32px;
+    height: 32px;
+    background: #111;
+    color: #ffd84d;
+    font-size: 16px;
+    cursor: pointer;
   }
 </style>

@@ -197,6 +197,8 @@ struct Ring {
 @group(2) @binding(8) var moments: texture_2d_array<f32>;
 // Near-field foam density, indexed by undisplaced position (foam.ts).
 @group(2) @binding(9) var foam: texture_2d<f32>;
+// PROTOTYPE (#41): the breaking-weighted divergence per cascade layer (tail.ts).
+@group(2) @binding(10) var breaking: texture_2d_array<f32>;
 
 struct Varying {
   @builtin(position) position: vec4f,
@@ -411,7 +413,7 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
     let uv = tail_uv(c, in.lagrangian);
     let derivative = textureSample(derivatives, tail_sampler, uv, c);
     let second = textureSample(moments, tail_sampler, uv, c);
-    let divergence = cascade_divergence(derivative, second);
+    let divergence = breaking_divergence(textureSample(breaking, tail_sampler, uv, c));
     jacobian += divergence.x;
     jacobian_variance += divergence.y;
     if (ocean.cascades[c].w != 0.0) {
@@ -515,8 +517,14 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
     let near = 1.0 - clamp((max(across.x, across.y) - ${String(FOAM_BLEND_START)}) / ${String(1 - FOAM_BLEND_START)}, 0.0, 1.0);
     let far = coverage_below(ocean.foam_sample.z, jacobian, jacobian_variance);
     let near_albedo = mix(ocean.foam_albedo.y, ocean.foam_albedo.x, density);
-    let cover = mix(far, density, near);
-    let albedo_cover = mix(far * ocean.foam_sample.w, density * near_albedo, near);
+    var cover = mix(far, density, near);
+    var albedo_cover = mix(far * ocean.foam_sample.w, density * near_albedo, near);
+    // PROTOTYPE (#41): the rework (window.w = 2) draws whitecaps per pixel everywhere and combines the buffer's hull
+    // foam as 1 - (1 - W)(1 - d).
+    if (window.w > 1.5) {
+      cover = 1.0 - (1.0 - far) * (1.0 - density);
+      albedo_cover = far * ocean.foam_sample.w + (1.0 - far) * density * near_albedo;
+    }
     water = water * (1.0 - cover) + albedo_cover * (light.sun + light.sky) / ${String(Math.PI)};
   }
 
@@ -554,6 +562,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       { binding: 7, visibility: both, sampler: { type: 'filtering' } },
       { binding: 8, visibility: GPUShaderStage.FRAGMENT, texture: fieldTexture },
       { binding: 9, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+      { binding: 10, visibility: GPUShaderStage.FRAGMENT, texture: fieldTexture },
     ],
   })
   const tail = createOceanTail(device)
@@ -681,6 +690,7 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
           { binding: 7, resource: tailSampler },
           { binding: 8, resource: fields.moments },
           { binding: 9, resource: foamView },
+          { binding: 10, resource: fields.breaking },
         ],
       })
     return {
@@ -776,7 +786,12 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
         stamps: frame.foamStamps,
       })
       uniformFloats.set(
-        [...window.corner, window.extent, frame.debug.foam && sea !== null ? 1 : 0, ...window.offset],
+        [
+          ...window.corner,
+          window.extent,
+          frame.debug.foam && sea !== null ? (settings.whitecapRework ? 2 : 1) : 0,
+          ...window.offset,
+        ],
         OCEAN_WORD.foamWindow,
       )
       device.queue.writeBuffer(uniform, 0, uniformData)

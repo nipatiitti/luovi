@@ -8,6 +8,8 @@ export { hashState } from '@luovi/core'
 // package (docs/intention/05).
 export {
   bandPhases,
+  breakingWeight,
+  reworkedBreakingThreshold,
   type CascadeLayout,
   type CascadeRule,
   DEFAULT_CASCADE_RULE,

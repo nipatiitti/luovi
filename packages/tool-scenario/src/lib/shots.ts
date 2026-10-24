@@ -1,6 +1,7 @@
 import type { Camera } from '@luovi/render-scene'
 import { bearingOf, toDegrees, toRadians } from './angles.ts'
 import { initialSettings } from './settings.ts'
+import { FOAM_VARIANTS } from './foamPrototype.ts'
 
 // The named views `pnpm shots` captures. Each is the page's own state, a showcase scenario, a camera, the Sun and the
 // debug toggles, so a capture never depends on clicking the panel. The page installs the hook below only when opened
@@ -21,6 +22,8 @@ export interface ShotView {
   readonly foam: boolean
   /** Pause the simulation once the sea has run, then draw the frozen state. */
   readonly paused: boolean
+  /** PROTOTYPE (#41): the whitecap variant's key. */
+  readonly foamVariant: string
 }
 
 const daylight = {
@@ -38,45 +41,37 @@ const surface: Camera = initialSettings.camera
 const high: Camera = { mode: 'free', position: [0, 0, 300], yaw: toRadians(-90), pitch: toRadians(-25) }
 
 /** The opening orbit turned west, toward a Sun on the horizon. */
-const westward: Camera = { mode: 'orbit', distance: 40, yaw: toRadians(180), pitch: toRadians(-4) }
 
-const SHOT_VIEWS: readonly ShotView[] = [
-  { name: 'light', label: 'Light sea from the surface', scenario: 'Light reference sea', camera: surface, ...daylight },
-  {
-    name: 'moderate',
-    label: 'Moderate sea from the surface',
-    scenario: 'Moderate reference sea',
-    camera: surface,
-    ...daylight,
-  },
-  { name: 'storm', label: 'Storm sea from the surface', scenario: 'Storm reference sea', camera: surface, ...daylight },
+/** PROTOTYPE (#41): 4 m above the water looking south and down at 30 degrees, for near detail. */
+const close: Camera = { mode: 'free', position: [0, 0, 4], yaw: toRadians(-90), pitch: toRadians(-30) }
+
+/** PROTOTYPE (#41): each scene once per whitecap variant, named scene.variant. */
+const SCENES: readonly Omit<ShotView, 'foamVariant'>[] = [
+  { name: 'light', label: 'Light sea, 8 m/s', scenario: 'Light reference sea', camera: surface, ...daylight },
+  { name: 'moderate', label: 'Moderate sea, 12 m/s', scenario: 'Moderate reference sea', camera: surface, ...daylight },
+  { name: 'storm', label: 'Storm sea, 20 m/s', scenario: 'Storm reference sea', camera: surface, ...daylight },
   { name: 'storm-300m', label: 'Storm sea from 300 m', scenario: 'Storm reference sea', camera: high, ...daylight },
+  { name: 'storm-close', label: 'Storm sea from 4 m up', scenario: 'Storm reference sea', camera: close, ...daylight },
   {
-    name: 'sunset',
-    label: 'Moderate sea at sunset, Sun 3 degrees up in the west',
+    name: 'moderate-close',
+    label: 'Moderate sea from 4 m up',
     scenario: 'Moderate reference sea',
-    camera: westward,
+    camera: close,
     ...daylight,
-    sunElevation: 3,
-    sunBearing: 270,
   },
-  {
-    name: 'paused',
-    label: 'Moderate sea, simulation paused',
-    scenario: 'Moderate reference sea',
-    camera: surface,
-    ...daylight,
-    paused: true,
-  },
-  {
-    name: 'foam-off',
-    label: 'Storm sea from the surface, foam off',
-    scenario: 'Storm reference sea',
-    camera: surface,
-    ...daylight,
-    foam: false,
-  },
+  { name: 'below', label: 'Below onset, 4.0 m/s', scenario: 'Below onset, 4.0 m/s', camera: surface, ...daylight },
+  { name: 'above', label: 'Above onset, 4.5 m/s', scenario: 'Above onset, 4.5 m/s', camera: surface, ...daylight },
+  { name: 'early', label: 'Early whitecaps, 6.0 m/s', scenario: 'Early whitecaps, 6.0 m/s', camera: surface, ...daylight },
 ]
+
+const SHOT_VIEWS: readonly ShotView[] = SCENES.flatMap((scene) =>
+  FOAM_VARIANTS.map((variant) => ({
+    ...scene,
+    name: `${scene.name}.${variant.key}`,
+    label: `${scene.label}, ${variant.label}`,
+    foamVariant: variant.key,
+  })),
+)
 
 /** What a captured view reports beside its picture. */
 export interface ShotResult {

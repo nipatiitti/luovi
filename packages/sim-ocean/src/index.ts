@@ -1,4 +1,5 @@
 export { buildSea } from './build.ts'
+export { breakingWeight, reworkedBreakingThreshold } from './breaking.ts'
 export { bandPhases } from './phases.ts'
 export { createEnvironmentQuery, windProfile } from './query.ts'
 export { type WaveSpectrum, waveSpectrum } from './spectrum.ts'

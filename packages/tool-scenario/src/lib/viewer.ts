@@ -2,6 +2,7 @@ import type { SeaDescription } from '@luovi/core'
 import { balticOptics, brunetonAtmosphere, coxMunk, foamDecayTime, foamReflectance } from '@luovi/data'
 import { createOceanSurface, type OceanDebug } from '@luovi/render-ocean'
 import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
+import { type FoamReadout, type FoamVariant, seaForVariant } from './foamPrototype.ts'
 
 /** One frame's input to the renderer: what the viewer chose and what the simulation shows. */
 export interface ViewerFrame {
@@ -15,6 +16,8 @@ export interface ViewerFrame {
   readonly oceanDebug: OceanDebug
   /** xyz per probe marker in world metres. */
   readonly markers: Float32Array<ArrayBuffer>
+  /** PROTOTYPE (#41): the whitecap variant drawn. */
+  readonly foamVariant: FoamVariant
 }
 
 export interface Viewer {
@@ -22,6 +25,8 @@ export interface Viewer {
   readonly timings: ReadonlyMap<string, number> | undefined
   /** Tail cascades of the sea being drawn, one debug toggle each. */
   readonly cascadeCount: number
+  /** PROTOTYPE (#41): the drawn variant's target coverage and threshold. */
+  readonly foamReadout: FoamReadout | null
   stop(): void
 }
 
@@ -54,15 +59,20 @@ export const startViewer = async (
   resize.observe(canvas, { box: 'device-pixel-content-box' })
 
   let sea: SeaDescription | null = null
+  let variant: FoamVariant | undefined
+  let readout: FoamReadout | null = null
   let handle = 0
   let last: number | undefined
   const tick = (now: number): void => {
     const seconds = last === undefined ? 0 : (now - last) / 1000
     last = now
     const next = frame(seconds)
-    if (next.sea !== sea) {
+    if (next.sea !== sea || next.foamVariant !== variant) {
       sea = next.sea
-      ocean.setSea(sea)
+      variant = next.foamVariant
+      const drawn = seaForVariant(sea, variant)
+      readout = drawn.readout
+      ocean.setSea(drawn.sea, drawn.settings)
     }
     renderer.render(next.settings, {
       markers: next.markers,
@@ -94,6 +104,9 @@ export const startViewer = async (
     },
     get cascadeCount() {
       return ocean.cascadeCount
+    },
+    get foamReadout() {
+      return readout
     },
     stop: () => {
       cancelAnimationFrame(handle)

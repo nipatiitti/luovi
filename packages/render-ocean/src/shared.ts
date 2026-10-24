@@ -46,6 +46,12 @@ fn cascade_divergence(derivative: vec4f, second: vec4f) -> vec2f {
   let divergence = derivative.z + derivative.w;
   return vec2f(divergence, max(second.w - divergence * divergence, 0.0));
 }
+
+// PROTOTYPE (#41): the breaking-weighted divergence and its variance over a filtered footprint, from the breaking field
+// (w div, (w div)^2, .., ..).
+fn breaking_divergence(breaking: vec4f) -> vec2f {
+  return vec2f(breaking.x, max(breaking.y - breaking.x * breaking.x, 0.0));
+}
 `
 
 /**

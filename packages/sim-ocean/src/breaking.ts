@@ -33,8 +33,19 @@ const coverageAt = (windSpeed: number): number => {
   return percent / 100
 }
 
+/**
+ * PROTOTYPE (foam rework, #41): the breaking cutoff's spectral weight, a smoothstep in ln L from L_c / sqrt 2 up to
+ * L_c sqrt 2, so it is a half at the cutoff and spans one factor of 2 in wavelength. The shape is unsourced (#42 found
+ * none); render-ocean's tail applies the same weight to the Jacobian channels. A cutoff of 0 weighs every wave 1.
+ */
+export const breakingWeight = (k: number, cutoff: number): number => {
+  if (cutoff <= 0) return 1
+  const t = min(max((log((TWO_PI / k) / cutoff) + 0.5 * log(2)) / log(2), 0), 1)
+  return t * t * (3 - 2 * t)
+}
+
 /** The divergence's variance from one cascade: lambda^2 times the integral of k^2 F over its annulus, taken in ln k. */
-const cascadeVariance = (sea: SpectrumSource, layout: CascadeLayout, c: number): number => {
+const cascadeVariance = (sea: SpectrumSource, layout: CascadeLayout, c: number, cutoff = 0): number => {
   const spectrum = waveSpectrum(sea)
   const inner = layout.kInner[c] ?? 0
   const outer = layout.kOuter[c] ?? 0
@@ -45,7 +56,8 @@ const cascadeVariance = (sea: SpectrumSource, layout: CascadeLayout, c: number):
   for (let j = 0; j <= LOG_INTERVALS; j += 1) {
     const k = exp(lower + j * step)
     // k^2 F(k) dk = k^3 F(k) d(ln k).
-    sum += (j === 0 || j === LOG_INTERVALS ? 0.5 : 1) * k * k * k * spectrum.omnidirectional(k)
+    const w = breakingWeight(k, cutoff)
+    sum += (j === 0 || j === LOG_INTERVALS ? 0.5 : 1) * w * w * k * k * k * spectrum.omnidirectional(k)
   }
   return lambda * lambda * sum * step
 }
@@ -55,17 +67,17 @@ const cascadeVariance = (sea: SpectrumSource, layout: CascadeLayout, c: number):
  * band's clamped lambda, and each cascade lambda_c^2 times the integral of k^2 F over its annulus. Band and cascades share
  * no wave, and distinct waves are uncorrelated, so the variances add.
  */
-const jacobianVariance = (sea: BreakingSource): number => {
+const jacobianVariance = (sea: BreakingSource, cutoff = 0): number => {
   const { k, amplitude, count } = sea.components
   let band = 0
   for (let i = 0; i < count; i += 1) {
-    const slope = (amplitude[i] ?? 0) * (k[i] ?? 0)
+    const slope = (amplitude[i] ?? 0) * (k[i] ?? 0) * breakingWeight(k[i] ?? 1, cutoff)
     band += 0.5 * slope * slope
   }
   // The default rule's layout at the scenario's unclamped lambda, as the renderer evolves it unless the host overrides it.
   const layout = defaultCascadeLayout(sea)
   let tail = 0
-  if (layout !== undefined) for (let c = 0; c < layout.count; c += 1) tail += cascadeVariance(sea, layout, c)
+  if (layout !== undefined) for (let c = 0; c < layout.count; c += 1) tail += cascadeVariance(sea, layout, c, cutoff)
   return sea.choppiness * sea.choppiness * band + tail
 }
 
@@ -106,4 +118,24 @@ export const breakingThreshold = (
     throw new RangeError(`The whitecap coverage law gave ${String(targetCoverage)}, outside (0, 1/2)`)
   }
   return { targetCoverage, breakingThreshold: 1 + sqrt(jacobianVariance(sea)) * normalQuantile(targetCoverage) }
+}
+
+/**
+ * PROTOTYPE (foam rework, #41): the threshold under Foam rework design (#40): Brumer's total W at the generating wind,
+ * unclamped below the fitted range down to the law's offset and held at its top, the variance weighted by the breaking
+ * cutoff. At or below the offset there is no foam: null.
+ */
+export const reworkedBreakingThreshold = (
+  sea: BreakingSource,
+  cutoff: number,
+): { readonly targetCoverage: number; readonly breakingThreshold: number } | null => {
+  const wind = min(sea.spectrum.windSpeed, whitecapCoverage.upperLimit.value)
+  if (!(wind > whitecapCoverage.offset.value)) return null
+  const targetCoverage =
+    (whitecapCoverage.coefficient.value * pow(wind - whitecapCoverage.offset.value, whitecapCoverage.exponent.value)) /
+    100
+  return {
+    targetCoverage,
+    breakingThreshold: 1 + sqrt(jacobianVariance(sea, cutoff)) * normalQuantile(targetCoverage),
+  }
 }

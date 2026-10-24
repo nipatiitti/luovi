@@ -1,6 +1,10 @@
 import light from './reference-seas/light.json' with { type: 'json' }
 import moderate from './reference-seas/moderate.json' with { type: 'json' }
 import storm from './reference-seas/storm.json' with { type: 'json' }
+// PROTOTYPE (#41): seas either side of the coverage law's 4.23 m/s offset, and one at early whitecaps.
+import wind40 from './foam-prototype/wind-4.0.json' with { type: 'json' }
+import wind45 from './foam-prototype/wind-4.5.json' with { type: 'json' }
+import wind60 from './foam-prototype/wind-6.0.json' with { type: 'json' }
 
 /** One entry of the bundled list; the document is loaded as any imported file is, through the Worker's validation. */
 export interface Showcase {
@@ -17,6 +21,9 @@ export const SHOWCASE: readonly Showcase[] = [
   { name: 'Light reference sea', document: light },
   MODERATE,
   { name: 'Storm reference sea', document: storm },
+  { name: 'Below onset, 4.0 m/s', document: wind40 },
+  { name: 'Above onset, 4.5 m/s', document: wind45 },
+  { name: 'Early whitecaps, 6.0 m/s', document: wind60 },
 ]
 
 /** The scenario the tool opens on: the moderate sea, the middle of the three. */

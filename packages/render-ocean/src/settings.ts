@@ -19,6 +19,13 @@ export interface RenderOceanSettings {
   readonly foamBufferSize: number
   /** m per foam buffer texel. */
   readonly foamSpacing: number
+  /** PROTOTYPE (#41): m, the breaking cutoff weighting the Jacobian foam reads; 0 weighs every wave 1. */
+  readonly breakingCutoff: number
+  /**
+   * PROTOTYPE (#41): Foam rework design (#40): whitecaps per pixel at every distance with no near buffer injection and
+   * no persistence. Off is step 1's build.
+   */
+  readonly whitecapRework: boolean
 }
 
 /** What the debug panel can switch off or overlay; not render settings, since they show the machinery, not the sea. */
@@ -53,4 +60,6 @@ export const defaultRenderOceanSettings = (sea: SeaDescription | null): RenderOc
   innerSpacing: 0.25,
   foamBufferSize: 1024,
   foamSpacing: 0.5,
+  breakingCutoff: 0,
+  whitecapRework: false,
 })
