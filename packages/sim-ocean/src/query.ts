@@ -1,5 +1,5 @@
 import type { EffectiveEnvironment, EnvironmentQuery, SeaDescription } from '@luovi/core'
-import { exp, expm1, log, max, min, sincos } from '@luovi/core/math'
+import { abs, exp, expm1, log, max, min, sincos } from '@luovi/core/math'
 import { bandPhases } from './phases.ts'
 
 // The CPU environment query (#8, docs/intention/05). Every per-component factor that does not depend on the point is
@@ -38,6 +38,20 @@ const checkStride = (method: string, points: Float64Array, out: Float64Array, st
 }
 
 /**
+ * PROTOTYPE (band size, #43): how the query inverts the displacement, for the cost comparison only. cold: two passes from
+ * the world point, as main; rotate: the same two passes, but only the first forms sincos and the later passes rotate its
+ * cos and sin by k . (step); warm: one pass from the label the same point index had on the previous tick, which makes a
+ * result depend on call history and so breaks the query's contract. sincos replaces core's, to bound its share.
+ */
+export interface QueryOptions {
+  readonly inversion?: 'cold' | 'rotate' | 'warm'
+  readonly sincos?: (x: number, out: Float64Array, offset: number) => void
+}
+
+/** The largest angle the rotation's polynomials take; larger steps are halved first and doubled back. */
+const ROTATION_REACH = 0.25
+
+/**
  * The query over one effective environment and its built sea (null: flat water, zero height and orbital velocity). A
  * pure function of those, the tick and the points, so sim-world and a renderer's probe can each hold one.
  */
@@ -45,7 +59,10 @@ export const createEnvironmentQuery = (
   environment: EffectiveEnvironment,
   sea: SeaDescription | null,
   gravity: number,
+  options: QueryOptions = {},
 ): EnvironmentQuery => {
+  const trigOf = options.sincos ?? sincos
+  const inversion = options.inversion ?? 'cold'
   const { depth } = environment
   if (sea !== null && sea.depth !== depth) {
     throw new RangeError(`The sea was built for depth ${String(sea.depth)} m, the environment has ${String(depth)} m`)
@@ -138,7 +155,7 @@ export const createEnvironmentQuery = (
     let dx = 0
     let dy = 0
     for (let i = 0; i < count; i += 1) {
-      sincos((kx[i] ?? 0) * x + (ky[i] ?? 0) * y + (phases[i] ?? 0), trig, 0)
+      trigOf((kx[i] ?? 0) * x + (ky[i] ?? 0) * y + (phases[i] ?? 0), trig, 0)
       const s = trig[0] ?? 0
       dx += (displaceX[i] ?? 0) * s
       dy += (displaceY[i] ?? 0) * s
@@ -146,6 +163,66 @@ export const createEnvironmentQuery = (
     displacement[0] = dx
     displacement[1] = dy
   }
+
+  // PROTOTYPE (band size, #43): the rotate inversion's per-component sin and cos at the current label, and the warm
+  // inversion's labels per point index with the tick they were found at.
+  const sines0 = new Float64Array(count)
+  const cosines0 = new Float64Array(count)
+  let kMax = 0
+  for (let i = 0; i < count; i += 1) kMax = max(kMax, k[i] ?? 0)
+  /** Fills sines0 and cosines0 at (x, y) with sincos and returns D there in displacement. */
+  const fillTrig = (x: number, y: number): void => {
+    let dx = 0
+    let dy = 0
+    for (let i = 0; i < count; i += 1) {
+      trigOf((kx[i] ?? 0) * x + (ky[i] ?? 0) * y + (phases[i] ?? 0), trig, 0)
+      const s = trig[0] ?? 0
+      sines0[i] = s
+      cosines0[i] = trig[1] ?? 0
+      dx += (displaceX[i] ?? 0) * s
+      dy += (displaceY[i] ?? 0) * s
+    }
+    displacement[0] = dx
+    displacement[1] = dy
+  }
+  /**
+   * Turns sines0 and cosines0 by k . (stepX, stepY) and returns D at the new label in displacement. The angle is halved
+   * until every component's lies within ROTATION_REACH, where the Taylor terms below leave under 1e-13, then doubled
+   * back; multiplications only.
+   */
+  const rotateTrig = (stepX: number, stepY: number): void => {
+    let scale = 1
+    let halvings = 0
+    const reach = kMax * (abs(stepX) + abs(stepY))
+    while (reach * scale > ROTATION_REACH) {
+      scale *= 0.5
+      halvings += 1
+    }
+    let dx = 0
+    let dy = 0
+    for (let i = 0; i < count; i += 1) {
+      const t = ((kx[i] ?? 0) * stepX + (ky[i] ?? 0) * stepY) * scale
+      const t2 = t * t
+      let s = t * (1 - (t2 / 6) * (1 - (t2 / 20) * (1 - (t2 / 42) * (1 - t2 / 72))))
+      let c = 1 - (t2 / 2) * (1 - (t2 / 12) * (1 - (t2 / 30) * (1 - (t2 / 56) * (1 - t2 / 90))))
+      for (let h = 0; h < halvings; h += 1) {
+        const doubled = 2 * s * c
+        c = c * c - s * s
+        s = doubled
+      }
+      const s0 = sines0[i] ?? 0
+      const c0 = cosines0[i] ?? 0
+      const turned = s0 * c + c0 * s
+      sines0[i] = turned
+      cosines0[i] = c0 * c - s0 * s
+      dx += (displaceX[i] ?? 0) * turned
+      dy += (displaceY[i] ?? 0) * turned
+    }
+    displacement[0] = dx
+    displacement[1] = dy
+  }
+  let warmLabels = new Float64Array(0)
+  let warmTick = Number.NaN
 
   return {
     // Design cost from the #4 research, for the ocean.band-hs report to compare against: about 8 ns per component per
@@ -157,15 +234,35 @@ export const createEnvironmentQuery = (
         bandPhases(sea, tick, phases)
         phaseTick = tick
       }
+      const warm = inversion === 'warm' && warmLabels.length === 2 * pointCount && tick === warmTick + 1
+      if (inversion === 'warm' && warmLabels.length !== 2 * pointCount) warmLabels = new Float64Array(2 * pointCount)
+      warmTick = tick
       for (let p = 0; p < pointCount; p += 1) {
         const worldX = points[3 * p] ?? 0
         const worldY = points[3 * p + 1] ?? 0
-        let x = worldX
-        let y = worldY
-        for (let iteration = 0; iteration < INVERSE_ITERATIONS; iteration += 1) {
-          displace(x, y)
-          x = worldX - (displacement[0] ?? 0)
-          y = worldY - (displacement[1] ?? 0)
+        let x = warm ? (warmLabels[2 * p] ?? worldX) : worldX
+        let y = warm ? (warmLabels[2 * p + 1] ?? worldY) : worldY
+        const rotated = inversion === 'rotate' && count > 0
+        if (rotated) {
+          fillTrig(x, y)
+          for (let iteration = 0; iteration < INVERSE_ITERATIONS; iteration += 1) {
+            const nextX = worldX - (displacement[0] ?? 0)
+            const nextY = worldY - (displacement[1] ?? 0)
+            // The last turn needs no displacement, but its sin and cos are what the evaluation below reads.
+            rotateTrig(nextX - x, nextY - y)
+            x = nextX
+            y = nextY
+          }
+        } else {
+          for (let iteration = 0; iteration < (warm ? 1 : INVERSE_ITERATIONS); iteration += 1) {
+            displace(x, y)
+            x = worldX - (displacement[0] ?? 0)
+            y = worldY - (displacement[1] ?? 0)
+          }
+        }
+        if (inversion === 'warm') {
+          warmLabels[2 * p] = x
+          warmLabels[2 * p + 1] = y
         }
         // Linear theory is evaluated up to the mean level and at most at the bed, as the contract states.
         const z = min(0, max(-depth, points[3 * p + 2] ?? 0))
@@ -182,9 +279,9 @@ export const createEnvironmentQuery = (
         let hkX = 0
         let hkY = 0
         for (let i = 0; i < count; i += 1) {
-          sincos((kx[i] ?? 0) * x + (ky[i] ?? 0) * y + (phases[i] ?? 0), trig, 0)
-          const s = trig[0] ?? 0
-          const c = trig[1] ?? 0
+          if (!rotated) trigOf((kx[i] ?? 0) * x + (ky[i] ?? 0) * y + (phases[i] ?? 0), trig, 0)
+          const s = rotated ? (sines0[i] ?? 0) : (trig[0] ?? 0)
+          const c = rotated ? (cosines0[i] ?? 0) : (trig[1] ?? 0)
           const horizontal = (horizontalDecay[i] ?? 0) * c
           const aI = amplitude[i] ?? 0
           if (bound !== null) {

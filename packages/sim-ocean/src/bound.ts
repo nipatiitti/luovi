@@ -70,17 +70,22 @@ const pairKernels = (
 }
 
 /**
- * The expected E[eta^2 eta2] of a kernel pair for equal amplitudes, up to the common factor: the diagonal's K+ once and
- * every off-diagonal pair's K+ + K- twice (the research's skewWeight).
+ * The expected E[eta^2 eta2] of a kernel pair up to a common factor: the diagonal's K+ once with A_i^4 and every
+ * off-diagonal pair's K+ + K- twice with A_i^2 A_j^2 (the research's skewWeight, which assumed equal amplitudes).
  */
 const skewWeight = (
   plus: (i: number, j: number) => number,
   minus: (i: number, j: number) => number,
-  n: number,
+  amplitude: Float64Array,
 ): number => {
+  const n = amplitude.length
   let sum = 0
   for (let i = 0; i < n; i += 1) {
-    for (let j = 0; j < n; j += 1) sum += i === j ? plus(i, i) : 2 * (plus(i, j) + minus(i, j))
+    const ai = amplitude[i] ?? 0
+    for (let j = 0; j < n; j += 1) {
+      const aj = amplitude[j] ?? 0
+      sum += ai * ai * aj * aj * (i === j ? plus(i, i) : 2 * (plus(i, j) + minus(i, j)))
+    }
   }
   return sum
 }
@@ -120,8 +125,8 @@ export const boundWaves = (
   const exact = skewWeight(
     (i, j) => plus[i * n + j] ?? 0,
     (i, j) => minus[i * n + j] ?? 0,
-    n,
+    components.amplitude,
   )
-  const factorised = skewWeight(factorisedKernel(components, 1), factorisedKernel(components, -1), n)
+  const factorised = skewWeight(factorisedKernel(components, 1), factorisedKernel(components, -1), components.amplitude)
   return { form: 'factorised', cosine: new Float64Array(0), sine: new Float64Array(0), calibration: exact / factorised }
 }

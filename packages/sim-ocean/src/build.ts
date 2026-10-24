@@ -1,6 +1,6 @@
 import type { EffectiveSeaBlock, SeaDescription, SpectrumParameters } from '@luovi/core'
 import { createRng } from '@luovi/core'
-import { atan2, hypot, pow, sincos, sqrt, TWO_PI } from '@luovi/core/math'
+import { atan2, hypot, log, pow, sincos, sqrt, TWO_PI } from '@luovi/core/math'
 import { jonswap, piersonMoskowitz } from '@luovi/data'
 import { boundWaves } from './bound.ts'
 import { breakingThreshold } from './breaking.ts'
@@ -104,7 +104,8 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
 
   const { strips, sectors } = block
   const count = strips * sectors
-  const amplitude = sqrt((2 * bandVariance) / count)
+  const fixedAmplitude = sqrt((2 * bandVariance) / count)
+  const amplitude = new Float64Array(count)
   const kx = new Float64Array(count)
   const ky = new Float64Array(count)
   const k = new Float64Array(count)
@@ -112,7 +113,7 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
   const phase = new Float64Array(count)
   const direction = new Float64Array(2)
   const band = createRng(seed).fork('ocean.band')
-  let wavenumberSum = 0
+  let slopeSum = 0
   for (let strip = 0; strip < strips; strip += 1) {
     for (let sector = 0; sector < sectors; sector += 1) {
       const i = strip * sectors + sector
@@ -131,16 +132,19 @@ export const buildSea = (block: EffectiveSeaBlock, depth: number, gravity: numbe
       k[i] = kI
       omega[i] = omegaI
       phase[i] = TWO_PI * cell.nextF64()
-      wavenumberSum += kI
+      // PROTOTYPE (band size, #43): a Rayleigh factor with E[r^2] = 1 is sqrt(-ln u) for u uniform on (0, 1]; the draw
+      // comes after the cell's existing three, so the fixed layout's frequencies, directions and phases are unchanged.
+      const aI = block.amplitudes === 'rayleigh' ? fixedAmplitude * sqrt(-log(1 - cell.nextF64())) : fixedAmplitude
+      amplitude[i] = aI
+      slopeSum += kI * aI
     }
   }
 
-  const slopeSum = amplitude * wavenumberSum
   let choppiness = block.choppiness * slopeSum > CONTRACTION_BOUND ? CONTRACTION_BOUND / slopeSum : block.choppiness
   // bound / s * s can round one ulp above the bound; step lambda down until the recorded K honours it exactly.
   while (choppiness * slopeSum > CONTRACTION_BOUND) choppiness *= 1 - Number.EPSILON
 
-  const components = { count, kx, ky, k, omega, amplitude: new Float64Array(count).fill(amplitude), phase }
+  const components = { count, kx, ky, k, omega, amplitude, phase }
   const built = {
     seed,
     block,

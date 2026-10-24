@@ -169,6 +169,7 @@ export const seaBlock = (form: SeaForm, inEffect: EffectiveSeaBlock | undefined)
     choppiness: form.choppiness,
     // PROTOTYPE (band size, #43): the panel has no control for it; an edit keeps the form the loaded sea has.
     boundWaves: loaded.boundWaves,
+    amplitudes: loaded.amplitudes,
   }
 }
 

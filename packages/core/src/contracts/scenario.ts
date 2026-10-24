@@ -64,6 +64,11 @@ export const SeaBlockSchema = v.pipe(
      * the one constant solved at build so its skewness matches the pair sum's.
      */
     boundWaves: v.optional(v.picklist(['none', 'pairs', 'factorised']), 'none'),
+    /**
+     * PROTOTYPE (band size, #43): fixed: every component at sqrt(2 m0_band / N), ADR 0005; rayleigh: that times a seeded
+     * Rayleigh factor whose mean square is 1, so the expected band variance is still the spectrum's.
+     */
+    amplitudes: v.optional(v.picklist(['fixed', 'rayleigh']), 'fixed'),
   }),
   v.forward(
     v.check(
