@@ -22,6 +22,8 @@
 
 - Every user-facing question is asked with the "ask user a question" tool or another relevant tool.
 
+- Agents drive browsers headless only (`pnpm shots`, headless Playwright), so nothing opens on Niilo's screen; this binds every subagent brief too. A frame rate that only a headed browser measures truly is approximated from headless GPU timings and labelled approximate.
+
 ## Grilling rounds
 
 A grilling session (`/grilling`, a wayfinder ticket, any design decision put to Niilo) runs in rounds. Niilo's input is the scarce resource: spend it on decisions, and on nothing a lookup could settle.
