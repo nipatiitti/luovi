@@ -16,6 +16,8 @@ How a multi-slice build is cut, briefed, checked and handed off.
 
 - After a few slices land, a separate sweeper reads the diffs and reports problems. A separate fixer fixes them. At most two sweep-and-fix rounds per batch.
 
+- A ticket whose acceptance has a visual or feel criterion (a look, a camera feel, motion) ends with Niilo looking at it before merge. Until he has, it carries the `ready-for-human` label.
+
 - The coordinator spends no context on sweeping or fixing; it delegates both and reads only the reports.
 
 - The coordinator ends with one final sweep of all changes against the plan and leaves the tree ready for hand-off to a fresh designer and coordinator pair.
