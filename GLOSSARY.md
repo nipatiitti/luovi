@@ -225,13 +225,17 @@ A parameter of a renderer that changes the picture and nothing the simulation co
 _Avoid_: Quality setting, graphics option, config
 
 **Foam buffer**:
-The camera-centred, world-aligned texture of foam density near the camera, filled by breaking and hull contact, moved by the surface and fading at a cited rate.
+The camera-centred texture of hull contact foam near the camera, carried by the water it was made on and fading at a cited rate. Breaking never fills it.
 _Avoid_: Foam map, whitecap texture, turbulence buffer
 
 **Breaking threshold**:
-The value of the surface Jacobian below which a point is breaking and injects foam, solved at sea-state build so the far-field coverage matches a cited coverage law.
+The value of the breaking Jacobian below which a point is a whitecap, solved at sea-state build so the mean whitecap coverage matches a cited coverage law; a sea below the law's onset wind has none.
 _Avoid_: Foam threshold, epsilon, magic number
 
-**Far-field coverage**:
-The fraction of a pixel's footprint that is foam beyond the foam buffer, filtered from the spectrum's Jacobian statistics rather than drawn.
-_Avoid_: Whitecap fraction, foam percentage, distant foam
+**Breaking cutoff**:
+The shortest wavelength that breaks with air entrainment; only waves at least this long count towards the breaking Jacobian.
+_Avoid_: Foam cutoff, whitecap filter
+
+**Whitecap coverage**:
+The fraction of a pixel's footprint that is whitecap, filtered from the breaking Jacobian's statistics at every distance rather than tracked.
+_Avoid_: Far-field coverage, whitecap fraction, foam percentage
