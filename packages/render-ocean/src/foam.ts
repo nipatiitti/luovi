@@ -1,11 +1,12 @@
-import { TICKS_PER_SECOND } from '@luovi/core'
+import { TICKS_PER_SECOND, type WhitecapTable } from '@luovi/core'
 import type { RenderOceanSettings } from './settings.ts'
-import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
+import { cascadeWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
 import { MAX_CASCADES, type TailFields } from './tail.ts'
+import { CREST_BANDS, whitecapWgsl } from './whitecaps.ts'
 
-// The near-field foam buffer of ADR 0011: a world-aligned, camera-centred, toroidal r16float density buffer. Each frame
-// one pass decays every texel's density at the cited rate and raises it to the coverage breaking now injects there, so a
-// whitecap leaves a trail that fades.
+// The foam buffer of ADR 0011: a world-aligned, camera-centred, toroidal buffer of foam density and the rate it fades
+// at. Each frame one pass fades every texel's density at its own rate and raises it to the foam a roller passing over it now leaves
+// (whitecaps.ts), or a hull's stamp, so a whitecap leaves a trail that stays on its water and fades.
 //
 // The buffer is indexed by undisplaced (Lagrangian) position, the coordinate every tail field and the band's phase are
 // evaluated at, and the surface looks foam up at the undisplaced position of each pixel. Foam therefore rides the
@@ -14,10 +15,8 @@ import { MAX_CASCADES, type TailFields } from './tail.ts'
 // diffusion. What it leaves out is the second-order Stokes drift, about 0.1 m/s in the storm sea, so a few tenths of a
 // metre over a foam lifetime.
 //
-// Injection is the filtered coverage of the texel's footprint, the same Gaussian tail of the linearised Jacobian the far
-// field uses and the threshold was solved for (sim-ocean breaking.ts): the band exactly at the texel's centre, each
-// cascade's divergence and its variance from the mip whose texel matches the buffer's. A pointwise test would alias the
-// short cascades into noise at half a metre; the coverage is that test's expectation over the texel.
+// The surface draws the rollers themselves per pixel, sharp at any distance; the buffer only has to hold what they
+// leave, which is smooth, and which the surface's lace breaks into detail.
 
 /** Stamps one frame may inject: hull contact from render-ship (step 2) sends a handful per hull. */
 export const MAX_FOAM_STAMPS = 64
@@ -28,24 +27,32 @@ const FOAM_WORD = {
   shift: 2,
   corner: 4,
   spacing: 6,
-  decay: 7,
-  threshold: 8,
+  elapsed: 7,
+  trail: 8,
   count: 9,
   cascadeCount: 10,
   stampCount: 11,
   keep: 12,
+  stampRate: 13,
   cascades: 16,
+  /** The steepness and shape constants, then a vec4 per crest band, as the surface lays them out. */
+  whitecap: 16 + 4 * MAX_CASCADES,
+  crestBands: 16 + 4 * MAX_CASCADES + 8,
 } as const
 
-const FOAM_UNIFORM_BYTES = 4 * (FOAM_WORD.cascades + 4 * MAX_CASCADES)
+/** Crest bands the buffer tests for rollers: the CPU band as one, then each cascade's. */
+const CREST_BAND_SLOTS = 1 + CREST_BANDS * MAX_CASCADES
 
-const FOAM_FORMAT: GPUTextureFormat = 'r16float'
+const FOAM_UNIFORM_BYTES = 4 * (FOAM_WORD.crestBands + 4 * CREST_BAND_SLOTS)
 
-const foamWgsl = /* wgsl */ `
+/** Density and the rate it fades at, 1/s: a small breaker's foam is gone far sooner than a long wave's. */
+const FOAM_FORMAT: GPUTextureFormat = 'rg16float'
+
+const foamWgsl = (whitecaps: WhitecapTable): string => /* wgsl */ `
 ${phaseWgsl}
 ${waveWgsl}
 ${cascadeWgsl}
-${coverageWgsl}
+${whitecapWgsl(CREST_BAND_SLOTS)}
 
 struct Foam {
   // The world texel index of the window's first texel, and how far the window moved since the previous frame, texels.
@@ -54,29 +61,46 @@ struct Foam {
   // The window's first corner from the clipmap origin, m.
   corner: vec2f,
   spacing: f32,
-  // exp(-dt / tau) for the frame's simulated time step.
-  decay: f32,
-  threshold: f32,
+  // The frame's simulated time step, s.
+  elapsed: f32,
+  // The density of the foam a full roller leaves.
+  trail: f32,
   count: u32,
   cascade_count: u32,
   stamp_count: u32,
   // 1 when the previous buffer holds this sea's foam, 0 after a new sea, a step back in time or the toggle.
   keep: u32,
-  _pad0: u32,
+  // 1/s, the rate a hull stamp's foam fades at.
+  stamp_rate: f32,
   _pad1: vec2u,
   // Per cascade: tile L (m), the clipmap origin modulo L plus half a texel (m), and the mip matching a buffer texel.
   cascades: array<vec4f, ${String(MAX_CASCADES)}>,
+  whitecap: vec4f,
+  whitecap_shape: vec4f,
+  crest_bands: array<vec4f, ${String(CREST_BAND_SLOTS)}>,
 }
 
 @group(0) @binding(0) var<uniform> foam: Foam;
 @group(0) @binding(1) var<storage, read> waves: array<Wave>;
 @group(0) @binding(2) var<storage, read> phases: array<f32>;
 @group(0) @binding(3) var previous: texture_2d<f32>;
-@group(0) @binding(4) var derivatives: texture_2d_array<f32>;
-@group(0) @binding(5) var moments: texture_2d_array<f32>;
+// (steepness, slope x, slope y, squared envelope) per crest band (tail.ts).
+@group(0) @binding(4) var crests: texture_2d_array<f32>;
 @group(0) @binding(6) var tail_sampler: sampler;
 // World-space stamps from the clipmap origin: centre x and y (m), radius (m), density.
 @group(0) @binding(7) var<storage, read> stamps: array<vec4f>;
+
+fn crest_band(b: u32) -> vec4f {
+  return foam.crest_bands[b];
+}
+
+fn whitecap_steepness() -> vec4f {
+  return foam.whitecap;
+}
+
+fn whitecap_shape() -> vec4f {
+  return foam.whitecap_shape;
+}
 
 @vertex
 fn vertex_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
@@ -86,7 +110,7 @@ fn vertex_main(@builtin(vertex_index) index: u32) -> @builtin(position) vec4f {
 }
 
 @fragment
-fn fragment_main(@builtin(position) position: vec4f) -> @location(0) f32 {
+fn fragment_main(@builtin(position) position: vec4f) -> @location(0) vec4f {
   let n = i32(textureDimensions(previous).x);
   let texel = vec2i(position.xy);
   // Texel t holds the world index congruent to t modulo n inside the window.
@@ -94,37 +118,62 @@ fn fragment_main(@builtin(position) position: vec4f) -> @location(0) f32 {
   let x = (vec2f(offset) + 0.5) * foam.spacing + foam.corner;
 
   var density = 0.0;
+  var rate = 0.0;
   let before = offset + foam.shift;
   if (foam.keep != 0u && all(before >= vec2i(0)) && all(before < vec2i(n))) {
-    density = textureLoad(previous, texel, 0).r * foam.decay;
+    let kept = textureLoad(previous, texel, 0).rg;
+    rate = kept.g;
+    density = kept.r * exp(-foam.elapsed * rate);
   }
 
-  // The linearised Jacobian 1 + div D: the band's exactly, every cascade's as its mean and variance over the texel.
-  var mean = 1.0;
-  var variance = 0.0;
+  // Every crest band's fields at the texel: the band's summed here, each cascade's from the mip whose texel matches the
+  // buffer's, its group steepness from the mip a wavelength wide.
+  var crest_s: array<f32, ${String(CREST_BAND_SLOTS)}>;
+  var crest_g: array<vec2f, ${String(CREST_BAND_SLOTS)}>;
+  var groups: array<f32, ${String(CREST_BAND_SLOTS)}>;
+  var share: array<f32, ${String(CREST_BAND_SLOTS)}>;
   for (var i = 0u; i < foam.count; i++) {
     let wave = waves[i];
-    mean += wave_divergence(wave, wave.displacement, cos(reduce_phase(dot(wave.k, x) + phases[i])));
+    let theta = reduce_phase(dot(wave.k, x) + phases[i]);
+    crest_s[0] += wave.amplitude * wave.magnitude * cos(theta);
+    crest_g[0] -= wave.amplitude * sin(theta) * wave.k;
   }
+  groups[0] = length(vec3f(crest_s[0], crest_g[0])) / ${String(whitecaps.pointOverGroup.value)};
+  share[0] = 1.0;
   for (var c = 0u; c < foam.cascade_count; c++) {
     let cascade = foam.cascades[c];
     let uv = cascade_uv(cascade, x);
-    let divergence = cascade_divergence(
-      textureSampleLevel(derivatives, tail_sampler, uv, c, cascade.w),
-      textureSampleLevel(moments, tail_sampler, uv, c, cascade.w),
-    );
-    mean += divergence.x;
-    variance += divergence.y;
+    let texel = cascade.x / f32(textureDimensions(crests).x);
+    for (var j = 0u; j < ${String(CREST_BANDS)}u; j++) {
+      let slot = 1u + ${String(CREST_BANDS)}u * c + j;
+      let info = foam.crest_bands[slot];
+      if (info.w <= 0.0) {
+        continue;
+      }
+      let layer = ${String(CREST_BANDS)}u * c + j;
+      let wide = max(log2(max(${String(whitecaps.groupWavelengths.value)} * TAU / info.y, foam.spacing) / texel), 0.0);
+      let field = textureSampleLevel(crests, tail_sampler, uv, layer, cascade.w).xyz;
+      crest_s[slot] = field.x;
+      crest_g[slot] = field.yz;
+      groups[slot] = sqrt(textureSampleLevel(crests, tail_sampler, uv, layer, wide).w);
+      share[slot] = 1.0 - smoothstep(0.5, 1.5, info.y * foam.spacing);
+    }
   }
-  density = max(density, coverage_below(foam.threshold, mean, variance));
+  let rollers = whitecap_rollers(
+    &crest_s, &crest_g, &groups, &share, 1u + ${String(CREST_BANDS)}u * foam.cascade_count, 0.45, foam.spacing);
+  if (foam.trail * rollers.y > density) {
+    density = foam.trail * rollers.y;
+    rate = rollers.z;
+  }
 
   for (var s = 0u; s < foam.stamp_count; s++) {
     let stamp = stamps[s];
-    if (distance(x, stamp.xy) <= stamp.z) {
-      density = max(density, stamp.w);
+    if (distance(x, stamp.xy) <= stamp.z && stamp.w > density) {
+      density = stamp.w;
+      rate = foam.stamp_rate;
     }
   }
-  return density;
+  return vec4f(density, rate, 0.0, 0.0);
 }
 `
 
@@ -157,9 +206,17 @@ export interface BandTables {
 export interface OceanFoam {
   /**
    * A new sea state or settings: sizes the buffer, binds the band's tables and the tail's fields, and forgets the old
-   * foam. A null threshold is flat water, which never breaks.
+   * foam. Flat water is not `breaking`. `breakers` is the surface's whitecap uniform: twelve constants, then a vec4
+   * per crest band; `fadeRates` is the rate (1/s) each band's foam fades at.
    */
-  setSea(threshold: number | null, settings: RenderOceanSettings, band: BandTables, tail: TailFields): void
+  setSea(
+    breaking: boolean,
+    settings: RenderOceanSettings,
+    band: BandTables,
+    tail: TailFields,
+    breakers: readonly number[],
+    fadeRates: readonly number[],
+  ): void
   /** The frame's window and decay; returns where the surface samples the buffer. */
   prepare(frame: FoamFrame): FoamWindow
   /** The buffer written this frame, for the surface to bind; one of two that alternate. */
@@ -170,9 +227,14 @@ export interface OceanFoam {
   destroy(): void
 }
 
-export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSampler: GPUSampler): OceanFoam => {
+export const createOceanFoam = (
+  device: GPUDevice,
+  decayTime: number,
+  whitecaps: WhitecapTable,
+  tailSampler: GPUSampler,
+): OceanFoam => {
   const label = 'ocean foam'
-  const module = device.createShaderModule({ label, code: foamWgsl })
+  const module = device.createShaderModule({ label, code: foamWgsl(whitecaps) })
   const pipeline = device.createRenderPipeline({
     label,
     layout: 'auto',
@@ -199,7 +261,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
   interface State {
     readonly size: number
     readonly spacing: number
-    readonly threshold: number | null
+    readonly breaking: boolean
     readonly textures: readonly [GPUTexture, GPUTexture]
     readonly views: readonly [GPUTextureView, GPUTextureView]
     /** groups[i] writes texture i and reads the other. */
@@ -224,7 +286,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
   let last: { tick: number; window: readonly [number, number] } | undefined
 
   return {
-    setSea: (threshold, settings, band, tail) => {
+    setSea: (breaking, settings, band, tail, breakers, fadeRates) => {
       const size = settings.foamBufferSize
       const reuse = state?.size === size ? state : undefined
       if (state !== undefined && reuse === undefined) for (const old of state.textures) old.destroy()
@@ -239,8 +301,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
             { binding: 1, resource: { buffer: band.waves } },
             { binding: 2, resource: { buffer: band.phases } },
             { binding: 3, resource: read },
-            { binding: 4, resource: tail.derivatives },
-            { binding: 5, resource: tail.moments },
+            { binding: 4, resource: tail.crests },
             { binding: 6, resource: tailSampler },
             { binding: 7, resource: { buffer: stampBuffer } },
           ],
@@ -248,7 +309,7 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
       state = {
         size,
         spacing: settings.foamSpacing,
-        threshold,
+        breaking,
         textures,
         views,
         groups: [group(views[1]), group(views[0])],
@@ -257,28 +318,32 @@ export const createOceanFoam = (device: GPUDevice, decayTime: number, tailSample
         resolution: settings.cascadeRule.resolution,
       }
       last = undefined
+      floats.set(breakers.slice(0, 8), FOAM_WORD.whitecap)
+      floats.set(breakers.slice(12), FOAM_WORD.crestBands)
+      // The buffer reads a band's third number as its foam's fade rate, where the surface reads a phase.
+      fadeRates.forEach((rate, slot) => {
+        floats[FOAM_WORD.crestBands + 4 * slot + 2] = rate
+      })
+      floats[FOAM_WORD.stampRate] = 1 / decayTime
+      floats[FOAM_WORD.trail] = whitecaps.trailDensity.value
     },
     prepare: (frame) => {
       if (state === undefined) throw new Error('The foam has no sea; call setSea first')
-      const { size, spacing, threshold, tail, resolution } = state
+      const { size, spacing, breaking, tail, resolution } = state
       const extent = size * spacing
       const window = [
         Math.floor(frame.eye[0] / spacing) - size / 2,
         Math.floor(frame.eye[1] / spacing) - size / 2,
       ] as const
       const [x0, y0] = frame.origin
-      enabled = frame.enabled && threshold !== null
+      enabled = frame.enabled && breaking
       // Time only runs forward through the buffer: a step back, a new sea or the toggle starts it empty.
       const kept = enabled && last !== undefined && frame.tick >= last.tick ? last : undefined
       const seconds = kept === undefined ? 0 : (frame.tick - kept.tick) / TICKS_PER_SECOND
       const shift = (axis: 0 | 1): number =>
         kept === undefined ? 0 : Math.max(-size, Math.min(size, window[axis] - kept.window[axis]))
       ints.set([window[0], window[1], shift(0), shift(1)], FOAM_WORD.window)
-      floats.set(
-        [window[0] * spacing - x0, window[1] * spacing - y0, spacing, Math.exp(-seconds / decayTime)],
-        FOAM_WORD.corner,
-      )
-      floats[FOAM_WORD.threshold] = threshold ?? 0
+      floats.set([window[0] * spacing - x0, window[1] * spacing - y0, spacing, seconds], FOAM_WORD.corner)
       words[FOAM_WORD.count] = state.band.count
       words[FOAM_WORD.cascadeCount] = tail.count
       const stamps = frame.stamps ?? new Float64Array(0)

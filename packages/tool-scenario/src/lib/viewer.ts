@@ -1,5 +1,5 @@
 import type { SeaDescription } from '@luovi/core'
-import { balticOptics, brunetonAtmosphere, coxMunk, foamDecayTime, foamReflectance } from '@luovi/data'
+import { balticOptics, brunetonAtmosphere, coxMunk, foamDecayTime, foamReflectance, whitecaps } from '@luovi/data'
 import { createOceanSurface, type OceanDebug } from '@luovi/render-ocean'
 import { acquireGpu, createSceneRenderer, type RenderSettings } from '@luovi/render-scene'
 
@@ -42,6 +42,7 @@ export const startViewer = async (
     water: balticOptics,
     foamReflectance,
     foamDecayTime,
+    whitecaps,
   })
   const limit = gpu.device.limits.maxTextureDimension2D
 

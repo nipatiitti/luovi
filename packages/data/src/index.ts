@@ -12,6 +12,7 @@ export {
   foamDecayTime,
   foamReflectance,
   whitecapCoverage,
+  whitecaps,
   type FoamReflectanceTable,
   type WhitecapCoverageTable,
 } from './shared/foam.ts'
