@@ -77,11 +77,11 @@ export const whitecaps: WhitecapTable = {
     src: 'Sutherland and Melville 2015, J. Phys. Oceanogr. 45, section 3: the approximate lower limit of air-entraining breakers is c = 2 m/s, a 2.55 m deep-water wave',
   },
   onsetSteepness: {
-    value: 0.18,
-    src: `Estimate: set so the rollers and their fresh foam cover about the actively breaking share of ${brumer2017} on the 12 m/s and 27 m/s seas. ${scanlonWard2016}`,
+    value: 0.21,
+    src: `Estimate: set so the bright foam seen straight down from 100 m covers about the total of ${brumer2017} on the 12 m/s and 27 m/s reference seas (1.20% against 1.36% and 6.1% against 5.5%, one frame each, counted on the spectrum with the measured equilibrium range)`,
   },
   fullSteepness: {
-    value: 0.23,
+    value: 0.26,
     src: 'Estimate: the width of the ramp from onset, set by eye so a breaking group has a soft edge',
   },
   pointOverGroup: {
