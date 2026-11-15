@@ -3,7 +3,7 @@
 // time is read from the paper's abstract only: the full text could not be reached, so the 3 s is an estimate inside the
 // effective range the abstract states. Brumer et al. 2017's law is their fit to the combined SO GasEx and HiWinGS data
 // against the 10 m neutral wind; the sea's generating wind stands in for it, which ignores atmospheric stability.
-import type { CitedValue } from '@luovi/core'
+import type { CitedValue, WhitecapTable } from '@luovi/core'
 
 /** Visible-band Lambertian reflectances of foam, dimensionless. */
 export interface FoamReflectanceTable {
@@ -58,4 +58,72 @@ export const whitecapCoverage: WhitecapCoverageTable = {
   exponent: { value: 1.42, src: brumer2017 },
   lowerLimit: { value: 4.56, src: `${brumer2017}, valid for U10N from 4.56 to 25.1 m/s` },
   upperLimit: { value: 25.1, src: `${brumer2017}, valid for U10N from 4.56 to 25.1 m/s` },
+}
+
+const scanlonWard2016 =
+  'Scanlon and Ward 2016 as Malila, Thomson, Breivik, Brown, Teixeira and Rogers 2022 quote them (eq. 12): the actively breaking share of whitecap cover is about a quarter of the total'
+
+/**
+ * The whitecap model's constants (render-ocean whitecaps.ts). The two air-entrainment wavelengths are cited; the rest are
+ * estimates set by eye against photographs of whitecapped seas and against the cover figures their sources name.
+ */
+export const whitecaps: WhitecapTable = {
+  shortestWave: {
+    value: 0.64,
+    src: 'Deike, Lenain and Melville 2017, Geophys. Res. Lett. 44, section 3: breakers that entrain no air typically have speeds below 1 to 2 m/s; 1 m/s is a 0.64 m deep-water wave',
+  },
+  fullWave: {
+    value: 2.55,
+    src: 'Sutherland and Melville 2015, J. Phys. Oceanogr. 45, section 3: the approximate lower limit of air-entraining breakers is c = 2 m/s, a 2.55 m deep-water wave',
+  },
+  onsetSteepness: {
+    value: 0.18,
+    src: `Estimate: set so the rollers and their fresh foam cover about the actively breaking share of ${brumer2017} on the 12 m/s and 27 m/s seas. ${scanlonWard2016}`,
+  },
+  fullSteepness: {
+    value: 0.23,
+    src: 'Estimate: the width of the ramp from onset, set by eye so a breaking group has a soft edge',
+  },
+  pointOverGroup: {
+    value: 1.6,
+    src: "Estimate: the band's envelope is tested pointwise where the tail's is averaged over a wavelength, and a point's envelope passes a level a group's mean never reaches",
+  },
+  groupWavelengths: {
+    value: 0.75,
+    src: 'Estimate: long enough that a crest breaks along its length in a dash, short enough to follow one wave group',
+  },
+  frontPhase: {
+    value: 0.55,
+    src: 'Estimate, by eye; with backPhase it keeps the roller near the 0.06 to 0.08 wavelengths an active whitecap spans across (whitecap geometry research, #41), 0.38 to 0.50 rad',
+  },
+  backPhase: { value: 0.12, src: 'Estimate, by eye: the roller starts just behind the crest' },
+  trailDensity: {
+    value: 0.8,
+    src: 'Estimate, by eye: the foam right behind a roller is nearly as dense as the roller',
+  },
+  decayPeriods: {
+    value: 0.32,
+    src: `Estimate: with the roller's width it puts the fading foam at about three times the roller's cover. ${scanlonWard2016}`,
+  },
+  decayLimit: {
+    value: 3.5,
+    src: "Estimate inside Callaghan, Deane, Stokes and Ward 2012's 1.4 to 4.8 s (J. Geophys. Res. 117, C09015, abstract only), the longest a wave's foam is taken to last",
+  },
+  thinSheen: { value: 0.7, src: 'Estimate, by eye: thin foam is wet bubbles that still mirror the sky and glint' },
+  thickSheen: {
+    value: 0.25,
+    src: "Estimate, by eye: a roller's many layers of foam hide most of the water's reflection",
+  },
+  plumePersistence: {
+    value: 3,
+    src: 'Estimate, by eye: the bubbles under a whitecap keep the water pale after the surface foam has thinned',
+  },
+  plumeBackscattering: {
+    value: 0.05,
+    src: "Estimate, by eye: several times the Baltic water's own particulate backscattering, so a plume reads pale green",
+  },
+  laceCell: {
+    value: 0.42,
+    src: 'Estimate, from close photographs of decaying whitecap foam: holes a few decimetres across',
+  },
 }

@@ -1,3 +1,4 @@
+import type { WhitecapTable } from '@luovi/core'
 import type { SeaDescription } from '@luovi/sim-world'
 import {
   bandWeights,
@@ -18,8 +19,9 @@ import {
   unresolvedBandCovariance,
   waterAbsorption,
 } from './shading.ts'
-import { cascadeWgsl, coverageWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
+import { cascadeWgsl, phaseWgsl, waveWgsl, wrap } from './shared.ts'
 import { createOceanTail, MAX_CASCADES, type TailFields } from './tail.ts'
+import { CREST_BANDS, whitecapWgsl } from './whitecaps.ts'
 
 // The sea surface draw: every ring of the clipmap as one indexed draw of the shared ring mesh, the band summed per vertex
 // and the tail's cascades sampled where the ring resolves them (ADR 0011). render-ocean may not import render-scene (both
@@ -97,7 +99,7 @@ export interface OceanSurface {
   destroy(): void
 }
 
-/** Floats per component in the wave table: kx, ky, amplitude, lambda A / k, omega, then padding to 32 bytes. */
+/** Floats per component in the wave table: kx, ky, amplitude, lambda A / k, omega, |k|, then padding to 32 bytes. */
 const WAVE_FLOATS = 8
 /**
  * Floats per ring: centre x and y from the origin, spacing, carry, height morph, level, padding, cascade weights, the
@@ -109,6 +111,9 @@ const RING_FLOATS = 16
  * the cascades come the shading constants (band covariance with the refractive index, Cox and Munk covariance with the
  * backscattering, absorption) and the foam's (window, sampling offset with threshold and lifetime reflectance, albedos).
  */
+/** Crest bands the surface tests for whitecaps: the CPU band as one, then each cascade's. */
+const CREST_BAND_SLOTS = 1 + CREST_BANDS * MAX_CASCADES
+
 const OCEAN_WORD = (() => {
   const shading = 28 + 4 * MAX_CASCADES
   const foam = shading + 12
@@ -126,24 +131,33 @@ const OCEAN_WORD = (() => {
     foamWindow: foam,
     /** foam_sample.z: the threshold, then the lifetime, fresh and thin reflectances. */
     foamThreshold: foam + 6,
-    end: foam + 12,
+    /** The whitecap model's constants as three vec4, then a vec4 per crest band, the band's first. */
+    whitecap: foam + 12,
+    crestBands: foam + 24,
+    end: foam + 24 + 4 * CREST_BAND_SLOTS,
   } as const
 })()
 
 const OCEAN_UNIFORM_BYTES = 4 * OCEAN_WORD.end
 
-/**
- * Where across the foam buffer's half-width the near buffer starts handing over to the far coverage: the blend runs over
- * the buffer's outer quarter (#23 resolution), so the buffer's newest edge texels never show.
- */
-const FOAM_BLEND_START = 0.75
+/** Anisotropic taps the crest fields are sampled with. */
+const CREST_ANISOTROPY = 16
+/** Cells of the foam lace's coarse grid before it repeats; the fine grid is a third of the coarse cell. */
+const LACE_PERIOD = 1024
+const LACE_FINE = 3
+/** Times longer the lace's cells are along the waves' direction of travel than across it. */
+const LACE_STRETCH = 3
+/** The share of the foam a roller leaves that the lace keeps on average, for the expected cover of unresolved waves. */
+const TRAIL_COVER = 0.3
+/** Where across the foam buffer's half-width its foam starts to fade out, so the buffer's edge never shows. */
+const FOAM_FADE_START = 0.75
 
-const surfaceWgsl = (sceneWgsl: string): string => /* wgsl */ `
+const surfaceWgsl = (sceneWgsl: string, whitecaps: WhitecapTable): string => /* wgsl */ `
 ${sceneWgsl}
 ${phaseWgsl}
 ${waveWgsl}
 ${cascadeWgsl}
-${coverageWgsl}
+${whitecapWgsl(CREST_BAND_SLOTS)}
 
 struct Ocean {
   view_projection: mat4x4f,
@@ -169,6 +183,16 @@ struct Ocean {
   foam_sample: vec4f,
   // Foam reflectance fresh and thin.
   foam_albedo: vec4f,
+  // The onset and full steepness of a breaking group, and the unit vector the waves travel along.
+  whitecap: vec4f,
+  // The roller's phase ahead of and behind the crest (rad), and the clipmap origin modulo the lace's period (m).
+  whitecap_shape: vec4f,
+  // The plume's backscattering (1/m) and persistence, the lace's coarse cell (m).
+  whitecap_plume: vec4f,
+  // Per crest band, the CPU band first: the steepness variance, the mean wavenumber (rad/m), the phase over which its
+  // foam fades by e (rad), and the share of a full whitecap's foam its breakers make: 1 for long waves, falling to 0
+  // across the wavelengths too short to entrain air, where a breaker leaves only a fleck.
+  crest_bands: array<vec4f, ${String(CREST_BAND_SLOTS)}>,
 }
 
 struct Ring {
@@ -180,7 +204,7 @@ struct Ring {
   _pad: vec2f,
   // How much of each cascade's displacement the ring carries, cascade 0 first.
   cascades: vec4f,
-  // The slope covariance (xx, yy, xy) of the band displacement this ring does not carry, and its divergence's variance.
+  // The slope covariance (xx, yy, xy) of the band displacement this ring does not carry.
   unresolved: vec4f,
 }
 
@@ -193,10 +217,15 @@ struct Ring {
 @group(2) @binding(5) var displacement: texture_2d_array<f32>;
 @group(2) @binding(6) var derivatives: texture_2d_array<f32>;
 @group(2) @binding(7) var tail_sampler: sampler;
-// The second moments per cascade layer: (sx^2, sy^2, sx sy, div^2).
+// The slope's second moments per cascade layer: (sx^2, sy^2, sx sy).
 @group(2) @binding(8) var moments: texture_2d_array<f32>;
 // Near-field foam density, indexed by undisplaced position (foam.ts).
 @group(2) @binding(9) var foam: texture_2d<f32>;
+// (steepness, slope x, slope y, squared envelope) per crest band, ${String(CREST_BANDS)} layers per cascade (tail.ts).
+@group(2) @binding(10) var crests: texture_2d_array<f32>;
+// Seen at a grazing angle a whitecap is a dash a pixel or two high and many wide, so the crest fields keep sixteen taps
+// of anisotropy where the drawn fields make do with four.
+@group(2) @binding(11) var crest_sampler: sampler;
 
 struct Varying {
   @builtin(position) position: vec4f,
@@ -214,15 +243,80 @@ struct Varying {
   @location(6) in_scatter: vec3f,
   // The undisplaced position after the morph, measured from the clipmap origin: where the tail's fields are sampled.
   @location(7) lagrangian: vec2f,
-  // The band's slope covariance and divergence variance the ring flattened, morphed with the ring's band weights.
+  // The band's slope covariance the ring flattened, morphed with the ring's band weights.
   @location(8) unresolved: vec4f,
-  // The divergence of the band displacement the vertex carries: the resolved part of the far foam's Jacobian.
+  // The divergence of the band displacement the vertex carries: the long waves' share of the surface's Jacobian.
   @location(9) band_divergence: f32,
+  // The carried band's crest fields, its steepness sum a k cos and its linear slope.
+  @location(10) crest: vec3f,
 }
 
 // Where cascade c samples the point x from the clipmap origin.
 fn tail_uv(c: u32, x: vec2f) -> vec2f {
   return cascade_uv(ocean.cascades[c], x);
+}
+
+fn crest_band(b: u32) -> vec4f {
+  return ocean.crest_bands[b];
+}
+
+fn whitecap_steepness() -> vec4f {
+  return ocean.whitecap;
+}
+
+fn whitecap_shape() -> vec4f {
+  return ocean.whitecap_shape;
+}
+
+// Crest band j of cascade c over the pixel's footprint.
+fn crest_pixel(c: u32, j: u32, x: vec2f) -> vec3f {
+  return textureSample(crests, crest_sampler, tail_uv(c, x), ${String(CREST_BANDS)}u * c + j).xyz;
+}
+
+// The root mean square envelope steepness of crest band j of cascade c around x: the squared envelope averaged over
+// about a wavelength, from the mip whose texel is that wide, or the pixel's own footprint when that is wider.
+fn crest_group(c: u32, j: u32, x: vec2f, wavenumber: f32, sampled: f32) -> f32 {
+  let texel = ocean.cascades[c].x / f32(textureDimensions(crests).x);
+  let lod = max(log2(max(${String(whitecaps.groupWavelengths.value)} * TAU / wavenumber, sampled) / texel), 0.0);
+  return sqrt(textureSampleLevel(crests, tail_sampler, tail_uv(c, x), ${String(CREST_BANDS)}u * c + j, lod).w);
+}
+
+// pcg2d (Jarzynski and Olano 2020) of a cell's integer coordinates, as a point in the unit square: algorithm
+// constants, not data.
+fn cell_point(id: vec2f) -> vec2f {
+  var v = vec2u(bitcast<u32>(i32(id.x)), bitcast<u32>(i32(id.y)));
+  v = v * 1664525u + 1013904223u;
+  v.x += v.y * 1664525u;
+  v.y += v.x * 1664525u;
+  v = v ^ (v >> vec2u(16u));
+  v.x += v.y * 1664525u;
+  v.y += v.x * 1664525u;
+  v = v ^ (v >> vec2u(16u));
+  return vec2f(v >> vec2u(8u)) / 16777216.0;
+}
+
+// The distances to the nearest and the second nearest point of a jittered grid, in cells; the grid repeats every
+// \`period\` cells. Their difference is zero on the walls between cells and largest at a cell's own point.
+fn cellular(p: vec2f, period: f32) -> vec2f {
+  let cell = floor(p);
+  let f = p - cell;
+  var nearest = 8.0;
+  var second = 8.0;
+  for (var j = -1; j <= 1; j++) {
+    for (var i = -1; i <= 1; i++) {
+      let o = vec2f(f32(i), f32(j));
+      let id = cell + o;
+      let q = o + cell_point(id - period * floor(id / period)) - f;
+      let d = dot(q, q);
+      if (d < nearest) {
+        second = nearest;
+        nearest = d;
+      } else if (d < second) {
+        second = d;
+      }
+    }
+  }
+  return sqrt(vec2f(nearest, second));
 }
 
 @vertex
@@ -254,6 +348,8 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
   var slope = vec2f(0.0);
   var stretch = vec3f(0.0); // d(shift.x)/dx, d(shift.x)/dy = d(shift.y)/dx, d(shift.y)/dy
   var band_divergence = 0.0;
+  var crest_steepness = 0.0;
+  var crest_slope = vec2f(0.0);
   // Rings are ordered by carry, so a ring that carries nothing also morphs towards a ring that carries nothing.
   if (ring.carry > 0.0 && ocean.band != 0u) {
     let row = slot * ocean.count;
@@ -275,7 +371,9 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
       slope -= a * s * wave.k;
       stretch -= d * c * vec3f(wave.k.x * wave.k.x, wave.k.x * wave.k.y, wave.k.y * wave.k.y);
       band_divergence += wave_divergence(wave, d, c);
+      crest_steepness += a * wave.magnitude * c;
     }
+    crest_slope = slope;
   }
   if (ring.carry > 0.0) {
     let carried = mix(ring.cascades, rings[slot + 1u].cascades, morph);
@@ -316,6 +414,7 @@ fn vertex_main(@builtin(vertex_index) index: u32, @builtin(instance_index) slot:
     position,
     unresolved,
     band_divergence,
+    vec3f(crest_steepness, crest_slope),
   );
 }
 
@@ -402,18 +501,31 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
     variance += in.unresolved.xyz;
     drawn += ocean.band_covariance.xyz;
   }
-  // The far foam's linearised Jacobian over the pixel's footprint, from the whole sea whatever the debug toggles draw: the
-  // band's carried divergence exactly and what the ring flattened as variance, each cascade's filtered mean and variance.
+  // The surface's linearised Jacobian 1 + div D over the pixel's footprint, which the foam lying on it thins and gathers
+  // by: the band's carried divergence and each cascade's filtered mean.
   var jacobian = 1.0 + in.band_divergence;
-  var jacobian_variance = in.unresolved.w;
   let whole = i32(textureNumLevels(moments)) - 1;
+  // Every crest band's steepness and slope here, the band's from the vertex stage first.
+  var crest_s: array<f32, ${String(CREST_BAND_SLOTS)}>;
+  var crest_g: array<vec2f, ${String(CREST_BAND_SLOTS)}>;
+  crest_s[0] = in.crest.x;
+  crest_g[0] = in.crest.yz;
+  let foot_x = dpdx(in.lagrangian);
+  let foot_y = dpdy(in.lagrangian);
   for (var c = 0u; c < ocean.cascade_count; c++) {
+    for (var j = 0u; j < ${String(CREST_BANDS)}u; j++) {
+      let slot = 1u + ${String(CREST_BANDS)}u * c + j;
+      // A band too short to whitecap is never read, so it is not sampled either.
+      if (ocean.crest_bands[slot].w > 0.0) {
+        let field = crest_pixel(c, j, in.lagrangian);
+        crest_s[slot] = field.x;
+        crest_g[slot] = field.yz;
+      }
+    }
     let uv = tail_uv(c, in.lagrangian);
     let derivative = textureSample(derivatives, tail_sampler, uv, c);
     let second = textureSample(moments, tail_sampler, uv, c);
-    let divergence = cascade_divergence(derivative, second);
-    jacobian += divergence.x;
-    jacobian_variance += divergence.y;
+    jacobian += derivative.z + derivative.w;
     if (ocean.cascades[c].w != 0.0) {
       let mean = derivative.xy;
       slope += mean;
@@ -424,7 +536,100 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
   }
   // The near buffer, sampled before any branch since sampling needs uniform control flow.
   let window = ocean.foam_window;
-  let density = textureSample(foam, tail_sampler, (in.lagrangian + ocean.foam_sample.xy) / window.z).r;
+  // Four taps half a texel apart, a tent three texels wide, so the buffer's grid does not show in the foam's outline.
+  let foam_uv = (in.lagrangian + ocean.foam_sample.xy) / window.z;
+  let foam_step = 0.5 / f32(textureDimensions(foam).x);
+  let density = 0.25 * (textureSample(foam, tail_sampler, foam_uv + vec2f(foam_step, foam_step)).r
+    + textureSample(foam, tail_sampler, foam_uv + vec2f(-foam_step, foam_step)).r
+    + textureSample(foam, tail_sampler, foam_uv + vec2f(foam_step, -foam_step)).r
+    + textureSample(foam, tail_sampler, foam_uv + vec2f(-foam_step, -foam_step)).r);
+  // The rollers of the crest bands here (whitecaps.ts) and the foam earlier rollers left on this
+  // water, from the buffer.
+  let footprint = max(length(foot_x), length(foot_y));
+  // What the crest sampler's anisotropic filter averages a crest field over.
+  let sampled = max(footprint / ${String(CREST_ANISOTROPY)}.0, min(length(foot_x), length(foot_y)));
+  // A pixel's width in the wave's phase is its footprint along the direction of travel; the lace, which has no
+  // direction, blurs with the footprint's area.
+  let travel = ocean.whitecap.zw;
+  let travel_footprint = abs(dot(foot_x, travel)) + abs(dot(foot_y, travel));
+  let lace_footprint = sqrt(footprint * min(length(foot_x), length(foot_y)));
+  let onset = ocean.whitecap.x;
+  let full = ocean.whitecap.y;
+  let band_count = 1u + ${String(CREST_BANDS)}u * ocean.cascade_count;
+  var groups: array<f32, ${String(CREST_BAND_SLOTS)}>;
+  var resolved: array<f32, ${String(CREST_BAND_SLOTS)}>;
+  var breaking = false;
+  // The steepness of every longer wave here, and the share of the surface the bands this pixel cannot resolve leave clear.
+  var longer = 0.0;
+  var clear_far = 1.0;
+  let band_slope = max(ocean.band_covariance.x + ocean.band_covariance.y, 1e-12);
+  for (var b = 0u; b < band_count; b++) {
+    let info = ocean.crest_bands[b];
+    let lift = clamp(1.0 + longer, 0.6, 1.5);
+    longer += crest_s[b];
+    // The group's steepness: for a tail band the envelope's mean over a wavelength. The band's envelope is not
+    // averaged, and a point's envelope passes a level a group's mean never reaches.
+    var group = length(vec3f(crest_s[b], crest_g[b])) / ${String(whitecaps.pointOverGroup.value)};
+    var share = clamp(1.0 - (in.unresolved.x + in.unresolved.y) / band_slope, 0.0, 1.0);
+    if (b > 0u && info.w > 0.0) {
+      let c = (b - 1u) / ${String(CREST_BANDS)}u;
+      group = crest_group(c, (b - 1u) % ${String(CREST_BANDS)}u, in.lagrangian, info.y, sampled);
+      share = 1.0 - smoothstep(0.5, 1.5, info.y * sampled);
+    }
+    groups[b] = group;
+    resolved[b] = select(0.0, share, info.w > 0.0);
+    breaking = breaking || (lift * lift * group > onset && resolved[b] > 0.0);
+    // The envelope's square is exponential with mean twice the variance, so this is the share of the band's groups
+    // steeper than half way up the ramp, times the share of a breaking wave its foam covers.
+    let middle = 0.5 * (onset + full) / (lift * lift);
+    let spilling = exp(-middle * middle / max(2.0 * info.x, 1e-9));
+    let duty = info.w * (0.5 * ocean.whitecap_shape.x + ocean.whitecap_shape.y + ${String(TRAIL_COVER)} * info.z) / TAU;
+    clear_far *= 1.0 - (1.0 - share) * spilling * duty;
+  }
+  // The foam the buffer holds on this water, fading out over the window's outer quarter.
+  let from_centre = abs((in.lagrangian - window.xy) / window.z * 2.0 - 1.0);
+  // Foam is carried by the water under it: where the short waves squeeze the surface the foam gathers, where they
+  // stretch it the foam thins, by the surface's own Jacobian, so ripples move through a patch instead of under it.
+  let laid = density / clamp(jacobian, 0.4, 2.5)
+    * (1.0 - clamp((max(from_centre.x, from_centre.y) - ${String(FOAM_FADE_START)}) / ${String(1 - FOAM_FADE_START)}, 0.0, 1.0));
+  var rollers = vec3f(0.0);
+  // Where there is too little foam to be worth the lace's cells, the lace reads as all hole.
+  var lace = 1.0;
+  // How bright the foam's own texture makes it here: its clumps of bubbles, where the eye is close enough to see them.
+  var froth = 1.0;
+  if (breaking || laid > 0.004) {
+    // The lace's grid lies along the direction of travel, its cells longer that way, so the thinning foam streaks downwind.
+    let cell = ocean.whitecap_plume.z;
+    let along = dot(in.lagrangian, travel) + ocean.whitecap_shape.z;
+    let across = dot(in.lagrangian, vec2f(-travel.y, travel.x)) + ocean.whitecap_shape.w;
+    let at = vec2f(along / (${String(LACE_STRETCH)}.0 * cell), across / cell);
+    let fine = cellular(at * ${String(LACE_FINE)}.0, ${String(LACE_PERIOD * LACE_FINE)}.0);
+    // The fine cells bend the coarse ones' walls, which would otherwise be a honeycomb of straight edges.
+    let coarse = cellular(at + 0.35 * (fine - 0.4), ${String(LACE_PERIOD)}.0);
+    // Patches four cells across open and close together, so the holes do not open as an even grid of dots, and cells a
+    // ninth of the coarse ones give the foam its bubbles where the eye is close enough to see them.
+    let clump = cellular(at * 0.25, ${String(LACE_PERIOD / 4)}.0);
+    let bubble = cellular(at * ${String(LACE_FINE * LACE_FINE)}.0, ${String(LACE_PERIOD * LACE_FINE * LACE_FINE)}.0);
+    let bubbles = 1.0 - clamp(${String(LACE_FINE * LACE_FINE)}.0 * lace_footprint / cell, 0.0, 1.0);
+    lace = clamp(0.85 * (coarse.y - coarse.x) + 0.45 * (fine.y - fine.x) + 0.2 * (clump.x - 0.45)
+      + 0.3 * bubbles * (bubble.y - bubble.x - 0.3), 0.0, 1.0);
+    froth = 1.0 + bubbles * (0.9 * bubble.x - 0.3) + 0.5 * (fine.x - 0.35);
+    if (breaking) {
+      rollers = whitecap_rollers(&crest_s, &crest_g, &groups, &resolved, band_count, coarse.x, travel_footprint);
+    }
+  }
+  // Foam density, 1 in a long wave's roller; its thickness, which sets how much light it returns; and the bubble plume
+  // under it, which outlasts the foam.
+  let whitecap = max(rollers.x, laid);
+  let thickness = max(rollers.y, laid);
+  let plume = max(rollers.y, clamp(ocean.whitecap_plume.y * laid, 0.0, 1.0));
+  // The patch opens into lace as it thins: foam stays where the cell walls are, and the holes grow from the cells' own
+  // points. Where a pixel holds many cells it shows their mean cover.
+  let lace_blur = clamp(lace_footprint / ocean.whitecap_plume.z, 0.0, 1.0);
+  let lace_edge = 1.1 * whitecap;
+  let lace_width = mix(0.04, 0.5, lace_blur);
+  let whitecap_cover = mix(1.0 - smoothstep(lace_edge - lace_width, lace_edge + lace_width, lace), clamp(lace_edge, 0.0, 1.0), lace_blur)
+    * step(1e-4, whitecap);
   let sigma = clamp_covariance(variance) + clamp_covariance(ocean.cox_munk.xyz - drawn);
   let surface = cross(vec3f(in.tangent_x.xy, slope.x), vec3f(in.tangent_y.xy, slope.y));
   // The pixel's mean slope: the drawn surface's, horizontal stretch included.
@@ -500,32 +705,33 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
   // irradiance.sun is on the facet's plane; the refracted beam's own is that over mu_s.
   let sun_in = light.sun * (1.0 - fresnel(cos_sun, n)) / mu_s;
   let sky_in = light.sky * (1.0 - fresnel(1.0, n));
-  let extinction = ocean.absorption.xyz + backscattering;
-  let below = backscattering / TAU / extinction * (sun_in * mu_s / (mu_s + mu_v) + sky_in / (1.0 + mu_v));
+  // A bubble plume scatters as the water's own particles do, only far more of it.
+  let scattering = backscattering + plume * ocean.whitecap_plume.x * select(0.0, 1.0, window.w != 0.0);
+  let extinction = ocean.absorption.xyz + scattering;
+  let below = scattering / TAU / extinction * (sun_in * mu_s / (mu_s + mu_v) + sky_in / (1.0 + mu_v));
   // Out through the surface, the radiance diluted by n^2 as the cone widens.
   let body = below * (1.0 - reflectance) / (n * n);
 
-  // Foam covers a fraction of the pixel and scatters as a Lambertian surface lit through the mean facet. The near
-  // buffer's density is that fraction, its reflectance falling from fresh to thin with it; the far coverage is the
-  // filtered Jacobian's tail below the threshold at the lifetime average. Over the buffer's outer quarter one hands over
-  // to the other.
+  // Foam covers a fraction of the pixel and scatters as a Lambertian surface lit through the mean facet.
   var water = reflected + glitter + body;
   if (window.w != 0.0) {
-    let across = abs((in.lagrangian - window.xy) / window.z * 2.0 - 1.0);
-    let near = 1.0 - clamp((max(across.x, across.y) - ${String(FOAM_BLEND_START)}) / ${String(1 - FOAM_BLEND_START)}, 0.0, 1.0);
-    let far = coverage_below(ocean.foam_sample.z, jacobian, jacobian_variance);
-    let near_albedo = mix(ocean.foam_albedo.y, ocean.foam_albedo.x, density);
-    let cover = mix(far, density, near);
-    let albedo_cover = mix(far * ocean.foam_sample.w, density * near_albedo, near);
-    water = water * (1.0 - cover) + albedo_cover * (light.sun + light.sky) / ${String(Math.PI)};
+    // The rollers and the foam the buffer holds, bright where it is thick and dim where it is thin, and the bands this
+    // pixel cannot resolve at their expected cover and the lifetime reflectance.
+    let far = 1.0 - clear_far;
+    let cap_albedo = mix(ocean.foam_albedo.y, ocean.foam_albedo.x, thickness) * froth;
+    let clear = (1.0 - whitecap_cover) * (1.0 - far);
+    let lit = whitecap_cover * cap_albedo + (1.0 - whitecap_cover) * far * ocean.foam_sample.w;
+    // Foam hides the water's body, but its wet bubbles still mirror the sky and glint, less so the thicker it lies.
+    let sheen = whitecap_cover * mix(${String(whitecaps.thinSheen.value)}, ${String(whitecaps.thickSheen.value)}, thickness);
+    water = (reflected + glitter) * (clear + sheen) + body * clear + lit * (light.sun + light.sky) / ${String(Math.PI)};
   }
 
   var color = water * in.transmittance + in.in_scatter;
 
   // The wireframe as lines one pixel wide along every cell edge, faded where the cells crowd closer than four pixels.
-  let footprint = fwidth(in.cell);
-  let pixels = abs(fract(in.cell + 0.5) - 0.5) / max(footprint, vec2f(1e-6));
-  let line = (1.0 - clamp(min(pixels.x, pixels.y), 0.0, 1.0)) * (1.0 - clamp(max(footprint.x, footprint.y) * 4.0, 0.0, 1.0));
+  let cell_footprint = fwidth(in.cell);
+  let pixels = abs(fract(in.cell + 0.5) - 0.5) / max(cell_footprint, vec2f(1e-6));
+  let line = (1.0 - clamp(min(pixels.x, pixels.y), 0.0, 1.0)) * (1.0 - clamp(max(cell_footprint.x, cell_footprint.y) * 4.0, 0.0, 1.0));
   if (ocean.wireframe != 0u) {
     let tint = RING_TINTS[u32(in.level) % 2u] * dot(color, vec3f(1.0)) * 0.5;
     color = mix(color * 0.6, tint, line);
@@ -533,6 +739,66 @@ fn fragment_main(in: Varying) -> @location(0) vec4f {
   return vec4f(color, 1.0);
 }
 `
+
+/**
+ * The whitecap model's constants and every crest band's statistics as the `Ocean` uniform lays them out
+ * from `whitecap` on, and the rate (1/s) at which each band's foam fades, for the foam buffer. The CPU band counts as
+ * one crest band.
+ */
+const whitecapUniform = (
+  sea: SeaDescription | null,
+  tail: TailFields,
+  whitecaps: WhitecapTable,
+): { readonly values: number[]; readonly fadeRates: number[] } => {
+  const direction = sea?.spectrum.meanDirection ?? 0
+  const head = [
+    whitecaps.onsetSteepness.value,
+    whitecaps.fullSteepness.value,
+    Math.cos(direction),
+    Math.sin(direction),
+    whitecaps.frontPhase.value,
+    whitecaps.backPhase.value,
+    0,
+    0,
+    whitecaps.plumeBackscattering.value,
+    whitecaps.plumePersistence.value,
+    whitecaps.laceCell.value,
+    0,
+  ]
+  const bands = new Array<number>(4 * CREST_BAND_SLOTS).fill(0)
+  const fadeRates = new Array<number>(CREST_BAND_SLOTS).fill(0)
+  if (sea === null) return { values: [...head, ...bands], fadeRates }
+  const frequencyOf = (wavenumber: number): number =>
+    Math.sqrt(sea.gravity * wavenumber * Math.tanh(wavenumber * sea.depth))
+  const fade = (wavenumber: number): number =>
+    Math.min(2 * Math.PI * whitecaps.decayPeriods.value, frequencyOf(wavenumber) * whitecaps.decayLimit.value)
+  // A band's breakers make less foam the shorter its waves: none below shortestWave, a full whitecap's from fullWave,
+  // rising smoothly in ln of the wavelength between.
+  const aeration = (band: { variance: number; wavenumber: number }): number => {
+    if (!(band.variance > 0)) return 0
+    const length = (2 * Math.PI) / band.wavenumber
+    const u =
+      Math.log(length / whitecaps.shortestWave.value) /
+      Math.log(whitecaps.fullWave.value / whitecaps.shortestWave.value)
+    const clamped = Math.min(1, Math.max(0, u))
+    return clamped * clamped * (3 - 2 * clamped)
+  }
+  const { count, k, amplitude } = sea.components
+  let variance = 0
+  let weighted = 0
+  for (let i = 0; i < count; i += 1) {
+    const steepness = 0.5 * ((k[i] ?? 0) * (amplitude[i] ?? 0)) ** 2
+    variance += steepness
+    weighted += steepness * (k[i] ?? 0)
+  }
+  const all = [{ variance, wavenumber: variance > 0 ? weighted / variance : sea.peakWavenumber }, ...tail.crestBands]
+  all.forEach((band, slot) => {
+    bands.splice(4 * slot, 4, band.variance, band.wavenumber, fade(band.wavenumber), aeration(band))
+    // 1/s: the fade's phase is the wave's frequency times the time the foam takes to fade by e.
+    fadeRates[slot] = frequencyOf(band.wavenumber) / fade(band.wavenumber)
+  })
+  return { values: [...head, ...bands], fadeRates }
+}
 
 /** `optics` holds every optical constant the shading reads; the tool passes `data`'s tables. */
 export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): OceanSurface => {
@@ -554,6 +820,8 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       { binding: 7, visibility: both, sampler: { type: 'filtering' } },
       { binding: 8, visibility: GPUShaderStage.FRAGMENT, texture: fieldTexture },
       { binding: 9, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+      { binding: 10, visibility: GPUShaderStage.FRAGMENT, texture: fieldTexture },
+      { binding: 11, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
     ],
   })
   const tail = createOceanTail(device)
@@ -569,8 +837,17 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     mipmapFilter: 'linear',
     maxAnisotropy: 4,
   })
-  const foam = createOceanFoam(device, optics.foamDecayTime.value, tailSampler)
-  const module = device.createShaderModule({ label, code: surfaceWgsl(target.sceneWgsl) })
+  const crestSampler = device.createSampler({
+    label: `${label} crests`,
+    addressModeU: 'repeat',
+    addressModeV: 'repeat',
+    magFilter: 'linear',
+    minFilter: 'linear',
+    mipmapFilter: 'linear',
+    maxAnisotropy: CREST_ANISOTROPY,
+  })
+  const foam = createOceanFoam(device, optics.foamDecayTime.value, optics.whitecaps, tailSampler)
+  const module = device.createShaderModule({ label, code: surfaceWgsl(target.sceneWgsl, optics.whitecaps) })
   const pipeline = device.createRenderPipeline({
     label,
     layout: device.createPipelineLayout({ label, bindGroupLayouts: [...target.sceneLayouts, layout] }),
@@ -629,7 +906,10 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       const { kx, ky, k, omega, amplitude } = sea.components
       for (let i = 0; i < count; i += 1) {
         const a = amplitude[i] ?? 0
-        waveData.set([kx[i] ?? 0, ky[i] ?? 0, a, (sea.choppiness * a) / (k[i] ?? 1), omega[i] ?? 0], i * WAVE_FLOATS)
+        waveData.set(
+          [kx[i] ?? 0, ky[i] ?? 0, a, (sea.choppiness * a) / (k[i] ?? 1), omega[i] ?? 0, k[i] ?? 0],
+          i * WAVE_FLOATS,
+        )
       }
     }
     const waves = storage('waves', waveData.byteLength)
@@ -641,7 +921,9 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
     const weights = storage('weights', weightData.byteLength)
     const rings = storage('rings', ringData.byteLength)
     const fields = tail.setSea(sea, settings)
-    foam.setSea(sea?.breakingThreshold ?? null, settings, { count, waves, phases }, fields)
+    const breakers = whitecapUniform(sea, fields, optics.whitecaps)
+    foam.setSea(sea !== null, settings, { count, waves, phases }, fields, breakers.values, breakers.fadeRates)
+    uniformFloats.set(breakers.values, OCEAN_WORD.whitecap)
     const absorption = waterAbsorption(optics)
     uniformFloats.set(
       [
@@ -681,6 +963,8 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
           { binding: 7, resource: tailSampler },
           { binding: 8, resource: fields.moments },
           { binding: 9, resource: foamView },
+          { binding: 10, resource: fields.crests },
+          { binding: 11, resource: crestSampler },
         ],
       })
     return {
@@ -778,6 +1062,14 @@ export const createOceanSurface = (target: OceanTarget, optics: OceanOptics): Oc
       uniformFloats.set(
         [...window.corner, window.extent, frame.debug.foam && sea !== null ? 1 : 0, ...window.offset],
         OCEAN_WORD.foamWindow,
+      )
+      // The lace's grid origin in its own frame, along the waves' travel and across it, wrapped in f64.
+      const lacePeriod = LACE_PERIOD * optics.whitecaps.laceCell.value
+      const direction = sea?.spectrum.meanDirection ?? 0
+      const [cos, sin] = [Math.cos(direction), Math.sin(direction)]
+      uniformFloats.set(
+        [wrap(cos * x0 + sin * y0, LACE_STRETCH * lacePeriod), wrap(-sin * x0 + cos * y0, lacePeriod)],
+        OCEAN_WORD.whitecap + 6,
       )
       device.queue.writeBuffer(uniform, 0, uniformData)
       tail.prepare(frame.tick)

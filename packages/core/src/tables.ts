@@ -67,3 +67,42 @@ export interface CoxMunkTable {
   /** m above the mean sea level */
   readonly windHeight: CitedValue
 }
+
+/**
+ * The whitecap model's constants: which waves entrain air, how steep a wave group must be for its crests to spill, how
+ * far the roller reaches and how long the foam it leaves lasts. Phases are radians of the breaking wave, zero at its crest.
+ */
+export interface WhitecapTable {
+  /** m, the wavelength below which a breaker entrains no air and leaves no foam. */
+  readonly shortestWave: CitedValue
+  /** m, the wavelength from which a breaker makes a full whitecap. */
+  readonly fullWave: CitedValue
+  /** The group steepness a k at which a crest starts to spill. */
+  readonly onsetSteepness: CitedValue
+  /** The group steepness a k at which the breaker is fully developed. */
+  readonly fullSteepness: CitedValue
+  /** How much steeper a point's envelope must be than a group's mean for the same share of the sea to break. */
+  readonly pointOverGroup: CitedValue
+  /** Wavelengths over which a wave group's steepness is averaged. */
+  readonly groupWavelengths: CitedValue
+  /** rad the roller covers ahead of the crest when fully developed. */
+  readonly frontPhase: CitedValue
+  /** rad the roller covers behind the crest. */
+  readonly backPhase: CitedValue
+  /** The density of the foam a full roller leaves on the water it passes, 1 being the roller's own. */
+  readonly trailDensity: CitedValue
+  /** Periods of the breaking wave over which the foam it leaves fades by e. */
+  readonly decayPeriods: CitedValue
+  /** s, the longest that fade takes. */
+  readonly decayLimit: CitedValue
+  /** The share of the water's own reflection that still shows on thin foam. */
+  readonly thinSheen: CitedValue
+  /** The share of the water's own reflection that still shows on a roller's thick foam. */
+  readonly thickSheen: CitedValue
+  /** How many times longer than the foam above it a bubble plume shows. */
+  readonly plumePersistence: CitedValue
+  /** 1/m, the backscattering a fresh bubble plume adds to the water. */
+  readonly plumeBackscattering: CitedValue
+  /** m, the cell of the foam's lace, the holes a decaying patch opens into. */
+  readonly laceCell: CitedValue
+}

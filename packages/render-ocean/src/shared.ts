@@ -23,7 +23,8 @@ struct Wave {
   displacement: f32,
   // omega, rad/s; the draw takes time through the phases, and foam needs no velocity (foam.ts).
   frequency: f32,
-  _pad0: f32,
+  // |k|, rad/m.
+  magnitude: f32,
   _pad1: vec2f,
 }
 
@@ -38,30 +39,5 @@ export const cascadeWgsl = /* wgsl */ `
 // Where a cascade (tile L, the origin modulo L plus half a texel) samples the point x from the clipmap origin.
 fn cascade_uv(cascade: vec4f, x: vec2f) -> vec2f {
   return (x + cascade.yz) / cascade.x;
-}
-
-// The cascade's displacement divergence and its variance over a filtered footprint, from the derivatives
-// (.., .., dDx/dx, dDy/dy) and the second moments (.., .., .., div^2) at the same filter.
-fn cascade_divergence(derivative: vec4f, second: vec4f) -> vec2f {
-  let divergence = derivative.z + derivative.w;
-  return vec2f(divergence, max(second.w - divergence * divergence, 0.0));
-}
-`
-
-/**
- * The fraction of a Gaussian below `threshold`, and the step itself when the variance is zero. The erfc is Abramowitz
- * and Stegun 1964 (formula 7.1.26, absolute error under 1.5e-7): algorithm constants, not data.
- */
-export const coverageWgsl = /* wgsl */ `
-fn coverage_below(threshold: f32, mean: f32, variance: f32) -> f32 {
-  if (variance <= 0.0) {
-    return select(0.0, 1.0, mean < threshold);
-  }
-  let z = (threshold - mean) / sqrt(variance);
-  let x = abs(z) * 0.70710678118654752;
-  let t = 1.0 / (1.0 + 0.3275911 * x);
-  let poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
-  let tail = 0.5 * poly * exp(-x * x);
-  return select(1.0 - tail, tail, z < 0.0);
 }
 `

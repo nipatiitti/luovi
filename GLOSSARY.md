@@ -228,18 +228,30 @@ _Avoid_: LOD level, tier, shell
 A parameter of a renderer that changes the picture and nothing the simulation computes, such as a cascade tile or a ring count. It never enters a scenario or a state hash.
 _Avoid_: Quality setting, graphics option, config
 
+**Crest band**:
+A band of wavelengths under two octaves wide whose steepness and slope the renderer keeps as fields, from which it reads a wave group's steepness and where a point stands on its wave. Each tail cascade holds two, and the band counts as one.
+_Avoid_: Breaking band, octave band, foam layer
+
+**Roller**:
+The foam of a crest that is breaking now, from just behind the crest down its forward face, drawn where the crest's wave group is steeper than the onset steepness.
+_Avoid_: Active whitecap, stage A foam, crest foam
+
+**Onset steepness**:
+The wave group steepness from which a crest spills; one value for every sea and every crest band.
+_Avoid_: Breaking limit, foam threshold, magic number
+
 **Foam buffer**:
-The camera-centred texture of hull contact foam near the camera, carried by the water it was made on and fading at a cited rate. Breaking never fills it.
+The camera-centred texture of the foam that rollers and hull contact left near the camera, carried by the water it was left on, each texel fading at the rate of the breaker that made it.
 _Avoid_: Foam map, whitecap texture, turbulence buffer
 
 **Breaking threshold**:
-The value of the breaking Jacobian below which a point is a whitecap, solved at sea-state build so the mean whitecap coverage matches a cited coverage law; a sea below the law's onset wind has none.
+The value of the surface Jacobian below which a point counted as a whitecap before rollers replaced the Jacobian foam. The sea description still carries it, and nothing draws from it.
 _Avoid_: Foam threshold, epsilon, magic number
 
 **Breaking cutoff**:
-The shortest wavelength that breaks with air entrainment; only waves at least this long count towards the breaking Jacobian.
+The wavelengths across which breakers stop entraining air: a breaker shorter than the first leaves no foam, one longer than the second a full whitecap's.
 _Avoid_: Foam cutoff, whitecap filter
 
 **Whitecap coverage**:
-The fraction of a pixel's footprint that is whitecap, filtered from the breaking Jacobian's statistics at every distance rather than tracked.
+The fraction of a pixel's footprint that is whitecap: rollers and buffer foam where the pixel resolves them, and the expected cover of the crest bands it cannot resolve.
 _Avoid_: Far-field coverage, whitecap fraction, foam percentage

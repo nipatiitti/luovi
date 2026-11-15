@@ -168,6 +168,10 @@ const openTool = async (browser: Browser, url: string): Promise<{ page: Page; er
   const page = await browser.newPage({ viewport: VIEWPORT })
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
+  // A shader that fails to compile or a pipeline WebGPU refuses only reaches the console, and leaves the view black.
+  page.on('console', (entry) => {
+    if (entry.type() === 'error' || entry.type() === 'warning') console.error(`page ${entry.type()}: ${entry.text()}`)
+  })
   await page.goto(`${url}?shots`)
   // The panel would cover part of every view.
   await page.addStyleTag({ content: 'aside { display: none !important; }' })
