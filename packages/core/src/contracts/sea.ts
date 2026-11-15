@@ -8,7 +8,7 @@ import type { EffectiveSeaBlock } from './scenario.ts'
  *
  *   F(k, theta) = S(omega) Phi(omega, d) D(omega, theta) (d omega / d k) / k
  *
- * is the directional variance density per unit d^2k, where S is the JONSWAP frequency spectrum, Phi the TMA depth factor
+ * is the directional variance density per unit d^2k, where S is the JONSWAP frequency spectrum with the measured equilibrium range above its peak, Phi the TMA depth factor
  * and D the Donelan-Banner spreading normalised exactly on [-pi, pi], so m0 = integral of F d^2k.
  *
  * Band component i has the fixed amplitude A_i = sqrt(2 m0_band / N), with m0_band the integral of F below k_s, travels

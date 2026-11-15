@@ -1,6 +1,7 @@
 export { standardAir, type AirTable } from './shared/air.ts'
 export { coxMunk } from './shared/coxMunk.ts'
 export { donelanBanner, type DonelanBannerTable } from './shared/donelanBanner.ts'
+export { equilibriumRange, type EquilibriumRangeTable } from './shared/equilibriumRange.ts'
 export { standardGravity } from './shared/gravity.ts'
 export { jonswap, piersonMoskowitz, type JonswapTable, type PiersonMoskowitzTable } from './shared/jonswap.ts'
 export { openSeaRoughnessLength } from './shared/roughnessLength.ts'

@@ -1,4 +1,4 @@
-// Cross-engine determinism of the environment query (ADR 0002): the moderate reference sea's water query over a grid,
+// Cross-engine determinism of the environment query (ADR 0002): the gulf reference sea's water query over a grid,
 // tick by tick, digested with core's state hash. There is no committed expected value; the gate passes when Node and
 // every browser engine that ran it produced the same hash, so it proves agreement, not correctness.
 
@@ -38,7 +38,7 @@ export const benchmark: Benchmark = {
   step: 1,
   tier: 'quick',
   engines: true,
-  scenario: REFERENCE_SEAS.moderate,
+  scenario: REFERENCE_SEAS.gulf,
   gates: [{ id: 'hash', unit: 'u32', kind: 'exact' }],
   // eslint-disable-next-line @typescript-eslint/require-await -- measure is async for modules that read files; this one only computes
   measure: async (harness) => measure(harness),

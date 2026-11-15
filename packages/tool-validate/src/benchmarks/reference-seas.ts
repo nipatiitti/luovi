@@ -1,14 +1,16 @@
-// What the ocean benchmarks share: the three reference seas, the loop that measures each in turn, and the query grid
+// What the ocean benchmarks share: the four reference seas, the loop that measures each in turn, and the query grid
 // the spec samples them on.
 
 import type { Measurement } from '../harness/types.ts'
-import light from './reference-seas/light.json' with { type: 'json' }
-import moderate from './reference-seas/moderate.json' with { type: 'json' }
+import archipelago from './reference-seas/archipelago.json' with { type: 'json' }
+import gulf from './reference-seas/gulf.json' with { type: 'json' }
+import sailingDay from './reference-seas/sailing-day.json' with { type: 'json' }
 import storm from './reference-seas/storm.json' with { type: 'json' }
 
-const NAMES = ['light', 'moderate', 'storm'] as const
-export type ReferenceSea = (typeof NAMES)[number]
-export const REFERENCE_SEAS: Readonly<Record<ReferenceSea, unknown>> = { light, moderate, storm }
+// Four measured Baltic cases (ADR 0005, 2026-11-15 amendment), shortest waves first.
+export const REFERENCE_SEA_NAMES = ['archipelago', 'sailingDay', 'gulf', 'storm'] as const
+export type ReferenceSea = (typeof REFERENCE_SEA_NAMES)[number]
+export const REFERENCE_SEAS: Readonly<Record<ReferenceSea, unknown>> = { archipelago, sailingDay, gulf, storm }
 
 /** Measures every reference sea in turn into one measurement, each sea's ids already prefixed with its name. */
 export const measureEachSea = (
@@ -16,7 +18,7 @@ export const measureEachSea = (
   measureSea: (name: ReferenceSea, scenario: unknown) => Measurement,
 ): Measurement => {
   const measurement: Measurement = { values: {}, logs: { ...logs } }
-  for (const name of NAMES) {
+  for (const name of REFERENCE_SEA_NAMES) {
     const sea = measureSea(name, REFERENCE_SEAS[name])
     Object.assign(measurement.values, sea.values)
     Object.assign(measurement.logs, sea.logs)
