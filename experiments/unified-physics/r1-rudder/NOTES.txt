@@ -1,0 +1,39 @@
+r1-rudder: the sailing-test model with the rudder changes (stall and flat-plate behaviour from tank foils, free-trailing tiller).
+Result: docs/research/unified-experiments/r1-rudder.md
+
+Prerequisites: Node 22, ffmpeg, Playwright with Chromium (installed once in experiments/unified-physics, see README.md).
+Every script reads and writes out/ beside itself (git-ignored) and can be run from any folder. Nothing is downloaded.
+
+Files
+  model.js          the model. C.R1 = true is the changed rudder; C.R1 = false gives the sailing-test model back exactly.
+  gen_hulls.mjs     boat tables -> out/hulls.json. One change from sailing-test: only the blade's share of a section turns.
+  gen_sails.mjs     rigid sail table -> out/sails.json (350 KB, so it is generated, not kept).
+  data/hulls_orig.json  the sailing-test hull table, kept because its generator is not in this folder; used with R1=0 for every "before" number.
+  boats_def.mjs section.mjs lib.mjs scen_lib.mjs   boat data, section builder, loaders, scenario recorder.
+  page.html build_page.mjs test_page.mjs   the steerable page (out/sailing-test.html) and its headless test.
+Prefix any test with R1=0 for the sailing-test model.
+
+Regenerate, from this folder (about 30 s, then about a minute per GIF):
+  mkdir -p out
+  node gen_hulls.mjs                 # 20 s; out/hulls.json
+  node gen_sails.mjs                 # 5 s; out/sails.json
+
+The numbers in the result:
+  node scen_rudder.mjs               # hard over 30/45/60 deg at 5 kn and 1 kn, after -> out/numbers-rudder.json
+  R1=0 node scen_rudder.mjs          # the same, before -> out/numbers-rudder-before.json
+  node t_tow.mjs                     # boat held straight, rudder swept; held at leeway: keel wash on the rudder
+  node t_iso.mjs; node t_wf.mjs      # rudder alone; rectangular fins against Whicker and Fehlner and the plate law
+  node t_track.mjs                   # shove, hands off under sail, time through 90 degrees, tack
+  node t_more.mjs                    # hinge moment, peak load against tiller rate, low-speed turn until stopped, equal yaw push
+  node t_spike.mjs; node t_peak.mjs  # roughness of the rudder load; peak load (0.25 s mean) against tiller rate
+  WASH=0.65 node t_wash.mjs          # the wash factor that was tested and not adopted (it needs WASH set)
+  node t_hist.mjs [boat] [angle] [kn] [tiller rate]; node t_sub.mjs; node t_inert.mjs   # small checks used along the way
+  node scen_all.mjs                  # the sailing-test test list -> out/numbers.json (a few minutes)
+
+The GIFs:
+  node scen_r1.mjs                   # out/r1-hard-over-5kn.json, r1-hard-over-1kn.json, r1-tiller-let-go.json
+  node render.mjs r1-hard-over-5kn
+  node render.mjs r1-hard-over-1kn
+  node render.mjs r1-tiller-let-go
+  node scen_curve.mjs                # out/r1-force-curve.json
+  node render_curve.mjs              # out/r1-force-curve.gif

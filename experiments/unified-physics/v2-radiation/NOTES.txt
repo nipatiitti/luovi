@@ -1,0 +1,31 @@
+v2-radiation: v1-seaway's model plus per-section wave-making (radiation) memory.
+Result: docs/research/unified-experiments/v2-radiation.md
+
+Prerequisites: Node 22, Python 3 with Pillow, ffmpeg, the DejaVu fonts. Every script reads and writes out/ beside itself
+(git-ignored) and can be run from any folder. Nothing is downloaded.
+
+Files
+  model.js          C.MEMORY (true), C.MEM_BLOCKS (2), C.RADIATION / C.RADIATION_KK (references only), C.RIGQ (+1; -1 = v1's sign)
+  patch.py, patch2.py   the edits from v3's model.js to v1's and from v1's (with the diagnostic switches RIGQ, XDYN,
+                    PITCHDRIVE, XSFREEZE, EBUDGET, AFREEZE) to this one; documentation, they edit ./model.js in place
+  data/v3/hulls.json, data/v3/sails.json   the same tables as v1-seaway/data/v3, kept for the same reason (no generator
+                    in the repo), so this folder stands alone. SET=<folder> reads another folder beside this file.
+  data/class/ class_hboat.mjs   as in v1-seaway; rebuilds out/hboat_sea.json, which equals hboat.sea in data/v3/hulls.json
+  render.py         v1's renderer (needs v1's law/rad runs); render2.py draws this experiment's two GIFs
+
+Regenerate, from this folder:
+  mkdir -p out
+  node chk_fit.mjs                   # fit error per draft/breadth ratio
+  node chk_kk.mjs                    # fitted damping and added-mass shift against the formula
+  node chk_decay2.mjs                # free decay, memory / frozen / law, both steps, 6 s
+  node chk_flat2.mjs '[{"MEMORY":true,"RIGQ":1}]'   # flat water under sail, 120 s: pitch dies within the first 20 s
+  node chk_src.mjs; node chk_src2.mjs; node chk_energy.mjs   # the hunt for the energy source; set C.MEMORY false in the script for the law
+  node chk_rao.mjs                   # regular head waves -> out/rao.json (6 minutes)
+  node chk_rao2.mjs                  # memory and frozen stand-in -> out/rao2.json
+  node chk_rao3.mjs                  # adds the second reference to out/rao2.json
+  node scen_sea.mjs mem 240          # the reference sea, close-hauled and reach -> out/sea-mem.json, frames; 25 s
+  node scen_sea.mjs mem120 120
+  node chk_cost.mjs                  # cost per step
+The GIFs:
+  python3 render2.py side            # out/side-closehauled-memory.gif (after scen_sea.mjs mem 240)
+  python3 render2.py curves          # out/response-curves-memory.gif (after chk_rao.mjs, chk_rao2.mjs, chk_rao3.mjs)

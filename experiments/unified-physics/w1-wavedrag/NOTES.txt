@@ -1,0 +1,25 @@
+w1-wavedrag: the thin-ship (Michell) wave drag sum and three repairs on the Delft hulls, the Wigley hull and Series 60.
+Result: docs/research/unified-experiments/w1-wavedrag.md
+
+Prerequisites: Python 3 with numpy, Pillow and openpyxl; ffmpeg. Every script writes into out/ beside itself (paths.py,
+git-ignored) and reads the downloaded data from dl/ beside itself (git-ignored); they run from any folder.
+
+Data to download into dl/
+  dl/geo/IGS/SYSSERnn_surface.igs            Delft CAD surfaces, https://doi.org/10.4121/21501330
+  dl/hs_a.xlsx                               DSYHS_hydrostatics_modelscale.xlsx, saved under this name, https://doi.org/10.4121/21501375
+  dl/DSYHS_all_measurements_modelscale.xlsx  tank data, https://doi.org/10.4121/21501402
+(The same dl/ layout as w2-slicewaves; a copy of that folder works.)
+
+Files
+  repairs.py        the repairs; common.py the loaders (hull stacks are cached in out/stack_*.pkl); s60.py the ship form
+  wave.py hulls.py delftdata.py geom.py iges.py methods.py viz.py   unchanged copies from h3b-waves-fix
+  Note: wave.wave_field returns the wave height with the sign inverted (see the result); repairs.profile and gifs.py flip it.
+
+Regenerate, from this folder:
+  python3 run_base.py    # plain thin-ship sum on every usable Delft hull -> out/base.json (also picks the hull list)
+  python3 t_wigley.py    # Wigley hull: plain sum and repairs
+  python3 t_sign.py      # both signs of the waterline term of the h3b Noblesse sum
+  python3 s60.py         # Series 60 CB 0.60: offsets, geometry check, plain sum and repairs against the tank table -> out/s60.json
+  python3 run_all.py     # plain sum and repairs R1, R1b, R2 (six hulls), R3, R3b on 36 Delft hulls and Wigley -> out/all.json
+  python3 curves.py      # fine speed curves for the GIFs -> out/curves.json
+  python3 gifs.py A B C  # out/w1_plain_sum_three_hulls.gif, w1_repairs_before_after.gif, w1_all_hulls_heavy_to_light.gif

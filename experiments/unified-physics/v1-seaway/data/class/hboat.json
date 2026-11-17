@@ -1,0 +1,6276 @@
+{
+ "schema": "hboat-model/1",
+ "name": "H-boat (H-vene, H-Boot)",
+ "designer": "Hans Groop, 1967; class plans of Finlands Seglarförbund / Suomen Purjehtijaliitto (revisions to 1977)",
+ "frame": {
+  "units": "SI (m, kg, s, rad in APIs; degrees only where a field name says Deg)",
+  "bodyFrame": "origin at station 5 on KVL (the construction waterline, CWL); +x forward, +y up, +z starboard; right-handed, y-up like glTF",
+  "stations": "station s at x = (s − 5) × 0.630 m; station 0 = aft end of KVL, 10 = fore end (LWL 6.300)",
+  "drawingDatum": "offsets are printed in mm: half-breadths from the centreline, heights from KVL",
+  "signs": "heel + = starboard down; trim + = bow down; rudder + = trailing edge to port; boomAngle/jibAngle + = to starboard"
+ },
+ "provenanceFlags": {
+  "p": "printed on a drawing or in the class rules",
+  "m": "measured on a calibrated scan (uncertainty given)",
+  "t": "tuning guide / class practice",
+  "e": "estimate (reason given)",
+  "d": "derived (formula given)"
+ },
+ "hull": {
+  "offsets": {
+   "source": {
+    "plan": "A.1.2",
+    "title": "Sectional drawing (Kaariruutu / Spantruta), table of offsets",
+    "date": "1974-08-12",
+    "scale": "1:5",
+    "url": "https://h-boat.org/files/data/documents-rules/drawings/A-1-2-Sectional-drawing.pdf",
+    "sha256": "15d664c2534dc91e941a0d2c64592a01e1bce648c050bb31d35f2efdddcdba05"
+   },
+   "stationSpacingMm": 630,
+   "waterlinesMm": {
+    "VL1": 600,
+    "VL2": 450,
+    "VL3": 300,
+    "VL4": 150,
+    "KVL": 0,
+    "VL5": -150,
+    "VL6": -300,
+    "VL7": -450,
+    "VL7_25": -487.5,
+    "VL7_5": -525
+   },
+   "keelWaterlinesMm": {
+    "VL8": -600,
+    "VL9": -750
+   },
+   "buttocksMm": {
+    "Vhalf": 150,
+    "V1": 300,
+    "V1half": 450
+   },
+   "diagonalsMm": {
+    "D1": {
+     "from": [
+      0,
+      150
+     ],
+     "to": [
+      450,
+      -450
+     ]
+    },
+    "D2": {
+     "from": [
+      0,
+      300
+     ],
+     "to": [
+      900,
+      -450
+     ]
+    },
+    "D3": {
+     "from": [
+      0,
+      450
+     ],
+     "to": [
+      1090,
+      -150
+     ]
+    },
+    "D4": {
+     "from": [
+      0,
+      600
+     ],
+     "to": [
+      1090,
+      150
+     ]
+    }
+   },
+   "columns": [
+    "station",
+    "deckHalfBreadth",
+    [
+     "VL1",
+     "VL2",
+     "VL3",
+     "VL4",
+     "KVL",
+     "VL5",
+     "VL6",
+     "VL7",
+     "VL7_25",
+     "VL7_5"
+    ],
+    [
+     "D1",
+     "D2",
+     "D3",
+     "D4"
+    ],
+    [
+     "Vhalf",
+     "V1",
+     "V1half"
+    ],
+    "sheerHeight",
+    "clDeckHeight",
+    "keelLine[upper, lower?]",
+    "bracketed?"
+   ],
+   "rows": [
+    [
+     -1.5,
+     427,
+     [
+      427,
+      395,
+      201,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      null,
+      43,
+      280,
+      421
+     ],
+     [
+      288,
+      342,
+      null
+     ],
+     633,
+     null,
+     [
+      270
+     ]
+    ],
+    [
+     -1,
+     525,
+     [
+      525,
+      505,
+      404,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      null,
+      166,
+      394,
+      524
+     ],
+     [
+      196,
+      239,
+      346
+     ],
+     625,
+     640,
+     [
+      174
+     ]
+    ],
+    [
+     -0.5,
+     618,
+     [
+      618,
+      600,
+      530,
+      294,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      73,
+      272,
+      492,
+      618
+     ],
+     [
+      112,
+      152,
+      226
+     ],
+     618,
+     640,
+     [
+      84
+     ]
+    ],
+    [
+     0,
+     704,
+     [
+      704,
+      689,
+      635,
+      477,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      162,
+      363,
+      580,
+      705
+     ],
+     [
+      33,
+      74,
+      135
+     ],
+     612,
+     639,
+     [
+      0
+     ]
+    ],
+    [
+     0.5,
+     782,
+     [
+      782,
+      768,
+      724,
+      605,
+      300,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      242,
+      447,
+      662,
+      784
+     ],
+     [
+      -42,
+      0,
+      56
+     ],
+     606,
+     639,
+     [
+      -78,
+      -105
+     ],
+     {
+      "VL5": 33
+     }
+    ],
+    [
+     1,
+     851,
+     [
+      851,
+      841,
+      801,
+      703,
+      479,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      313,
+      520,
+      734,
+      855
+     ],
+     [
+      -111,
+      -67,
+      -12
+     ],
+     602,
+     639,
+     [
+      -150,
+      -244
+     ],
+     {
+      "VL5": 62
+     }
+    ],
+    [
+     1.5,
+     913,
+     [
+      913,
+      903,
+      869,
+      785,
+      607,
+      226,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      376,
+      585,
+      799,
+      919
+     ],
+     [
+      -172,
+      -127,
+      -74
+     ],
+     600,
+     null,
+     [
+      -213,
+      -279
+     ]
+    ],
+    [
+     2,
+     967,
+     [
+      967,
+      959,
+      929,
+      854,
+      696,
+      387,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      430,
+      640,
+      854,
+      974
+     ],
+     [
+      -226,
+      -180,
+      -126
+     ],
+     599,
+     645,
+     [
+      -270,
+      -322
+     ],
+     {
+      "VL6": 16
+     }
+    ],
+    [
+     2.5,
+     1012,
+     [
+      1012,
+      1005,
+      978,
+      912,
+      772,
+      503,
+      71,
+      null,
+      null,
+      null
+     ],
+     [
+      477,
+      686,
+      903,
+      1023
+     ],
+     [
+      -275,
+      -226,
+      -171
+     ],
+     600,
+     null,
+     [
+      -323,
+      -365
+     ],
+     {
+      "VL6": 74
+     }
+    ],
+    [
+     3,
+     1046,
+     [
+      1046,
+      1042,
+      1018,
+      960,
+      834,
+      587,
+      197,
+      null,
+      null,
+      null
+     ],
+     [
+      515,
+      723,
+      944,
+      1062
+     ],
+     [
+      -317,
+      -265,
+      -207
+     ],
+     601,
+     652,
+     [
+      -367,
+      -407
+     ]
+    ],
+    [
+     3.5,
+     1072,
+     [
+      1072,
+      1070,
+      1050,
+      995,
+      879,
+      646,
+      288,
+      4,
+      null,
+      null
+     ],
+     [
+      544,
+      752,
+      977,
+      1093
+     ],
+     [
+      -351,
+      -296,
+      -236
+     ],
+     603,
+     null,
+     [
+      -404,
+      -450
+     ]
+    ],
+    [
+     4,
+     1088,
+     [
+      1089,
+      1089,
+      1071,
+      1020,
+      910,
+      686,
+      344,
+      34,
+      21,
+      17
+     ],
+     [
+      566,
+      772,
+      998,
+      1115
+     ],
+     [
+      -376,
+      -318,
+      -256
+     ],
+     607,
+     660,
+     [
+      -433
+     ]
+    ],
+    [
+     4.5,
+     1092,
+     [
+      1093,
+      1092,
+      1078,
+      1029,
+      922,
+      706,
+      374,
+      66,
+      54,
+      51
+     ],
+     [
+      577,
+      783,
+      1008,
+      1123
+     ],
+     [
+      -392,
+      -331,
+      -268
+     ],
+     612,
+     null,
+     [
+      -453
+     ]
+    ],
+    [
+     5,
+     1085,
+     [
+      1086,
+      1087,
+      1069,
+      1018,
+      912,
+      704,
+      380,
+      85,
+      75,
+      71
+     ],
+     [
+      581,
+      782,
+      1002,
+      1114
+     ],
+     [
+      -400,
+      -335,
+      -269
+     ],
+     618,
+     672,
+     [
+      -464
+     ]
+    ],
+    [
+     5.5,
+     1064,
+     [
+      1064,
+      1058,
+      1036,
+      982,
+      874,
+      674,
+      368,
+      92,
+      80,
+      76
+     ],
+     [
+      576,
+      771,
+      975,
+      1081
+     ],
+     [
+      -400,
+      -332,
+      -262
+     ],
+     626,
+     null,
+     [
+      -468
+     ]
+    ],
+    [
+     6,
+     1032,
+     [
+      1030,
+      1015,
+      985,
+      925,
+      817,
+      623,
+      338,
+      79,
+      65,
+      58
+     ],
+     [
+      563,
+      747,
+      932,
+      1030
+     ],
+     [
+      -391,
+      -319,
+      -244
+     ],
+     635,
+     689,
+     [
+      -463
+     ]
+    ],
+    [
+     6.5,
+     993,
+     [
+      989,
+      965,
+      924,
+      857,
+      745,
+      558,
+      297,
+      44,
+      28,
+      14
+     ],
+     [
+      543,
+      713,
+      879,
+      970
+     ],
+     [
+      -377,
+      -299,
+      -216
+     ],
+     644,
+     null,
+     [
+      -452,
+      -546
+     ]
+    ],
+    [
+     7,
+     944,
+     [
+      934,
+      901,
+      851,
+      777,
+      660,
+      484,
+      242,
+      null,
+      null,
+      null
+     ],
+     [
+      515,
+      669,
+      813,
+      901
+     ],
+     [
+      -352,
+      -267,
+      -174
+     ],
+     655,
+     710,
+     [
+      -433,
+      -446
+     ]
+    ],
+    [
+     7.5,
+     884,
+     [
+      869,
+      827,
+      769,
+      686,
+      566,
+      397,
+      176,
+      null,
+      null,
+      null
+     ],
+     [
+      476,
+      612,
+      738,
+      825
+     ],
+     [
+      -317,
+      -220,
+      -108
+     ],
+     667,
+     null,
+     [
+      -404
+     ]
+    ],
+    [
+     8,
+     818,
+     [
+      796,
+      745,
+      678,
+      588,
+      466,
+      304,
+      96,
+      null,
+      null,
+      null
+     ],
+     [
+      424,
+      545,
+      668,
+      743
+     ],
+     [
+      -264,
+      -154,
+      -17
+     ],
+     680,
+     734,
+     [
+      -360
+     ]
+    ],
+    [
+     8.5,
+     736,
+     [
+      708,
+      650,
+      577,
+      481,
+      358,
+      201,
+      5,
+      null,
+      null,
+      null
+     ],
+     [
+      359,
+      468,
+      570,
+      653
+     ],
+     [
+      -192,
+      -60,
+      108
+     ],
+     695,
+     null,
+     [
+      -304
+     ]
+    ],
+    [
+     9,
+     651,
+     [
+      612,
+      549,
+      469,
+      370,
+      246,
+      93,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      285,
+      384,
+      478,
+      560
+     ],
+     [
+      -98,
+      60,
+      268
+     ],
+     712,
+     758,
+     [
+      -227
+     ]
+    ],
+    [
+     9.5,
+     555,
+     [
+      505,
+      437,
+      353,
+      250,
+      127,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      199,
+      291,
+      380,
+      459
+     ],
+     [
+      25,
+      218,
+      476
+     ],
+     729,
+     null,
+     [
+      -126
+     ]
+    ],
+    [
+     10,
+     449,
+     [
+      388,
+      316,
+      231,
+      127,
+      5,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      103,
+      192,
+      275,
+      351
+     ],
+     [
+      180,
+      420,
+      748
+     ],
+     748,
+     783,
+     [
+      0
+     ]
+    ],
+    [
+     10.5,
+     330,
+     [
+      259,
+      187,
+      100,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      null,
+      85,
+      163,
+      236
+     ],
+     [
+      383,
+      693,
+      null
+     ],
+     768,
+     795,
+     [
+      156
+     ]
+    ],
+    [
+     11,
+     198,
+     [
+      122,
+      50,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     [
+      null,
+      null,
+      46,
+      111
+     ],
+     [
+      668,
+      null,
+      null
+     ],
+     789,
+     null,
+     [
+      366
+     ]
+    ]
+   ],
+   "note": "every cell printed (p); null = blank; bracketed cells are skeg/fillet half-breadths below the faired canoe body"
+  },
+  "stem": {
+   "profile": [
+    [
+     3.15,
+     0,
+     0
+    ],
+    [
+     3.465,
+     0.167,
+     0
+    ],
+    [
+     3.665,
+     0.304,
+     0
+    ],
+    [
+     3.78,
+     0.366,
+     0
+    ],
+    [
+     3.854,
+     0.457,
+     0
+    ],
+    [
+     4,
+     0.609,
+     0
+    ],
+    [
+     4.16,
+     0.83,
+     0
+    ]
+   ],
+   "stemHead": [
+    4.16,
+    0.83,
+    0
+   ],
+   "forestayDeckPoint": [
+    3.47,
+    0.79,
+    0
+   ],
+   "lengthOverallFromModel": 8.251,
+   "brassStemBand": {
+    "section": [
+     0.01,
+     0.003
+    ],
+    "optional": true
+   },
+   "_src": {
+    "profile": "m A11 profile (mirrored scan, anisotropy ±3%); points at x fwd of st10: 315/630 match printed KeelLine (+156,+366 at st 10.5/11) (p)",
+    "stemHead": "p A11 dims: 1010 fwd of station 10, 830 above CWL",
+    "forestayDeckPoint": "p CR 3.5.2.14 / A51: 1580±5 fwd of station 8; height m A21",
+    "lengthOverallFromModel": "d stem head minus transom bottom = 8.251 m; class LOA 8285±20 (CR/A51), ORC LOA 8.28–8.31 → model ~30 mm short; likely rubbing strake/stem band or transom rim not in lines — open",
+    "brassStemBand": "p A21 \"Stem profile of brass 10x3, not compulsory\""
+   }
+  },
+  "transom": {
+   "bottomCL": [
+    -4.091,
+    0.281,
+    0
+   ],
+   "topCL": [
+    -3.925,
+    0.652,
+    0
+   ],
+   "rakeFromVerticalDeg": 25,
+   "rakeSense": "retroussé: top forward of bottom",
+   "topHalfBreadth": 0.49,
+   "bottomHalfBreadth": 0,
+   "crownRadius": 3,
+   "topDistanceAftOfStation_m1": 0.145,
+   "notes": "Offsets at stations -1.5..-0.5 run past the transom (lines extended); the hull is cut by the transom plane through bottomCL with the given rake.",
+   "_src": {
+    "bottomCL": "m A21 profile (x ±25 mm, y ±20); table KeelLine at st -1.5 = +270 (p) agrees",
+    "topCL": "m A21 profile + A11 (rotated/mirrored) dim \"145\" from st -1 to transom top at deck (printed value, read mirrored); deck height ~CL deck 0.640-0.652",
+    "rakeFromVerticalDeg": "p A11 \"25\" at the transom (interpreted as rake angle; measured on A21 = 25.0°)",
+    "crownRadius": "p A11 label \"3000R\" (or 2000R; scan unclear) at transom — interpreted as transom athwartships crown radius; open",
+    "topHalfBreadth": "m A21 plan (transom width 988 mm at top) and d table interpolation at st -1.23 (≈480)"
+   }
+  },
+  "deck": {
+   "sheerAndCamber": [
+    {
+     "station": -1.5,
+     "x": -4.095,
+     "halfBreadth": 0.427,
+     "y": 0.633,
+     "clDeckY": 0.64,
+     "clFlag": "e",
+     "camber": 0.007
+    },
+    {
+     "station": -1,
+     "x": -3.78,
+     "halfBreadth": 0.525,
+     "y": 0.625,
+     "clDeckY": 0.64,
+     "clFlag": "p",
+     "camber": 0.015
+    },
+    {
+     "station": -0.5,
+     "x": -3.465,
+     "halfBreadth": 0.618,
+     "y": 0.618,
+     "clDeckY": 0.64,
+     "clFlag": "p",
+     "camber": 0.022
+    },
+    {
+     "station": 0,
+     "x": -3.15,
+     "halfBreadth": 0.704,
+     "y": 0.612,
+     "clDeckY": 0.639,
+     "clFlag": "p",
+     "camber": 0.027
+    },
+    {
+     "station": 0.5,
+     "x": -2.835,
+     "halfBreadth": 0.782,
+     "y": 0.606,
+     "clDeckY": 0.639,
+     "clFlag": "p",
+     "camber": 0.033
+    },
+    {
+     "station": 1,
+     "x": -2.52,
+     "halfBreadth": 0.851,
+     "y": 0.602,
+     "clDeckY": 0.639,
+     "clFlag": "p",
+     "camber": 0.037
+    },
+    {
+     "station": 1.5,
+     "x": -2.205,
+     "halfBreadth": 0.913,
+     "y": 0.6,
+     "clDeckY": 0.642,
+     "clFlag": "d",
+     "camber": 0.042
+    },
+    {
+     "station": 2,
+     "x": -1.89,
+     "halfBreadth": 0.967,
+     "y": 0.599,
+     "clDeckY": 0.645,
+     "clFlag": "p",
+     "camber": 0.046
+    },
+    {
+     "station": 2.5,
+     "x": -1.575,
+     "halfBreadth": 1.012,
+     "y": 0.6,
+     "clDeckY": 0.6485,
+     "clFlag": "d",
+     "camber": 0.0485
+    },
+    {
+     "station": 3,
+     "x": -1.26,
+     "halfBreadth": 1.046,
+     "y": 0.601,
+     "clDeckY": 0.652,
+     "clFlag": "p",
+     "camber": 0.051
+    },
+    {
+     "station": 3.5,
+     "x": -0.945,
+     "halfBreadth": 1.072,
+     "y": 0.603,
+     "clDeckY": 0.656,
+     "clFlag": "d",
+     "camber": 0.053
+    },
+    {
+     "station": 4,
+     "x": -0.63,
+     "halfBreadth": 1.088,
+     "y": 0.607,
+     "clDeckY": 0.66,
+     "clFlag": "p",
+     "camber": 0.053
+    },
+    {
+     "station": 4.5,
+     "x": -0.315,
+     "halfBreadth": 1.092,
+     "y": 0.612,
+     "clDeckY": 0.666,
+     "clFlag": "d",
+     "camber": 0.054
+    },
+    {
+     "station": 5,
+     "x": 0,
+     "halfBreadth": 1.085,
+     "y": 0.618,
+     "clDeckY": 0.672,
+     "clFlag": "p",
+     "camber": 0.054
+    },
+    {
+     "station": 5.5,
+     "x": 0.315,
+     "halfBreadth": 1.064,
+     "y": 0.626,
+     "clDeckY": 0.6805,
+     "clFlag": "d",
+     "camber": 0.0545
+    },
+    {
+     "station": 6,
+     "x": 0.63,
+     "halfBreadth": 1.032,
+     "y": 0.635,
+     "clDeckY": 0.689,
+     "clFlag": "p",
+     "camber": 0.054
+    },
+    {
+     "station": 6.5,
+     "x": 0.945,
+     "halfBreadth": 0.993,
+     "y": 0.644,
+     "clDeckY": 0.6995,
+     "clFlag": "d",
+     "camber": 0.0555
+    },
+    {
+     "station": 7,
+     "x": 1.26,
+     "halfBreadth": 0.944,
+     "y": 0.655,
+     "clDeckY": 0.71,
+     "clFlag": "p",
+     "camber": 0.055
+    },
+    {
+     "station": 7.5,
+     "x": 1.575,
+     "halfBreadth": 0.884,
+     "y": 0.667,
+     "clDeckY": 0.722,
+     "clFlag": "d",
+     "camber": 0.055
+    },
+    {
+     "station": 8,
+     "x": 1.89,
+     "halfBreadth": 0.818,
+     "y": 0.68,
+     "clDeckY": 0.734,
+     "clFlag": "p",
+     "camber": 0.054
+    },
+    {
+     "station": 8.5,
+     "x": 2.205,
+     "halfBreadth": 0.736,
+     "y": 0.695,
+     "clDeckY": 0.746,
+     "clFlag": "d",
+     "camber": 0.051
+    },
+    {
+     "station": 9,
+     "x": 2.52,
+     "halfBreadth": 0.651,
+     "y": 0.712,
+     "clDeckY": 0.758,
+     "clFlag": "p",
+     "camber": 0.046
+    },
+    {
+     "station": 9.5,
+     "x": 2.835,
+     "halfBreadth": 0.555,
+     "y": 0.729,
+     "clDeckY": 0.7705,
+     "clFlag": "d",
+     "camber": 0.0415
+    },
+    {
+     "station": 10,
+     "x": 3.15,
+     "halfBreadth": 0.449,
+     "y": 0.748,
+     "clDeckY": 0.783,
+     "clFlag": "p",
+     "camber": 0.035
+    },
+    {
+     "station": 10.5,
+     "x": 3.465,
+     "halfBreadth": 0.33,
+     "y": 0.768,
+     "clDeckY": 0.795,
+     "clFlag": "p",
+     "camber": 0.027
+    },
+    {
+     "station": 11,
+     "x": 3.78,
+     "halfBreadth": 0.198,
+     "y": 0.789,
+     "clDeckY": 0.805,
+     "clFlag": "e",
+     "camber": 0.016
+    }
+   ],
+   "camberShape": "parabolic",
+   "camberFormula": "y(z)=ySheer+camber*(1-(z/halfBreadth)^2) between sheer (deckline point) and centreline",
+   "clMeasurementStep": 0.01,
+   "toeRail": {
+    "profile": [
+     [
+      0,
+      -0.04
+     ],
+     [
+      0,
+      -0.012
+     ],
+     [
+      0.0035,
+      -0.0035
+     ],
+     [
+      0.012,
+      0
+     ],
+     [
+      0.016,
+      0
+     ],
+     [
+      0.019,
+      0.021
+     ],
+     [
+      0.034,
+      0.021
+     ],
+     [
+      0.041,
+      0.006
+     ]
+    ],
+    "profileAxes": "[inboard distance from deckline point, height above deckline point]; arc 12R between points 2 and 4",
+    "height": 0.021,
+    "topWidth": 0.015,
+    "innerFaceHeight": 0.015,
+    "ledge": 0.004,
+    "cornerRadius": 0.012,
+    "transomRimWidth": 0.04,
+    "scuppers": [
+     {
+      "x": -1.39
+     },
+     {
+      "x": -0.72
+     },
+     {
+      "x": -0.06
+     }
+    ],
+    "_src": {
+     "profile": "p A12 deck-edge detail: 15 top, 15 inner face, 20-22 height above deckline, 4 ledge, 12R; polyline assembled from those dims (d)",
+     "transomRimWidth": "p A12 detail at transom: 40",
+     "scuppers": "m A21 plan: gaps in toe rail per side (x ±40 mm). Rule/plan text \"4 scuppers compulsory\"; drawing shows 3 gaps on the visible side — count/location open"
+    }
+   },
+   "_src": {
+    "sheerAndCamber": "p A12 offsets (Deck half-breadth, DeckH sheer, CLDeckH centreline deck); clFlag d = linear interpolation between printed stations; -1.5 and 11 e (extrapolated)",
+    "camberShape": "e  table gives only sheer and CL heights; parabolic chosen (camber ratio varies 0.038–0.078 of half-breadth along the boat so neither constant-radius nor constant-ratio fits)",
+    "clMeasurementStep": "p A12 detail \"Measurement point for CL of deck from CWL\": CL deck height is taken at the lower face of a 10 mm step"
+   }
+  }
+ },
+ "appendages": {
+  "frame": "SI; body frame origin station 5 on CWL(KVL); +X fwd, +Y up, +Z stbd; station s at x=(s-5)*0.63",
+  "keel": {
+   "material": "cast iron (grey), galvanised and/or synthetic coating allowed",
+   "density": 7200,
+   "mass": 725,
+   "massTolerance": 10,
+   "boltCount": 7,
+   "boltDiameter": 0.016,
+   "rootY": -0.6,
+   "tipY": -1.3,
+   "draft": 1.3,
+   "leadingEdge": [
+    [
+     0.84,
+     -0.6
+    ],
+    [
+     0.734,
+     -0.685
+    ],
+    [
+     0.639,
+     -0.75
+    ],
+    [
+     0.24,
+     -1.2
+    ],
+    [
+     0.24,
+     -1.2
+    ],
+    [
+     0.2363,
+     -1.2195
+    ],
+    [
+     0.2255,
+     -1.2383
+    ],
+    [
+     0.208,
+     -1.2556
+    ],
+    [
+     0.1844,
+     -1.2707
+    ],
+    [
+     0.1556,
+     -1.2831
+    ],
+    [
+     0.1227,
+     -1.2924
+    ],
+    [
+     0.0871,
+     -1.2981
+    ],
+    [
+     0.05,
+     -1.3
+    ]
+   ],
+   "trailingEdge": [
+    [
+     -0.692,
+     -0.45
+    ],
+    [
+     -0.729,
+     -0.6
+    ],
+    [
+     -0.9,
+     -1.3
+    ]
+   ],
+   "trailingEdgeAboveRoot": "TE line continues straight above VL8 to (x,-0.450) = 62 mm aft of station 4 where the hull deadwood takes over; joined to the deadwood bottom with R204 fillet",
+   "rootSection": {
+    "y": -0.6,
+    "chord": 1.569,
+    "xLE": 0.84,
+    "x100pct": -0.729,
+    "halfThickness_pctChord_mm": {
+     "0": 0,
+     "5": 31.2,
+     "10": 45.6,
+     "20": 63.5,
+     "30": 72.3,
+     "40": 75,
+     "50": 73,
+     "60": 66.3,
+     "70": 57.5,
+     "80": 41.5,
+     "90": 23.2,
+     "100": 5,
+     "1.25": 13.9,
+     "2.5": 21,
+     "7.5": 39.1
+    },
+    "maxHalfThickness": 0.075,
+    "maxAtPct": 40,
+    "tOverC": 0.0956
+   },
+   "templateSection": {
+    "y": -1.2,
+    "chord": 1.1154,
+    "xLE": 0.24,
+    "xTE": -0.8754,
+    "halfThickness_pctChord_mm": {
+     "5": 37.4,
+     "10": 54.8,
+     "20": 76.3,
+     "30": 87,
+     "40": 90,
+     "50": 87.5,
+     "60": 80,
+     "70": 67.2,
+     "80": 49.7,
+     "90": 28,
+     "2.5": 25.2,
+     "7.5": 47
+    },
+    "maxHalfThickness": 0.09,
+    "maxAtPct": 40,
+    "note": "printed template half-widths = 1.20 x root values at every station (within 0.5 mm, 70% station 1.17)"
+   },
+   "thicknessLaw": "halfThickness(y,p) = halfThicknessRoot(p) * (1 + 0.2*(-0.600-y)/0.600); same % chord distribution at all heights; line of max thickness (40%) straight",
+   "leadingEdgeRadius": 0.004,
+   "leadingEdgeRadiusTol": 0.001,
+   "trailingEdgeWidthMin": 0.005,
+   "trailingEdgeWidthMax": 0.008,
+   "trailingEdgeCornerRadius": 0.002,
+   "bottom": {
+    "flatWidth": 0.02,
+    "chamferStartY": -1.25,
+    "halfWidthAtChamferStart": 0.092,
+    "fwdCorner": "flat bottom ends 0.680 fwd of station 4; quarter-ellipse (a=0.190 along x, b=0.100 up) to the LE at the template level"
+   },
+   "sections": [
+    {
+     "y": -0.6,
+     "xLE": 0.84,
+     "xTE": -0.729,
+     "chord": 1.569,
+     "thicknessScale": 1,
+     "halfThickness_xz": [
+      [
+       0.84,
+       0
+      ],
+      [
+       0.8204,
+       0.0139
+      ],
+      [
+       0.8008,
+       0.021
+      ],
+      [
+       0.7615,
+       0.0312
+      ],
+      [
+       0.7223,
+       0.0391
+      ],
+      [
+       0.6831,
+       0.0456
+      ],
+      [
+       0.5262,
+       0.0635
+      ],
+      [
+       0.3693,
+       0.0723
+      ],
+      [
+       0.2124,
+       0.075
+      ],
+      [
+       0.0555,
+       0.073
+      ],
+      [
+       -0.1014,
+       0.0663
+      ],
+      [
+       -0.2583,
+       0.0575
+      ],
+      [
+       -0.4152,
+       0.0415
+      ],
+      [
+       -0.5721,
+       0.0232
+      ],
+      [
+       -0.729,
+       0.005
+      ]
+     ]
+    },
+    {
+     "y": -0.675,
+     "xLE": 0.7465,
+     "xTE": -0.7473,
+     "chord": 1.4938,
+     "thicknessScale": 1.025,
+     "halfThickness_xz": [
+      [
+       0.7465,
+       0
+      ],
+      [
+       0.7278,
+       0.0142
+      ],
+      [
+       0.7091,
+       0.0215
+      ],
+      [
+       0.6718,
+       0.032
+      ],
+      [
+       0.6344,
+       0.0401
+      ],
+      [
+       0.5971,
+       0.0467
+      ],
+      [
+       0.4477,
+       0.0651
+      ],
+      [
+       0.2983,
+       0.0741
+      ],
+      [
+       0.149,
+       0.0769
+      ],
+      [
+       -0.0004,
+       0.0748
+      ],
+      [
+       -0.1498,
+       0.068
+      ],
+      [
+       -0.2992,
+       0.0589
+      ],
+      [
+       -0.4485,
+       0.0425
+      ],
+      [
+       -0.5979,
+       0.0238
+      ],
+      [
+       -0.7473,
+       0.0051
+      ]
+     ]
+    },
+    {
+     "y": -0.75,
+     "xLE": 0.639,
+     "xTE": -0.7656,
+     "chord": 1.4046,
+     "thicknessScale": 1.05,
+     "halfThickness_xz": [
+      [
+       0.639,
+       0
+      ],
+      [
+       0.6214,
+       0.0146
+      ],
+      [
+       0.6039,
+       0.0221
+      ],
+      [
+       0.5688,
+       0.0328
+      ],
+      [
+       0.5337,
+       0.0411
+      ],
+      [
+       0.4985,
+       0.0479
+      ],
+      [
+       0.3581,
+       0.0667
+      ],
+      [
+       0.2176,
+       0.0759
+      ],
+      [
+       0.0772,
+       0.0788
+      ],
+      [
+       -0.0633,
+       0.0766
+      ],
+      [
+       -0.2038,
+       0.0696
+      ],
+      [
+       -0.3442,
+       0.0604
+      ],
+      [
+       -0.4847,
+       0.0436
+      ],
+      [
+       -0.6251,
+       0.0244
+      ],
+      [
+       -0.7656,
+       0.0053
+      ]
+     ]
+    },
+    {
+     "y": -0.825,
+     "xLE": 0.5725,
+     "xTE": -0.7839,
+     "chord": 1.3564,
+     "thicknessScale": 1.075,
+     "halfThickness_xz": [
+      [
+       0.5725,
+       0
+      ],
+      [
+       0.5555,
+       0.0149
+      ],
+      [
+       0.5386,
+       0.0226
+      ],
+      [
+       0.5047,
+       0.0335
+      ],
+      [
+       0.4708,
+       0.042
+      ],
+      [
+       0.4369,
+       0.049
+      ],
+      [
+       0.3012,
+       0.0683
+      ],
+      [
+       0.1656,
+       0.0777
+      ],
+      [
+       0.0299,
+       0.0806
+      ],
+      [
+       -0.1057,
+       0.0785
+      ],
+      [
+       -0.2413,
+       0.0713
+      ],
+      [
+       -0.377,
+       0.0618
+      ],
+      [
+       -0.5126,
+       0.0446
+      ],
+      [
+       -0.6483,
+       0.0249
+      ],
+      [
+       -0.7839,
+       0.0054
+      ]
+     ]
+    },
+    {
+     "y": -0.9,
+     "xLE": 0.506,
+     "xTE": -0.8022,
+     "chord": 1.3082,
+     "thicknessScale": 1.1,
+     "halfThickness_xz": [
+      [
+       0.506,
+       0
+      ],
+      [
+       0.4896,
+       0.0153
+      ],
+      [
+       0.4733,
+       0.0231
+      ],
+      [
+       0.4406,
+       0.0343
+      ],
+      [
+       0.4079,
+       0.043
+      ],
+      [
+       0.3752,
+       0.0502
+      ],
+      [
+       0.2444,
+       0.0699
+      ],
+      [
+       0.1135,
+       0.0795
+      ],
+      [
+       -0.0173,
+       0.0825
+      ],
+      [
+       -0.1481,
+       0.0803
+      ],
+      [
+       -0.2789,
+       0.0729
+      ],
+      [
+       -0.4097,
+       0.0633
+      ],
+      [
+       -0.5406,
+       0.0457
+      ],
+      [
+       -0.6714,
+       0.0255
+      ],
+      [
+       -0.8022,
+       0.0055
+      ]
+     ]
+    },
+    {
+     "y": -0.975,
+     "xLE": 0.4395,
+     "xTE": -0.8205,
+     "chord": 1.26,
+     "thicknessScale": 1.125,
+     "halfThickness_xz": [
+      [
+       0.4395,
+       0
+      ],
+      [
+       0.4237,
+       0.0156
+      ],
+      [
+       0.408,
+       0.0236
+      ],
+      [
+       0.3765,
+       0.0351
+      ],
+      [
+       0.345,
+       0.044
+      ],
+      [
+       0.3135,
+       0.0513
+      ],
+      [
+       0.1875,
+       0.0714
+      ],
+      [
+       0.0615,
+       0.0813
+      ],
+      [
+       -0.0645,
+       0.0844
+      ],
+      [
+       -0.1905,
+       0.0821
+      ],
+      [
+       -0.3165,
+       0.0746
+      ],
+      [
+       -0.4425,
+       0.0647
+      ],
+      [
+       -0.5685,
+       0.0467
+      ],
+      [
+       -0.6945,
+       0.0261
+      ],
+      [
+       -0.8205,
+       0.0056
+      ]
+     ]
+    },
+    {
+     "y": -1.05,
+     "xLE": 0.373,
+     "xTE": -0.8388,
+     "chord": 1.2118,
+     "thicknessScale": 1.15,
+     "halfThickness_xz": [
+      [
+       0.373,
+       0
+      ],
+      [
+       0.3579,
+       0.016
+      ],
+      [
+       0.3427,
+       0.0242
+      ],
+      [
+       0.3124,
+       0.0359
+      ],
+      [
+       0.2821,
+       0.045
+      ],
+      [
+       0.2518,
+       0.0524
+      ],
+      [
+       0.1306,
+       0.073
+      ],
+      [
+       0.0095,
+       0.0831
+      ],
+      [
+       -0.1117,
+       0.0863
+      ],
+      [
+       -0.2329,
+       0.084
+      ],
+      [
+       -0.3541,
+       0.0762
+      ],
+      [
+       -0.4753,
+       0.0661
+      ],
+      [
+       -0.5964,
+       0.0477
+      ],
+      [
+       -0.7176,
+       0.0267
+      ],
+      [
+       -0.8388,
+       0.0058
+      ]
+     ]
+    },
+    {
+     "y": -1.125,
+     "xLE": 0.3065,
+     "xTE": -0.8571,
+     "chord": 1.1636,
+     "thicknessScale": 1.175,
+     "halfThickness_xz": [
+      [
+       0.3065,
+       0
+      ],
+      [
+       0.292,
+       0.0163
+      ],
+      [
+       0.2774,
+       0.0247
+      ],
+      [
+       0.2483,
+       0.0367
+      ],
+      [
+       0.2192,
+       0.0459
+      ],
+      [
+       0.1901,
+       0.0536
+      ],
+      [
+       0.0738,
+       0.0746
+      ],
+      [
+       -0.0426,
+       0.085
+      ],
+      [
+       -0.1589,
+       0.0881
+      ],
+      [
+       -0.2753,
+       0.0858
+      ],
+      [
+       -0.3917,
+       0.0779
+      ],
+      [
+       -0.508,
+       0.0676
+      ],
+      [
+       -0.6244,
+       0.0488
+      ],
+      [
+       -0.7407,
+       0.0273
+      ],
+      [
+       -0.8571,
+       0.0059
+      ]
+     ]
+    },
+    {
+     "y": -1.2,
+     "xLE": 0.24,
+     "xTE": -0.8754,
+     "chord": 1.1154,
+     "thicknessScale": 1.2,
+     "halfThickness_xz": [
+      [
+       0.24,
+       0
+      ],
+      [
+       0.2261,
+       0.0167
+      ],
+      [
+       0.2121,
+       0.0252
+      ],
+      [
+       0.1842,
+       0.0374
+      ],
+      [
+       0.1563,
+       0.0469
+      ],
+      [
+       0.1285,
+       0.0547
+      ],
+      [
+       0.0169,
+       0.0762
+      ],
+      [
+       -0.0946,
+       0.0868
+      ],
+      [
+       -0.2062,
+       0.09
+      ],
+      [
+       -0.3177,
+       0.0876
+      ],
+      [
+       -0.4292,
+       0.0796
+      ],
+      [
+       -0.5408,
+       0.069
+      ],
+      [
+       -0.6523,
+       0.0498
+      ],
+      [
+       -0.7639,
+       0.0278
+      ],
+      [
+       -0.8754,
+       0.006
+      ]
+     ]
+    },
+    {
+     "y": -1.25,
+     "xLE": 0.2145,
+     "xTE": -0.8876,
+     "chord": 1.1021,
+     "thicknessScale": 1.2167,
+     "halfThickness_xz": [
+      [
+       0.2145,
+       0
+      ],
+      [
+       0.2008,
+       0.0169
+      ],
+      [
+       0.187,
+       0.0256
+      ],
+      [
+       0.1594,
+       0.038
+      ],
+      [
+       0.1319,
+       0.0476
+      ],
+      [
+       0.1043,
+       0.0555
+      ],
+      [
+       -0.0059,
+       0.0773
+      ],
+      [
+       -0.1161,
+       0.088
+      ],
+      [
+       -0.2263,
+       0.0913
+      ],
+      [
+       -0.3365,
+       0.0888
+      ],
+      [
+       -0.4467,
+       0.0807
+      ],
+      [
+       -0.557,
+       0.07
+      ],
+      [
+       -0.6672,
+       0.0505
+      ],
+      [
+       -0.7774,
+       0.0282
+      ],
+      [
+       -0.8876,
+       0.0061
+      ]
+     ]
+    },
+    {
+     "y": -1.275,
+     "xLE": 0.1757,
+     "xTE": -0.8937,
+     "chord": 1.0694,
+     "thicknessScale": 1.225,
+     "halfThickness_xz": [
+      [
+       0.1757,
+       0
+      ],
+      [
+       0.1623,
+       0.017
+      ],
+      [
+       0.1489,
+       0.0257
+      ],
+      [
+       0.1222,
+       0.0382
+      ],
+      [
+       0.0955,
+       0.0479
+      ],
+      [
+       0.0687,
+       0.0513
+      ],
+      [
+       -0.0382,
+       0.0513
+      ],
+      [
+       -0.1451,
+       0.0513
+      ],
+      [
+       -0.2521,
+       0.0513
+      ],
+      [
+       -0.359,
+       0.0513
+      ],
+      [
+       -0.466,
+       0.0513
+      ],
+      [
+       -0.5729,
+       0.0513
+      ],
+      [
+       -0.6798,
+       0.0508
+      ],
+      [
+       -0.7868,
+       0.0284
+      ],
+      [
+       -0.8937,
+       0.0061
+      ]
+     ]
+    },
+    {
+     "y": -1.3,
+     "xLE": 0.05,
+     "xTE": -0.8998,
+     "chord": 0.9498,
+     "thicknessScale": 1.2333,
+     "halfThickness_xz": [
+      [
+       0.05,
+       0
+      ],
+      [
+       0.0381,
+       0.01
+      ],
+      [
+       0.0263,
+       0.01
+      ],
+      [
+       0.0025,
+       0.01
+      ],
+      [
+       -0.0212,
+       0.01
+      ],
+      [
+       -0.045,
+       0.01
+      ],
+      [
+       -0.14,
+       0.01
+      ],
+      [
+       -0.2349,
+       0.01
+      ],
+      [
+       -0.3299,
+       0.01
+      ],
+      [
+       -0.4249,
+       0.01
+      ],
+      [
+       -0.5199,
+       0.01
+      ],
+      [
+       -0.6149,
+       0.01
+      ],
+      [
+       -0.7098,
+       0.01
+      ],
+      [
+       -0.8048,
+       0.01
+      ],
+      [
+       -0.8998,
+       0.0062
+      ]
+     ]
+    }
+   ],
+   "bolts": [
+    {
+     "x": -0.509,
+     "y": -0.6,
+     "z": 0
+    },
+    {
+     "x": -0.323,
+     "y": -0.6,
+     "z": 0
+    },
+    {
+     "x": -0.186,
+     "y": -0.6,
+     "z": 0
+    },
+    {
+     "x": 0.008,
+     "y": -0.6,
+     "z": 0
+    },
+    {
+     "x": 0.195,
+     "y": -0.6,
+     "z": 0
+    },
+    {
+     "x": 0.397,
+     "y": -0.6,
+     "z": 0
+    },
+    {
+     "x": 0.598,
+     "y": -0.6,
+     "z": 0
+    }
+   ],
+   "derived": {
+    "volume_m3": 0.10278,
+    "massAt7200": 740,
+    "massAt7100": 729.8,
+    "centroid": [
+     -0.11,
+     -0.9324,
+     0
+    ],
+    "densityFor725kg": 7054,
+    "inertiaAboutCG_kgm2": {
+     "Ixx(roll)": 30.003,
+     "Iyy(yaw)": 81.017,
+     "Izz(pitch)": 108.497
+    },
+    "lateralArea_m2": 0.8993
+   },
+   "_src": {
+    "mass": "p class rules 3.3.3 (725 +/-10 kg incl. coating); A.1.3 'Weight 725+/-10 kg'",
+    "density": "p A.1.3 'Material: Iron ~7.2 kg/dm3'",
+    "boltCount": "p class rules 3.3.4 seven 16 mm bolts (GA A.2.1 labels M16)",
+    "rootY": "p A.1.3 VL8; = 'Baseline' of A.5.1 (transom 870 above it = keel line +270 at st -1.5; bow 600 above it = KVL at st 10)",
+    "tipY": "p A.1.3 waterline spacing 150x4+100 below VL8 -> 1300 below CWL (draft 1.30 class/ORC 1.26)",
+    "leadingEdge": "p VL8 end of 1470 dim (1470 fwd of st 4), VL9 '1269 fran #4', template '870 fran #4'; m one intermediate point VL8-VL9 (scan 300dpi 1:5, 2.362 px/mm, +/-3 mm); bottom corner 'm' (680 fran #4 printed, ellipse shape e)",
+    "trailingEdge": "p '62' at -0.450 and '99' at VL8 (100% chord), '270' aft of st 4 at the bottom; straightness m (passes within 3 mm of measured points at VL9 and -0.770). The '120' dim is the R204 fillet tangent point, not the TE",
+    "rootSection": "p A.1.3 printed % chord ordinates (VL8 section above the profile); 100% at 99 aft of st 4 so chord 1569 (positions of printed stations verified on scan to +/-5 mm)",
+    "templateSection": "p A.1.3 lower 'Matmall/Template' ordinates; % positions m (+/-1%) ; chord d from LE/TE lines",
+    "thicknessLaw": "d linear between printed root and template sections; confirmed by printed '92' half-width at the chamfer start (formula gives 92.5)",
+    "leadingEdgeRadius": "p A.1.3 1:1 detail 'R=4+/-1 Nosradien konstant'",
+    "trailingEdgeWidthMin": "p class rules 3.3.6 square aft edge 5-8 mm; A.1.3 'min 5mm', R~2",
+    "bottom": "p '20' flat, '>50' chamfer height, '92' half width; e chamfer straight",
+    "bolts": "m GA A.2.1 (1:10 scan, 1.181 px/mm) bolt axes relative to station 4, +/-25 mm; e on centreline through keel top",
+    "derived": "d numerical integration of the sections; 739 kg at 7.2 -> within 2% of 725 (upper tolerance 735)"
+   },
+   "hullStubAndFillet": {
+    "note": "Part of the GRP hull moulding (in the offsets table), not iron. Sides continue the iron keel faces from VL8 up to the canoe body ('vertical where meeting hull' A.1.3). Keel LE fillet: canoe body -> VL8 between stations 6.33 and 7 (bottoms -0.600 @ st 6.333, -0.546 @ 6.5, -0.446 @ 7).",
+    "sections": [
+     {
+      "station": 4,
+      "x": -0.63,
+      "canoeBodyCL_y": -0.433,
+      "bottomY": -0.6,
+      "section_zy": [
+       [
+        0.034,
+        -0.45
+       ],
+       [
+        0.021,
+        -0.4875
+       ],
+       [
+        0.017,
+        -0.525
+       ],
+       [
+        0.0165,
+        -0.6
+       ],
+       [
+        0,
+        -0.6
+       ]
+      ],
+      "_src": "p offsets table A.1.2 VL7/VL7.25/VL7.5 (-0.450/-0.4875/-0.525); d keel root half-thickness at VL8 (A.1.3 root ordinates at 93.7% chord)"
+     },
+     {
+      "station": 4.5,
+      "x": -0.315,
+      "canoeBodyCL_y": -0.453,
+      "bottomY": -0.6,
+      "section_zy": [
+       [
+        0.066,
+        -0.45
+       ],
+       [
+        0.054,
+        -0.4875
+       ],
+       [
+        0.051,
+        -0.525
+       ],
+       [
+        0.0517,
+        -0.6
+       ],
+       [
+        0,
+        -0.6
+       ]
+      ],
+      "_src": "p offsets table A.1.2 VL7/VL7.25/VL7.5 (-0.450/-0.4875/-0.525); d keel root half-thickness at VL8 (A.1.3 root ordinates at 73.6% chord)"
+     },
+     {
+      "station": 5,
+      "x": 0,
+      "canoeBodyCL_y": -0.464,
+      "bottomY": -0.6,
+      "section_zy": [
+       [
+        0.085,
+        -0.45
+       ],
+       [
+        0.075,
+        -0.4875
+       ],
+       [
+        0.071,
+        -0.525
+       ],
+       [
+        0.0706,
+        -0.6
+       ],
+       [
+        0,
+        -0.6
+       ]
+      ],
+      "_src": "p offsets table A.1.2 VL7/VL7.25/VL7.5 (-0.450/-0.4875/-0.525); d keel root half-thickness at VL8 (A.1.3 root ordinates at 53.5% chord)"
+     },
+     {
+      "station": 5.5,
+      "x": 0.315,
+      "canoeBodyCL_y": -0.468,
+      "bottomY": -0.6,
+      "section_zy": [
+       [
+        0.092,
+        -0.45
+       ],
+       [
+        0.08,
+        -0.4875
+       ],
+       [
+        0.076,
+        -0.525
+       ],
+       [
+        0.0732,
+        -0.6
+       ],
+       [
+        0,
+        -0.6
+       ]
+      ],
+      "_src": "p offsets table A.1.2 VL7/VL7.25/VL7.5 (-0.450/-0.4875/-0.525); d keel root half-thickness at VL8 (A.1.3 root ordinates at 33.5% chord)"
+     },
+     {
+      "station": 6,
+      "x": 0.63,
+      "canoeBodyCL_y": -0.463,
+      "bottomY": -0.6,
+      "section_zy": [
+       [
+        0.079,
+        -0.45
+       ],
+       [
+        0.065,
+        -0.4875
+       ],
+       [
+        0.058,
+        -0.525
+       ],
+       [
+        0.0517,
+        -0.6
+       ],
+       [
+        0,
+        -0.6
+       ]
+      ],
+      "_src": "p offsets table A.1.2 VL7/VL7.25/VL7.5 (-0.450/-0.4875/-0.525); d keel root half-thickness at VL8 (A.1.3 root ordinates at 13.4% chord)"
+     },
+     {
+      "station": 6.5,
+      "x": 0.945,
+      "canoeBodyCL_y": -0.452,
+      "bottomY": -0.546,
+      "section_zy": [
+       [
+        0.044,
+        -0.45
+       ],
+       [
+        0.028,
+        -0.4875
+       ],
+       [
+        0.014,
+        -0.525
+       ],
+       [
+        0,
+        -0.546
+       ]
+      ],
+      "_src": "p offsets table A.1.2 VL7/VL7.25/VL7.5 (-0.450/-0.4875/-0.525); p lower KeelLine value -546 = bottom of keel LE fillet"
+     },
+     {
+      "station": 7,
+      "x": 1.26,
+      "canoeBodyCL_y": -0.433,
+      "bottomY": -0.446,
+      "section_zy": [
+       [
+        0,
+        -0.446
+       ]
+      ],
+      "_src": "p lower KeelLine value -446: keel LE fillet runs out just forward of station 7"
+     }
+    ]
+   }
+  },
+  "skeg": {
+   "what": "Deadwood/skeg on the centreline joining the keel TE (st ~3.9, -0.450) to the rudder; part of the hull moulding; carries the lower rudder bearing (rules 3.4.4)",
+   "profileBottom": [
+    [
+     -0.945,
+     -0.45
+    ],
+    [
+     -1.26,
+     -0.407
+    ],
+    [
+     -1.575,
+     -0.365
+    ],
+    [
+     -1.89,
+     -0.322
+    ],
+    [
+     -2.205,
+     -0.279
+    ],
+    [
+     -2.52,
+     -0.244
+    ],
+    [
+     -2.6,
+     -0.25
+    ],
+    [
+     -2.6098,
+     -0.2626
+    ]
+   ],
+   "aftEdge": "follows the rudder LE line (27 deg from vertical) upward from the skeg bottom with a 2-3 mm gap; R170 fillet between the skeg bottom and its aft edge (A.1.1 '170R')",
+   "rudderPocket": "Appendix 1 1.13: the pocket formed by skeg and rudder may be filled",
+   "bottomRadius": 0.017,
+   "sections": [
+    {
+     "station": 0.5,
+     "x": -2.835,
+     "topY_canoeCL": -0.078,
+     "bottomY": -0.105,
+     "depth": 0.027,
+     "rootHalfWidth": 0.033,
+     "section_zy": [
+      [
+       0,
+       -0.105
+      ],
+      [
+       0.012,
+       -0.1
+      ],
+      [
+       0.017,
+       -0.088
+      ],
+      [
+       0.033,
+       -0.078
+      ]
+     ],
+     "_src": {
+      "topY_canoeCL": "p offsets KeelLine upper value",
+      "bottomY": "p offsets KeelLine lower value (small stacked digits, read at 600 dpi equiv.; st 0.5 '-105' least certain, could be -185)",
+      "rootHalfWidth": "p (33) at VL5 -0.150 (bracketed)",
+      "bottomRadius": "d from (16) at VL6 -0.300 on st 2 = 22 mm above the skeg bottom -> R~17 mm"
+     }
+    },
+    {
+     "station": 1,
+     "x": -2.52,
+     "topY_canoeCL": -0.15,
+     "bottomY": -0.244,
+     "depth": 0.094,
+     "rootHalfWidth": 0.062,
+     "section_zy": [
+      [
+       0,
+       -0.244
+      ],
+      [
+       0.012,
+       -0.239
+      ],
+      [
+       0.017,
+       -0.227
+      ],
+      [
+       0.017,
+       -0.17
+      ],
+      [
+       0.062,
+       -0.15
+      ]
+     ],
+     "_src": {
+      "topY_canoeCL": "p offsets KeelLine upper value",
+      "bottomY": "p offsets KeelLine lower value (small stacked digits, read at 600 dpi equiv.; st 0.5 '-105' least certain, could be -185)",
+      "rootHalfWidth": "p (62) at VL5 -0.150 (bracketed) = canoe CL height",
+      "bottomRadius": "d from (16) at VL6 -0.300 on st 2 = 22 mm above the skeg bottom -> R~17 mm"
+     }
+    },
+    {
+     "station": 1.5,
+     "x": -2.205,
+     "topY_canoeCL": -0.213,
+     "bottomY": -0.279,
+     "depth": 0.066,
+     "rootHalfWidth": 0.05,
+     "section_zy": [
+      [
+       0,
+       -0.279
+      ],
+      [
+       0.012,
+       -0.274
+      ],
+      [
+       0.017,
+       -0.262
+      ],
+      [
+       0.017,
+       -0.233
+      ],
+      [
+       0.05,
+       -0.213
+      ]
+     ],
+     "_src": {
+      "topY_canoeCL": "p offsets KeelLine upper value",
+      "bottomY": "p offsets KeelLine lower value (small stacked digits, read at 600 dpi equiv.; st 0.5 '-105' least certain, could be -185)",
+      "rootHalfWidth": "e interpolated",
+      "bottomRadius": "d from (16) at VL6 -0.300 on st 2 = 22 mm above the skeg bottom -> R~17 mm"
+     }
+    },
+    {
+     "station": 2,
+     "x": -1.89,
+     "topY_canoeCL": -0.27,
+     "bottomY": -0.322,
+     "depth": 0.052,
+     "rootHalfWidth": 0.04,
+     "section_zy": [
+      [
+       0,
+       -0.322
+      ],
+      [
+       0.012,
+       -0.317
+      ],
+      [
+       0.017,
+       -0.305
+      ],
+      [
+       0.017,
+       -0.29
+      ],
+      [
+       0.04,
+       -0.27
+      ]
+     ],
+     "_src": {
+      "topY_canoeCL": "p offsets KeelLine upper value",
+      "bottomY": "p offsets KeelLine lower value (small stacked digits, read at 600 dpi equiv.; st 0.5 '-105' least certain, could be -185)",
+      "rootHalfWidth": "e",
+      "bottomRadius": "d from (16) at VL6 -0.300 on st 2 = 22 mm above the skeg bottom -> R~17 mm"
+     }
+    },
+    {
+     "station": 2.5,
+     "x": -1.575,
+     "topY_canoeCL": -0.323,
+     "bottomY": -0.365,
+     "depth": 0.042,
+     "rootHalfWidth": 0.035,
+     "section_zy": [
+      [
+       0,
+       -0.365
+      ],
+      [
+       0.012,
+       -0.36
+      ],
+      [
+       0.017,
+       -0.348
+      ],
+      [
+       0.017,
+       -0.343
+      ],
+      [
+       0.035,
+       -0.323
+      ]
+     ],
+     "_src": {
+      "topY_canoeCL": "p offsets KeelLine upper value",
+      "bottomY": "p offsets KeelLine lower value (small stacked digits, read at 600 dpi equiv.; st 0.5 '-105' least certain, could be -185)",
+      "rootHalfWidth": "e",
+      "bottomRadius": "d from (16) at VL6 -0.300 on st 2 = 22 mm above the skeg bottom -> R~17 mm"
+     }
+    },
+    {
+     "station": 3,
+     "x": -1.26,
+     "topY_canoeCL": -0.367,
+     "bottomY": -0.407,
+     "depth": 0.04,
+     "rootHalfWidth": 0.032,
+     "section_zy": [
+      [
+       0,
+       -0.407
+      ],
+      [
+       0.012,
+       -0.402
+      ],
+      [
+       0.017,
+       -0.39
+      ],
+      [
+       0.017,
+       -0.387
+      ],
+      [
+       0.032,
+       -0.367
+      ]
+     ],
+     "_src": {
+      "topY_canoeCL": "p offsets KeelLine upper value",
+      "bottomY": "p offsets KeelLine lower value (small stacked digits, read at 600 dpi equiv.; st 0.5 '-105' least certain, could be -185)",
+      "rootHalfWidth": "e",
+      "bottomRadius": "d from (16) at VL6 -0.300 on st 2 = 22 mm above the skeg bottom -> R~17 mm"
+     }
+    },
+    {
+     "station": 3.5,
+     "x": -0.945,
+     "topY_canoeCL": -0.404,
+     "bottomY": -0.45,
+     "depth": 0.046,
+     "rootHalfWidth": 0.02,
+     "section_zy": [
+      [
+       0,
+       -0.45
+      ],
+      [
+       0.012,
+       -0.445
+      ],
+      [
+       0.017,
+       -0.433
+      ],
+      [
+       0.017,
+       -0.424
+      ],
+      [
+       0.02,
+       -0.404
+      ]
+     ],
+     "_src": {
+      "topY_canoeCL": "p offsets KeelLine upper value",
+      "bottomY": "p offsets KeelLine lower value (small stacked digits, read at 600 dpi equiv.; st 0.5 '-105' least certain, could be -185)",
+      "rootHalfWidth": "e merges into keel TE fillet R204",
+      "bottomRadius": "d from (16) at VL6 -0.300 on st 2 = 22 mm above the skeg bottom -> R~17 mm"
+     }
+    }
+   ],
+   "openQuestions": [
+    "Station 0.5 lower KeelLine value read as -105 (could be -185); with (33) at VL5 -0.150 it describes cheeks around the rudder stock between hull and rudder top, but the geometry of the rudder-head pocket is not drawn explicitly",
+    "Root half-widths between stations 1.5 and 3.5 are not printed (only (62) st 1 and (16) at -0.300 st 2); estimated",
+    "A.1.1 profile at 200 dpi shows the skeg bottom as a dashed line meeting the rudder top near station 0.7, consistent with the table"
+   ],
+   "_src": {
+    "profileBottom": "p offsets lower KeelLine values st 1-3.5; d junction with rudder LE line"
+   }
+  },
+  "rudder": {
+   "stockAxis": {
+    "x": -2.835,
+    "z": 0,
+    "vertical": true,
+    "station": 0.5
+   },
+   "stock": {
+    "diameter": 0.025,
+    "material": "stainless steel, solid",
+    "bottomY": -0.49,
+    "topY": 0.72,
+    "mass": 4.73,
+    "bearings": [
+     {
+      "id": "deck",
+      "y": "deck/cockpit sole level",
+      "material": "phenolic (Tufnol) or equivalent",
+      "compulsory": true
+     },
+     {
+      "id": "hullExit",
+      "y": -0.19,
+      "material": "nylon or Tufnol (item 3)"
+     },
+     {
+      "id": "lower",
+      "y": -0.49,
+      "material": "bronze or stainless, on the skeg; must allow the rudder to be detached (item 4)"
+     }
+    ],
+    "rudderTubeMinLength": 0.35,
+    "web": "6x30 stainless flat bar welded to the stock inside the blade (item 5)"
+   },
+   "planform_xy_relStock": [
+    [
+     -0.447,
+     -1.04
+    ],
+    [
+     -0.2016,
+     -1.04
+    ],
+    [
+     -0.1925,
+     -1.0392
+    ],
+    [
+     -0.1837,
+     -1.0367
+    ],
+    [
+     -0.1755,
+     -1.0326
+    ],
+    [
+     -0.1682,
+     -1.0272
+    ],
+    [
+     -0.162,
+     -1.0204
+    ],
+    [
+     -0.1571,
+     -1.0127
+    ],
+    [
+     0.2252,
+     -0.2626
+    ],
+    [
+     0,
+     -0.218
+    ],
+    [
+     -0.207,
+     -0.177
+    ]
+   ],
+   "planform_xy_body": [
+    [
+     -3.282,
+     -1.04
+    ],
+    [
+     -3.0366,
+     -1.04
+    ],
+    [
+     -3.0275,
+     -1.0392
+    ],
+    [
+     -3.0187,
+     -1.0367
+    ],
+    [
+     -3.0105,
+     -1.0326
+    ],
+    [
+     -3.0032,
+     -1.0272
+    ],
+    [
+     -2.997,
+     -1.0204
+    ],
+    [
+     -2.9921,
+     -1.0127
+    ],
+    [
+     -2.6098,
+     -0.2626
+    ],
+    [
+     -2.835,
+     -0.218
+    ],
+    [
+     -3.042,
+     -0.177
+    ]
+   ],
+   "tip": {
+    "y": -1.04,
+    "chord": 0.276,
+    "xTE": -0.447,
+    "xLEsharp": -0.171,
+    "cornerRadiusLE": 0.05,
+    "edge": "rounded, radius ~ local half thickness (tip section detail)"
+   },
+   "trailingEdgeLine": {
+    "atTip": [
+     -0.447,
+     -1.04
+    ],
+    "atRoot": [
+     -0.207,
+     -0.177
+    ],
+    "extendedToKVL": [
+     -0.16,
+     0
+    ],
+    "rakeDeg": 15.4
+   },
+   "leadingEdgeLine": {
+    "atTip": [
+     -0.171,
+     -1.04
+    ],
+    "extendedToKVL": [
+     0.359,
+     0
+    ],
+    "rakeDeg": 27
+   },
+   "maxThicknessLine": {
+    "atTip": [
+     -0.279,
+     -1.021
+    ],
+    "extendedToKVL": [
+     0.171,
+     0
+    ],
+    "approxPctChord": 40
+   },
+   "halfThickness": {
+    "root": 0.025,
+    "rootTol": 0.002,
+    "tip": 0.015,
+    "tipTol": 0.001,
+    "law": "linear in y between tip (-1.040) and root (~-0.18)"
+   },
+   "section": "symmetric, max thickness on line 6 (~40% chord); exact shape not drawn -> NACA 4-digit-like thickness form scaled to the given max (e)",
+   "trailingEdgeWidthMin": 0.004,
+   "gapToHull": [
+    0.002,
+    0.003
+   ],
+   "root": "edge from TE-top (-0.207,-0.177) through the stock (0,-0.218) to the forward-top corner on the LE line (0.225,-0.263); 'B0' marks: 30 mm (TE-top 30 below VL5) and 80 mm (forward root end 80 below VL5 on the hidden line)",
+   "pre1972Variant": {
+    "bottomY": -0.889,
+    "tipChord": 0.311,
+    "xTE": -0.405,
+    "xLE": -0.094,
+    "note": "dash-dot 'lower edge of rudders built before 1.1.1972' (151 mm shallower; Elvstrom deepened the rudder ~15 cm)"
+   },
+   "construction": {
+    "shell": "GRP, min 4 x 450 g/m2 CSM each half",
+    "core": "polyurethane foam (Airex/Divinycell/epoxy foam per Appendix 1)"
+   },
+   "derived": {
+    "area_m2": 0.3039,
+    "centroid_relStock": [
+     -0.1387,
+     -0.5945
+    ],
+    "areaAheadOfStock_m2": 0.0548,
+    "balance": 0.18,
+    "span": 0.822,
+    "meanChord": 0.37,
+    "geometricAR_oneSide": 2.22,
+    "massBlade_est": 4.7,
+    "massShell_est": 3.8,
+    "massFoam_est": 0.5,
+    "massStock": 4.73,
+    "cgBlade_relStock": [
+     -0.145,
+     -0.62
+    ],
+    "IyawAboutStock_blade_kgm2": 0.1996
+   },
+   "_src": {
+    "stockAxis": "p A.1.1 'Rudderstock vertical' on station 1/2; A.3.3 '*1/2' at the stock axis; rules 3.4.5",
+    "stock": "p rules 3.4.2 (25 mm solid SS), A.3.3 items 1-7; bottomY m from bearing 4 on A.3.3 (1:2, 5.906 px/mm, +/-10 mm); topY e (deck ~0.64 + bearing/tiller head)",
+    "tip": "p A.3.3 '162','114','171' (TE->tip section->LE corner->stock), '1040' KVL->tip, '50R'; A.1.1 '860' rudder depth from -0.180",
+    "trailingEdgeLine": "p '30' (TE-top 30 below VL5 i.e. -0.180) and '160' (TE line at KVL 160 aft of stock); A.1.1 '15 deg'",
+    "leadingEdgeLine": "p '359' at KVL; A.1.1 '27 deg'; m straightness (8 points on scan, +/-2 mm)",
+    "maxThicknessLine": "p '171' at KVL; m tip end",
+    "halfThickness": "p '25+/-2' near the root and '15+/-1' at the tip measured from line 6 to the '1/2 profile thickness' line",
+    "root": "m root line on A.3.3; forward corner d (intersection with LE line)",
+    "pre1972Variant": "p A.3.3 dash-dot line; depth m 151 mm (+/-3)",
+    "derived": "d polygon integration; masses e: CSM laminate 6 kg/m2 per side, foam 60 kg/m3, stock 7900 kg/m3; tiller excluded"
+   }
+  },
+  "tiller": {
+   "length": 1,
+   "mass": 1.2,
+   "extensionLength": 0.9,
+   "extensionMass": 0.3,
+   "_src": {
+    "length": "e not controlled by class rules (3.4.6); typical H-boat tiller ~1.0 m reaching to the cockpit middle",
+    "mass": "e"
+   }
+  },
+  "offsetsKeelLineReadings": {
+   "1": [
+    -150,
+    -244
+   ],
+   "2": [
+    -270,
+    -322
+   ],
+   "3": [
+    -367,
+    -407
+   ],
+   "7": [
+    -433,
+    -446
+   ],
+   "0.5": [
+    -78,
+    -105
+   ],
+   "1.5": [
+    -213,
+    -279
+   ],
+   "2.5": [
+    -323,
+    -365
+   ],
+   "3.5": [
+    -404,
+    -450
+   ],
+   "6.5": [
+    -452,
+    -546
+   ],
+   "9.5": -126,
+   "_src": "m re-read from A.1.2 table at 2x upsample; upper = canoe-body centreline, lower = skeg/deadwood bottom (st 0.5-3.5) or keel-LE fillet bottom (st 6.5, 7). St 1 upper could be -156; st 9.5 sign is minus (between -227 and 0)"
+  }
+ },
+ "deck": {
+  "cabin": {
+   "aftFace": {
+    "bottom": [
+     -0.781,
+     0.412,
+     0
+    ],
+    "top": [
+     -0.673,
+     1.057,
+     0
+    ],
+    "inclinationDeg": 10,
+    "companionwayHalfWidth": 0.3,
+    "step": {
+     "x": -0.615,
+     "section": [
+      0.06,
+      0.015
+     ],
+     "material": "mahogany/teak"
+    }
+   },
+   "topCL_Y": 1.05,
+   "topCL_Y_tolerance": 0.01,
+   "sections": {
+    "st5": {
+     "x": 0,
+     "baseHalfBreadth": 0.745,
+     "sideInclinationDeg": 14,
+     "filletRadiusMax": 0.05,
+     "top": [
+      [
+       0,
+       1.063
+      ],
+      [
+       0.232,
+       1.048
+      ],
+      [
+       0.469,
+       1.022
+      ],
+      [
+       0.594,
+       0.994
+      ],
+      [
+       0.663,
+       0.949
+      ],
+      [
+       0.682,
+       0.905
+      ]
+     ],
+     "baseY": 0.65,
+     "heightCheck": {
+      "value": 1.05,
+      "tol": 0.02,
+      "note": "printed \"1050±20 to CWL\" near the #5 curve"
+     }
+    },
+    "st7": {
+     "x": 1.26,
+     "baseHalfBreadth": 0.495,
+     "sideInclinationDeg": 14,
+     "filletRadiusMax": 0.05,
+     "top": [
+      [
+       0,
+       1.016
+      ],
+      [
+       0.219,
+       1.003
+      ],
+      [
+       0.344,
+       0.978
+      ],
+      [
+       0.407,
+       0.949
+      ],
+      [
+       0.444,
+       0.905
+      ],
+      [
+       0.454,
+       0.873
+      ]
+     ],
+     "baseY": 0.702,
+     "heightCheck": {
+      "value": 0.94,
+      "tol": 0.02,
+      "note": "printed \"940±20 to CWL\" near the #7 curve; arrow tip sits at the drawn 0.946 level"
+     }
+    }
+   },
+   "planOutline": [
+    [
+     -0.73,
+     0.755
+    ],
+    [
+     -0.03,
+     0.752
+    ],
+    [
+     0.63,
+     0.73
+    ],
+    [
+     1.26,
+     0.495
+    ],
+    [
+     1.74,
+     0.295
+    ],
+    [
+     1.85,
+     0.065
+    ],
+    [
+     1.85,
+     0
+    ]
+   ],
+   "front": {
+    "topCL": [
+     1.406,
+     0.997,
+     0
+    ],
+    "deckCL": [
+     1.923,
+     0.753,
+     0
+    ],
+    "slopeFromHorizontalDeg": 25.3
+   },
+   "foreHatch": {
+    "onFront": true,
+    "lengthAlongSlope": 0.43,
+    "hingeAt": "top",
+    "fastening": "screw fitting at bottom",
+    "halfWidth": 0.25,
+    "construction": "GRP 5x450 CSM or ply, free"
+   },
+   "slidingHatch": {
+    "xAft": -0.67,
+    "xFwd": -0.16,
+    "halfWidth": 0.3,
+    "runners": "teak"
+   },
+   "windows": [
+    {
+     "side": "both",
+     "x": [
+      -0.5,
+      0.25
+     ],
+     "y": [
+      0.69,
+      0.93
+     ],
+     "material": "6 mm acrylic",
+     "shape": "free"
+    }
+   ],
+   "handrails": [
+    {
+     "x": [
+      -0.7,
+      0.35
+     ],
+     "halfBreadth": 0.32,
+     "material": "teak",
+     "compulsory": true
+    }
+   ],
+   "mastStep": {
+    "mastForwardFaceX": 1.047,
+    "tolerance": 0.04,
+    "deckMarks": [
+     1.087,
+     1.007
+    ],
+    "markSize": [
+     0.05,
+     0.02
+    ],
+    "referenceSurfaceY": 1.05,
+    "referenceSurfaceTol": 0.01,
+    "band1AboveReference": 0.55
+   },
+   "sideLight": {
+    "x": -0.55,
+    "halfBreadth": 0.7,
+    "y": 0.95
+   },
+   "_src": {
+    "aftFace": "m A21 profile (±25 mm); \"10°\" printed on A21; companionway half width 300 m A21 plan \"300\"; step \"165\" and \"60x15\" p A21",
+    "topCL_Y": "p A41/A51 reference surface 1050±10 above CWL at the mast; A21 profile shows the top level 1.02–1.06 (m)",
+    "sections": "A12 body plan right side, curves \"#5 Cabin top / #7 Kajuutan katto\": base half-breadths 745/495 p; 14° and Rmax50 p; top curve points m (zoom calibrated with 495/745, ±8 mm). The two \"to CWL\" heights (1050±20, 940±20) are printed but both arrows end at the same drawn level; drawn crown: #5 1.063 at CL, #7 1.016 at CL — open",
+    "planOutline": "m A21 plan (x ±40, half-breadth ±20); side deck at st5 = 1085-745 = 340 vs printed 330±20 (A12)",
+    "front": "m A21 profile; forehatch 430 along slope p A21",
+    "slidingHatch": "m A21 profile ±40 mm",
+    "windows": "m A21 profile + plan; \"Window 6mm acryl or corresponding, form free\" p A21. Variants: early one oval window per side; long wedge single window from ~1975 (Artekno) / ~1980 (WIKI)",
+    "handrails": "m A21 plan (two teak rails at ±0.32); \"Handrail compulsory\" p A21/A34. Exact half-breadth/length open (±50 mm)",
+    "mastStep": "p CR 3.5.2.2 forward face 843±40 aft of station 8; marks 50x20 p CR 3.5.2.3/A21; reference surface p A41/A51; band 1 p CR 3.5.2.7",
+    "sideLight": "m A21 plan \"Light/Sivuvalo/Lanterna\" — approximate"
+   }
+  },
+  "cockpit": {
+   "footwell": {
+    "xAft": -2.543,
+    "xFwd": -0.781,
+    "halfWidth": 0.33,
+    "halfWidthTol": 0.02,
+    "soleY_aft": 0.14,
+    "soleY_fwd": 0.1,
+    "drain": {
+     "x": -1.565,
+     "tubeDia": 0.01,
+     "hoseDia": [
+      0.03,
+      0.032
+     ],
+     "seacocks": "1 1/2 in"
+    }
+   },
+   "seats": {
+    "topY": 0.48,
+    "heightAboveSole": 0.38,
+    "innerHalfBreadth": 0.33,
+    "outerHalfBreadth": 0.735,
+    "material": "teak 16 mm",
+    "lockerHatches": true
+   },
+   "coaming": {
+    "atStation": 3,
+    "innerHalfBreadth": 0.735,
+    "midHalfBreadth": 0.77,
+    "outerHalfBreadth": 0.815,
+    "inclinationDegRange": [
+     2,
+     20
+    ],
+    "topY": 0.74,
+    "cornerRadiusMax": 0.05,
+    "variants": {
+     "early_race_1969_74": "low \"race\" coamings similar to current",
+     "spray_hood_1975_80": "curved higher coaming for spray hood (+~0.08 e)",
+     "low_from_1980": "lowered to ease sitting out (Botnia from 1976)"
+    }
+   },
+   "aftDeck": {
+    "xAft": -3.925,
+    "xFwd": -2.543,
+    "aftHatch": {
+     "x": [
+      -3.902,
+      -3.49
+     ],
+     "halfWidth": 0.45,
+     "hinged": true,
+     "compulsory": true
+    },
+    "motorWell": {
+     "allowed": true,
+     "compulsory": false,
+     "location": "aft stowage space"
+    }
+   },
+   "rudderHead": {
+    "stockX": -2.835,
+    "deckBearingY": 0.64,
+    "tillerFree": true
+   },
+   "mainsheet": {
+    "arrangement": "free",
+    "defaultTravellerX": [
+     -1.85,
+     -1.55
+    ],
+    "defaultY": 0.14
+   },
+   "_src": {
+    "footwell": "xAft m A21 profile (aft cockpit bulkhead ±30); xFwd = cabin aft face; halfWidth p A12 \"330±20\" and A21 plan \"330\"; sole 140 aft/100 fwd p A21; drain m A21, tubes/hoses/seacocks p A34",
+    "seats": "p A12 \"480 to CWL\"; p A21 \"380\" above sole; teak 16 mm p A21; outer = coaming inner (p A12 735)",
+    "coaming": "p A12 815/770/735 and \"min 2° max 20°\" at station 3; topY m A12/A21 (0.715–0.765); variants WIKI Historia",
+    "aftDeck": "m A21; hatch compulsory p CR 3.2.5; motor well p CR 3.2.6",
+    "rudderHead": "p A11/CR 3.4.5 stock vertical at station 1/2; tiller free p A21",
+    "mainsheet": "e  \"Sheeting arrangement free\" p A21; boom end band 3000 aft of mast lies over x_st0≈1.3 (d)"
+   }
+  },
+  "fittings": [
+   {
+    "id": "bowCleat",
+    "pos": [
+     3.63,
+     0.8,
+     0
+    ],
+    "compulsory": true,
+    "_src": "m A21 profile+plan ±40"
+   },
+   {
+    "id": "sternCleat",
+    "pos": [
+     -3.695,
+     0.65,
+     0
+    ],
+    "compulsory": true,
+    "_src": "m A21 profile ±40"
+   },
+   {
+    "id": "bowFairleads",
+    "pos": [
+     3.98,
+     0.81,
+     0.035
+    ],
+    "note": "port and starboard, or one on CL",
+    "_src": "m A21 plan, \"35\" printed"
+   },
+   {
+    "id": "forestayChainplate",
+    "pos": [
+     3.47,
+     0.79,
+     0
+    ],
+    "note": "forestay attached to stem",
+    "_src": "p A21/CR"
+   },
+   {
+    "id": "chainplateZone",
+    "xRange": [
+     0.388,
+     0.825
+    ],
+    "maxInboardOfSheer": 0.075,
+    "radialFromForestayDeckPoint": [
+     2.85,
+     3.25
+    ],
+    "defaultEyebolts": [
+     {
+      "shroud": "upper",
+      "x": 0.413
+     },
+     {
+      "shroud": "lower",
+      "x": 0.534
+     }
+    ],
+    "eyeboltDia": 0.008,
+    "backing": "hardwood 0.60 m long under deck",
+    "_src": "p CR 3.5.2.15 (zone derived d); eye bolts 8 mm and hardwood 60 cm p A34; default x m A21 plan (two eye-bolt marks at x_st0 3.50 and 3.90, ±50); default eye bolts re-read on A.2.1 at 1.356/1.477 aft of st 8 and assigned upper aft (D3); radial-arc marks on the plan at x ≈ 0.32 (3250) and 0.72 (2850)"
+   },
+   {
+    "id": "winch",
+    "pos": [
+     -1.55,
+     0.75,
+     0.8
+    ],
+    "compulsory": true,
+    "variant": {
+     "cabinTop_from1976": [
+      -0.55,
+      1.03,
+      0.55
+     ]
+    },
+    "mass": 2.5,
+    "_src": "m A21 profile+plan; compulsory p A21; cabin-top variant WIKI (e position)"
+   },
+   {
+    "id": "snubbingWinch",
+    "pos": [
+     -2.71,
+     0.64,
+     0.37
+    ],
+    "compulsory": false,
+    "_src": "m A21 plan"
+   },
+   {
+    "id": "spinnakerSheetBlock",
+    "pos": [
+     -3.08,
+     0.62,
+     0.69
+    ],
+    "xRange": [
+     -3.15,
+     -3.01
+    ],
+    "_src": "p A21 \"0–140\" fwd of station 0; half-breadth at deck edge m"
+   },
+   {
+    "id": "flagstaffHolder",
+    "pos": [
+     -3.93,
+     0.65,
+     0.22
+    ],
+    "_src": "m A21 plan \"Pole holder / Flaggstångshållare\""
+   },
+   {
+    "id": "spinnakerBoomAndOarHolder",
+    "pos": [
+     3.09,
+     0.35,
+     0.55
+    ],
+    "interior": true,
+    "_src": "m A21 profile (inside forepeak)"
+   },
+   {
+    "id": "jibTrack",
+    "xRange": [
+     0.58,
+     0.62
+    ],
+    "halfBreadth": 0.8,
+    "arrangement": "free",
+    "_src": "t Fritz/North jib lead 2.85–2.89 m from forestay pin; half-breadth e"
+   },
+   {
+    "id": "liftingEyes",
+    "on": "two keel bolts",
+    "maxMass": 4,
+    "_src": "p CR 3.2.7"
+   },
+   {
+    "id": "mastMarks",
+    "x": [
+     1.087,
+     1.007
+    ],
+    "size": [
+     0.05,
+     0.02
+    ],
+    "_src": "p CR 3.5.2.3"
+   },
+   {
+    "id": "plaque",
+    "where": "bulkhead at fwd end of starboard cockpit locker",
+    "_src": "p CR 2.7.1/A34"
+   },
+   {
+    "id": "pulpitAndLifelines",
+    "present": false,
+    "_src": "e not on any plan"
+   }
+  ],
+  "structure": {
+   "bulkheads": [
+    {
+     "id": "aftCockpit",
+     "x": -2.543,
+     "material": "GRP aft moulding",
+     "_src": "m A21"
+    },
+    {
+     "id": "cockpitLocker",
+     "x": -1.602,
+     "material": "12 mm ply or GRP",
+     "_src": "m A21 plan"
+    },
+    {
+     "id": "companionway",
+     "x": -0.82,
+     "material": "12 mm ply / accommodation moulding",
+     "_src": "m A21"
+    },
+    {
+     "id": "locker",
+     "x": 0.372,
+     "material": "12 mm ply",
+     "_src": "m A21 plan"
+    },
+    {
+     "id": "main",
+     "x": 0.974,
+     "material": "min 12 mm ply",
+     "minOpeningHeight": 0.35,
+     "beam": [
+      0.09,
+      0.075
+     ],
+     "beamMaterial": "ash or mahogany, laminated",
+     "alternative": "A35: beam 90x75, opening max 540/400 from CL, min 120 corners",
+     "_src": "m A21; p A34/A35"
+    },
+    {
+     "id": "fwdBerth",
+     "x": 1.56,
+     "material": "12 mm ply",
+     "_src": "m A21 (330 aft of st 8 p)"
+    },
+    {
+     "id": "forepeak",
+     "x": 3.415,
+     "material": "12 mm ply with pine 50x30",
+     "note": "full bulkhead with hatch or semi-bulkhead allowed fwd of st 9.5 (min 6 mm ply / 4 mm GRP)",
+     "_src": "m A21; p CR 3.2.4"
+    }
+   ],
+   "floors": {
+    "x": [
+     -2.516,
+     -1.567,
+     -0.375,
+     0.072,
+     0.519,
+     0.939,
+     1.569,
+     2.167
+    ],
+    "laminate": "5x450 CSM, 30 mm flange",
+    "topY": -0.36,
+    "_src": "m A21 profile (±40); laminate p CR App.1 §2; topY e"
+   },
+   "keelBolts": {
+    "count": 7,
+    "dia": 0.016,
+    "x": [
+     -0.483,
+     -0.294,
+     -0.159,
+     0.031,
+     0.232,
+     0.422,
+     0.612
+    ],
+    "backing": "6 mm galvanised plate or large washers",
+    "_src": "p CR 3.3.4; x m A21 (±40); backing p A21"
+   },
+   "sole": {
+    "y": -0.3,
+    "x": [
+     -0.75,
+     0.95
+    ],
+    "material": "teak 16 mm",
+    "_src": "m A21 (±30); material p A21"
+   },
+   "berths": {
+    "main": {
+     "topY": 0,
+     "x": [
+      -0.78,
+      0.97
+     ],
+     "frontOpenings": "~400x130"
+    },
+    "forward": {
+     "topY": [
+      0,
+      0.08
+     ],
+     "x": [
+      1.56,
+      2.79
+     ],
+     "step": [
+      0.04,
+      0.07
+     ]
+    },
+    "_src": "p A21 \"Bottom of forward berths max 80 min 0 above CWL\", 330/280/620 dims; main berth top m"
+   },
+   "shelves": {
+    "count": 2,
+    "y": 0.41,
+    "halfBreadth": 0.8,
+    "x": [
+     -0.75,
+     0.35
+    ],
+    "compulsory": true,
+    "_src": "p CR 3.2.4 / A21 / A34 \"800 from CL\"; y m A21"
+   },
+   "galleyAndLocker": {
+    "free": true,
+    "_src": "p CR 3.2.4"
+   },
+   "deckBeams": {
+    "foreAndAft": [
+     0.03,
+     0.075
+    ],
+    "mastBeam": [
+     0.09,
+     0.075
+    ],
+    "_src": "p A34"
+   },
+   "hullDeckJoint": {
+    "bolts": "ø5 mm @ 200",
+    "crushStrip": "polyurethane",
+    "_src": "p A31"
+   }
+  }
+ },
+ "laminate": {
+  "assumptions": {
+   "glassFractionByWeight": {
+    "surfaceMat": 0.25,
+    "CSM": 0.3,
+    "WR": 0.45
+   },
+   "resinDensity": 1200,
+   "glassDensity": 2550,
+   "gelcoat_kg_m2": 0.6,
+   "coreDensity_Airex": 80,
+   "coreBedding_kg_m2": 0.6
+  },
+  "schedules_kg_m2_mm_glass_g_m2": {
+   "hull_above_joint_2022": [
+    8.97,
+    6.2,
+    2850
+   ],
+   "hull_below_joint_2022": [
+    12.8,
+    8.8,
+    4200
+   ],
+   "hull_keel_band_2022": [
+    17.13,
+    11.8,
+    5700
+   ],
+   "hull_above_joint_pre2022": [
+    9.32,
+    6.4,
+    3010
+   ],
+   "hull_below_joint_pre2022": [
+    12.33,
+    8.5,
+    4140
+   ],
+   "hull_keel_band_pre2022": [
+    16.84,
+    11.5,
+    5720
+   ],
+   "deck_sandwich_15mm_core": [
+    12.27,
+    22.3,
+    3300
+   ],
+   "deck_single_skin": [
+    10.47,
+    7.3,
+    3300
+   ],
+   "floors_5x450": [
+    7.5,
+    5.3,
+    2250
+   ],
+   "accommodation_4x450": [
+    6.6,
+    4.7,
+    1800
+   ],
+   "accommodation_bulkhead_6x450": [
+    9.6,
+    6.8,
+    2700
+   ],
+   "fwd_accommodation_4x450": [
+    6.6,
+    4.7,
+    1800
+   ],
+   "aft_moulding_3x450": [
+    5.1,
+    3.7,
+    1350
+   ],
+   "hatch_5x450": [
+    9.3,
+    6.6,
+    2550
+   ],
+   "rudder_skin_4x450_each_half": [
+    6.6,
+    4.7,
+    1800
+   ]
+  },
+  "jointBelowSheer": 1.2,
+  "jointOverlap": 0.15,
+  "keelBandWidth": [
+   0.4,
+   0.5
+  ],
+  "checks": "pre-2022 glass weights 3010 / 4140 / 5720 g/m2 match the values printed on A31 exactly",
+  "_src": "p CR App.1 (2022: WR 600; 2007 and A31: WR 680); kg/m2 d from glass fractions (e)"
+ },
+ "massBudget": {
+  "items": [
+   {
+    "id": "hullShell",
+    "mass": 220.1,
+    "cg": [
+     -0.21,
+     0.029,
+     0
+    ],
+    "radiiOfGyration": [
+     0.75,
+     2.2,
+     2.2
+    ],
+    "_src": "d offsets girth × laminate 2022 (above joint 1.2 m girth 8.97, below 12.8, keel band 17.1 kg/m2) + transom/stem 0.52 m2; area 21.4 m2"
+   },
+   {
+    "id": "deckMoulding",
+    "mass": 199.2,
+    "cg": [
+     -0.32,
+     0.72,
+     0
+    ],
+    "radiiOfGyration": [
+     0.7,
+     2.1,
+     2.1
+    ],
+    "_src": "d 11.2 m2 sandwich @12.3 + 5.9 m2 single skin @10.5; rule min 180 kg (CR 3.2.2) ✓"
+   },
+   {
+    "id": "hullDeckJoint",
+    "mass": 4.5,
+    "cg": [
+     -0.25,
+     0.63,
+     0
+    ],
+    "radiiOfGyration": [
+     1,
+     2.3,
+     2.3
+    ],
+    "_src": "e bolts ø5@200 + mating compound"
+   },
+   {
+    "id": "keel",
+    "mass": 725,
+    "cg": [
+     -0.05,
+     -0.92,
+     0
+    ],
+    "radiiOfGyration": [
+     0.22,
+     0.42,
+     0.45
+    ],
+    "_src": "p mass CR 3.3.3 (725±10); CG e — appendages model supersedes"
+   },
+   {
+    "id": "keelBoltsAndPlates",
+    "mass": 7,
+    "cg": [
+     0.065,
+     -0.42,
+     0
+    ],
+    "radiiOfGyration": [
+     0.05,
+     0.35,
+     0.35
+    ],
+    "_src": "e 7×M16 + 6 mm plates"
+   },
+   {
+    "id": "rudderAndStock",
+    "mass": 13.5,
+    "cg": [
+     -2.98,
+     -0.45,
+     0
+    ],
+    "radiiOfGyration": [
+     0.3,
+     0.2,
+     0.3
+    ],
+    "_src": "e GRP 4x450 skins + foam + ø25 SS stock 1.3 m; appendages model supersedes"
+   },
+   {
+    "id": "tiller",
+    "mass": 2,
+    "cg": [
+     -2.2,
+     0.85,
+     0
+    ],
+    "radiiOfGyration": [
+     0.05,
+     0.35,
+     0.35
+    ],
+    "_src": "e"
+   },
+   {
+    "id": "floors",
+    "mass": 13,
+    "cg": [
+     0,
+     -0.38,
+     0
+    ],
+    "radiiOfGyration": [
+     0.15,
+     1,
+     1
+    ],
+    "_src": "e 8 floors 5x450 CSM"
+   },
+   {
+    "id": "mainAccommodationMoulding",
+    "mass": 36,
+    "cg": [
+     -0.4,
+     -0.05,
+     0
+    ],
+    "radiiOfGyration": [
+     0.6,
+     0.9,
+     0.9
+    ],
+    "_src": "e ~5 m2 @ 6.6–9.6 kg/m2"
+   },
+   {
+    "id": "fwdAccommodationMoulding",
+    "mass": 17,
+    "cg": [
+     2,
+     0.05,
+     0
+    ],
+    "radiiOfGyration": [
+     0.4,
+     0.5,
+     0.5
+    ],
+    "_src": "e ~2.5 m2 @6.6"
+   },
+   {
+    "id": "aftMouldingAndBulkhead",
+    "mass": 17,
+    "cg": [
+     -2,
+     0.25,
+     0
+    ],
+    "radiiOfGyration": [
+     0.5,
+     0.7,
+     0.7
+    ],
+    "_src": "e ~3 m2 @5.1 + bulkhead"
+   },
+   {
+    "id": "plywoodBulkheads",
+    "mass": 26,
+    "cg": [
+     0.4,
+     0.15,
+     0
+    ],
+    "radiiOfGyration": [
+     0.6,
+     1.6,
+     1.6
+    ],
+    "_src": "e 12 mm ply ~2.6 m2 incl. 3x450 tabbing"
+   },
+   {
+    "id": "soleTeak",
+    "mass": 12,
+    "cg": [
+     0.1,
+     -0.3,
+     0
+    ],
+    "radiiOfGyration": [
+     0.25,
+     0.6,
+     0.6
+    ],
+    "_src": "e 1.2 m2 × 16 mm teak"
+   },
+   {
+    "id": "joinery",
+    "mass": 22,
+    "cg": [
+     0,
+     0.25,
+     0
+    ],
+    "radiiOfGyration": [
+     0.6,
+     1.2,
+     1.2
+    ],
+    "_src": "e shelves, pantry, locker, berth tops, washboards, sliding hatch"
+   },
+   {
+    "id": "beams",
+    "mass": 6,
+    "cg": [
+     0.95,
+     0.95,
+     0
+    ],
+    "radiiOfGyration": [
+     0.3,
+     0.5,
+     0.5
+    ],
+    "_src": "e mast beam 90x75 ash + deck beams 30x75"
+   },
+   {
+    "id": "hatches",
+    "mass": 9,
+    "cg": [
+     -0.8,
+     0.6,
+     0
+    ],
+    "radiiOfGyration": [
+     0.5,
+     1.5,
+     1.5
+    ],
+    "_src": "e fore, aft stowage, 2 seat lockers, sole"
+   },
+   {
+    "id": "deckFittings",
+    "mass": 22,
+    "cg": [
+     -0.6,
+     0.8,
+     0
+    ],
+    "radiiOfGyration": [
+     0.7,
+     1.8,
+     1.8
+    ],
+    "_src": "e winches 2×2.5, cleats, fairleads, tracks, handrails, eye bolts, stem fitting, bearings, light"
+   },
+   {
+    "id": "drainsAndSeacocks",
+    "mass": 3,
+    "cg": [
+     -1.6,
+     -0.1,
+     0
+    ],
+    "radiiOfGyration": [
+     0.2,
+     0.3,
+     0.3
+    ],
+    "_src": "e"
+   },
+   {
+    "id": "mastExtrusion",
+    "mass": 22.6,
+    "cg": [
+     1.11,
+     5.75,
+     0
+    ],
+    "radiiOfGyration": [
+     0.05,
+     2.71,
+     2.71
+    ],
+    "_src": "e 9.4 m × 2.4 kg/m (min 2.20 p CR 3.5.2.5; Seldén C126 2.54 candidate); CG ≥3.85 above band 1 p A32 → y≥5.45"
+   },
+   {
+    "id": "mastFittings",
+    "mass": 4,
+    "cg": [
+     1.11,
+     5.2,
+     0
+    ],
+    "radiiOfGyration": [
+     0.05,
+     2.5,
+     2.5
+    ],
+    "_src": "e masthead, crane, spreader roots, sheaves, gooseneck, step"
+   },
+   {
+    "id": "spreaders",
+    "mass": 1.4,
+    "cg": [
+     1,
+     5.17,
+     0
+    ],
+    "radiiOfGyration": [
+     0.75,
+     0.2,
+     0.75
+    ],
+    "_src": "e 2 × ≥0.70 m (p CR 3.5.2.17)"
+   },
+   {
+    "id": "standingRigging",
+    "mass": 4.6,
+    "cg": [
+     1,
+     3.9,
+     0
+    ],
+    "radiiOfGyration": [
+     0.6,
+     2.3,
+     2.3
+    ],
+    "_src": "e 1x19 4 mm (0.08 kg/m) uppers/lowers/forestay + 3 mm backstay ≥9.5 m + 8 turnbuckles"
+   },
+   {
+    "id": "halyardsAndGuys",
+    "mass": 2,
+    "cg": [
+     1.1,
+     4.5,
+     0
+    ],
+    "radiiOfGyration": [
+     0.1,
+     2.5,
+     2.5
+    ],
+    "_src": "e included in weighing (p CR 3.7.2)"
+   },
+   {
+    "id": "mainBoom",
+    "mass": 5.5,
+    "cg": [
+     -0.38,
+     1.645,
+     0
+    ],
+    "radiiOfGyration": [
+     0.04,
+     0.9,
+     0.9
+    ],
+    "_src": "e 3.1 m × 1.4 kg/m + fittings (min 1.25 kg/m p CR 3.5.3.1)"
+   },
+   {
+    "id": "correctorSt2",
+    "mass": 27.8,
+    "cg": [
+     -1.89,
+     0.615,
+     0
+    ],
+    "radiiOfGyration": [
+     0.15,
+     0.1,
+     0.15
+    ],
+    "_src": "d to reach 1450 kg minimum; lead laminated under deck at station 2 (p CR 3.7.1)"
+   },
+   {
+    "id": "correctorSt8",
+    "mass": 27.8,
+    "cg": [
+     1.89,
+     0.704,
+     0
+    ],
+    "radiiOfGyration": [
+     0.15,
+     0.1,
+     0.15
+    ],
+    "_src": "d as above at station 8"
+   }
+  ],
+  "radiiAxes": "[about x (roll), about y (yaw), about z (pitch)] through the item CG; e",
+  "subtotalBeforeCorrectors": 1394.4,
+  "correctorTotal": 55.6,
+  "total": 1450,
+  "cg": [
+   -0.123,
+   -0.178,
+   0
+  ],
+  "inertiaAboutCG": {
+   "Ixx_roll": 2068,
+   "Iyy_yaw": 3134,
+   "Izz_pitch": 4904
+  },
+  "radiiOfGyration": {
+   "roll": 1.194,
+   "yaw": 1.47,
+   "pitch": 1.839
+  },
+  "weighingRules": {
+   "included": "keel, rudder, tiller+extension, minimum accommodation, mast+standing rigging+halyards+spinnaker boom guys, main boom (bare), hatches, fixed fittings, winches, cleats",
+   "excluded": "spinnaker pole, sails?, sheets, blocks, anchor, lifejackets, mattresses, loose gear",
+   "deducted": "compass, fixed pumps, backstay & vang tensioners, furler, stove, toilet, lifting eyes",
+   "_src": "p CR 3.7.2–3.7.4 (sails are not listed either way; treated as excluded)"
+  },
+  "orcComparison": {
+   "displacementMeasurement": 1456,
+   "VCGD": -0.154,
+   "VCGM": -0.12,
+   "definition": "ORC VCG is measured from the flotation waterline in measurement trim, positive up (negative = below WL). VCGD = default/derived value, VCGM = from measured stability (inclining) — here the OD certificate values, not a real inclining.",
+   "modelVCG": -0.178,
+   "delta_vs_VCGM": -0.058,
+   "individualBoats": [
+    {
+     "sail": "SUI 174",
+     "built": "?",
+     "dsplMeasurement": 1454,
+     "dsplSailing": 1869,
+     "WSS": 12.11,
+     "IMSL": 6.461,
+     "crew": 300
+    },
+    {
+     "sail": "SUI 159",
+     "built": "Elvström",
+     "dsplMeasurement": 1532,
+     "dsplSailing": 1948,
+     "WSS": 12.33,
+     "IMSL": 6.518,
+     "crew": 300
+    },
+    {
+     "sail": "DEN 555",
+     "built": "O.L.",
+     "dsplMeasurement": 1264,
+     "dsplSailing": 1676,
+     "WSS": 11.54,
+     "IMSL": 6.285,
+     "crew": 300,
+     "note": "below class minimum, probably measured light"
+    },
+    {
+     "sail": "G-989",
+     "built": "Frauscher",
+     "dsplMeasurement": 1454,
+     "dsplSailing": 1911,
+     "WSS": 12.24,
+     "IMSL": 6.497,
+     "crew": 338
+    },
+    {
+     "sail": "NED 94",
+     "built": "?",
+     "dsplMeasurement": 1454,
+     "dsplSailing": 1869,
+     "WSS": 12.11,
+     "IMSL": 6.461,
+     "crew": 300
+    }
+   ],
+   "_src": "ORC, ORCB; dsplSailing ≈ measurement + crew + ~115 kg ORC sailing allowance (d)"
+  },
+  "note": "Item masses other than keel are estimates; their sum falls short of the 1450 kg minimum by the corrector total, which the rules place as lead at stations 2 and 8 under the deck. Real boats differ: older/heavier laminates reduce or remove correctors. The keel and rudder rows are placeholders: mass.ts replaces them with the integrated appendage geometry and re-solves the correctors."
+ },
+ "crew": {
+  "limits": {
+   "min": 2,
+   "max": 4,
+   "maxTotalMassWorlds": 300,
+   "orcDefault": 338,
+   "typical": 3,
+   "_src": "p CR 4.1; ORC"
+  },
+  "personMassDefault": 100,
+  "presets": {
+   "hikingWindward": [
+    {
+     "role": "helm",
+     "pos": [
+      -1.85,
+      0.78,
+      1.153
+     ]
+    },
+    {
+     "role": "trimmer",
+     "pos": [
+      -1.2,
+      0.78,
+      1.231
+     ]
+    },
+    {
+     "role": "bow",
+     "pos": [
+      -0.6,
+      0.78,
+      1.268
+     ]
+    }
+   ],
+   "seatedWindward": [
+    {
+     "role": "helm",
+     "pos": [
+      -1.85,
+      0.8,
+      0.873
+     ]
+    },
+    {
+     "role": "trimmer",
+     "pos": [
+      -1.2,
+      0.8,
+      0.951
+     ]
+    },
+    {
+     "role": "bow",
+     "pos": [
+      -0.6,
+      0.8,
+      0.988
+     ]
+    }
+   ],
+   "lightAirLeeward": [
+    {
+     "role": "helm",
+     "pos": [
+      -1.85,
+      0.78,
+      -0.55
+     ]
+    },
+    {
+     "role": "trimmer",
+     "pos": [
+      -1.05,
+      0.78,
+      -0.6
+     ]
+    },
+    {
+     "role": "bow",
+     "pos": [
+      -0.45,
+      0.4,
+      0
+     ]
+    }
+   ],
+   "downwindCentred": [
+    {
+     "role": "helm",
+     "pos": [
+      -2.05,
+      0.78,
+      0.45
+     ]
+    },
+    {
+     "role": "trimmer",
+     "pos": [
+      -1.45,
+      0.78,
+      -0.45
+     ]
+    },
+    {
+     "role": "bow",
+     "pos": [
+      -0.85,
+      0.55,
+      0
+     ]
+    }
+   ],
+   "atRestInCockpit": [
+    {
+     "role": "helm",
+     "pos": [
+      -1.85,
+      0.73,
+      -0.5
+     ]
+    },
+    {
+     "role": "trimmer",
+     "pos": [
+      -1.2,
+      0.73,
+      0.5
+     ]
+    },
+    {
+     "role": "bow",
+     "pos": [
+      -0.6,
+      0.73,
+      -0.5
+     ]
+    }
+   ]
+  },
+  "positionMeaning": "body CG of each person; z>0 = starboard. Hiking: torso outboard of sheer, legs inside rail (footstraps allowed, CR 3.8.4).",
+  "_src": "e all presets; heights from seat 0.48 / deck 0.62 + ~0.25–0.3 seated CG"
+ },
+ "variants": {
+  "parameters": [
+   "rudderDepth",
+   "mastPositionFwd",
+   "mastTopTaper",
+   "chainplateX",
+   "coamingHeight",
+   "winchPosition",
+   "windowStyle",
+   "keelFairingShell",
+   "laminateSpec",
+   "motorWell",
+   "deckLayoutControlsLedAft"
+  ],
+  "builders": [
+   {
+    "builder": "Kolho / Nils Anderssons Båtvarv",
+    "years": "1967–1970",
+    "boats": "first ~15",
+    "changes": {
+     "mast": "early weak masts replaced by stiffer sections",
+     "keel": "+50 kg added after first boats (now 725±10)",
+     "motorWell": true
+    }
+   },
+   {
+    "builder": "Artekno (Kangasala, FIN)",
+    "years": "1970–1991",
+    "changes": {
+     "note": "largest builder; Kolho moulds; long wedge window from 1975",
+     "coaming": "spray-hood curved coaming mid-70s, race coaming earlier"
+    }
+   },
+   {
+    "builder": "Elvstrøm (DEN)",
+    "years": "~1971–1977",
+    "changes": {
+     "rudderDepth": "+0.15 m (dashed pre-1.1.1972 lower edge on A33)",
+     "mastTopTaper": true,
+     "mastPositionFwd": "slightly forward",
+     "laminateSpec": "built to minimum weight",
+     "chainplateX": "ended too far forward; later moved aft to clear jib leech"
+    }
+   },
+   {
+    "builder": "Hydrospeed, Scanboat (FIN)",
+    "years": "1970s",
+    "changes": {}
+   },
+   {
+    "builder": "Botnia Marin (FIN)",
+    "years": "1975/76–2004",
+    "changes": {
+     "coamingHeight": "lowered",
+     "winchPosition": "moved to cabin top",
+     "deckLayoutControlsLedAft": "halyards to strengthened hatch garage, controls both sides, high traveller, backstay adjustable from centre"
+    }
+   },
+   {
+    "builder": "O.L.-Boats (DEN)",
+    "years": "~1977–2000",
+    "changes": {
+     "note": "Elvstrøm moulds after bankruptcy"
+    }
+   },
+   {
+    "builder": "Finnhalls (FIN)",
+    "years": "1980–1982",
+    "changes": {}
+   },
+   {
+    "builder": "Frauscher (AUT)",
+    "years": "1978–",
+    "changes": {}
+   },
+   {
+    "builder": "Ott Yacht (GER)",
+    "years": "2000–",
+    "changes": {
+     "note": "O.L. moulds; cast iron keel in GRP shell, 16 mm SS bolts"
+    }
+   },
+   {
+    "builder": "Eagle Marine (FIN)",
+    "years": "2004–",
+    "changes": {
+     "note": "Botnia moulds/licence"
+    }
+   },
+   {
+    "builder": "Saare Yachts (EST)",
+    "years": "recent",
+    "changes": {
+     "note": "moulds from Austria"
+    }
+   },
+   {
+    "builder": "all (from ~1985)",
+    "years": "1985–",
+    "changes": {
+     "keelFairingShell": "keels faired with GRP shells, keel weight held to tolerance"
+    }
+   },
+   {
+    "builder": "all (from ~2000)",
+    "years": "2000–",
+    "changes": {
+     "deckLayoutControlsLedAft": "reinforced hatch garage, short high traveller, dyneema/carbon within rules"
+    }
+   },
+   {
+    "builder": "hulls after 17.8.2022",
+    "years": "2022–",
+    "changes": {
+     "laminateSpec": "2022 spec (WR 600 g/m2, extra 300 CSM below joint)"
+    }
+   }
+  ],
+  "_src": "WIKI Historia; h-boat.org history; CR App.1 §11"
+ },
+ "rig": {
+  "schema": "hboat-rig/1",
+  "frame": "SI m; origin station 5 on CWL (KVL); +X fwd, +Y up, +Z stbd; station s at x=(s-5)*0.63. Port/stbd pairs listed with +Z (stbd), mirror Z for port.",
+  "flags": {
+   "p": "printed on a drawing or in the class rules",
+   "m": "measured from a scan (calibration and uncertainty given)",
+   "t": "from a tuning guide (named)",
+   "e": "estimate (reason given)",
+   "d": "derived (formula given)"
+  },
+  "sources": {
+   "CR2022": "International H-Boat Class Rules, effective 2022-08-17 (h-boat.org hbt_cr_20220805.pdf)",
+   "A.2.1": "Plan A.2.1 General arrangement (FSF/SPL, H. Groop), 150 dpi scan; deck plan scale 0.596 px/mm fore-aft verified on 883/803 mast marks and 2850/3250 shroud arcs; transverse scale ~0.54 px/mm (copy distortion)",
+   "A.3.2": "Plan A.3.2 Spars (mast, boom, spinnaker boom), broken views, printed dims only",
+   "A.4.1": "Plan A.4.1 Sail plan, A4 scan stored mirrored top-bottom (flip vertically to read); ~120 px/m with ±7 % distortion, used for topology only",
+   "A.5.1": "Plan A.5.1 Measurement plan (mast marks 803/883, 1580±5, 2423±40, LOA 8285±20)",
+   "ORC2020": "ORC Club One Design certificate H-boat 2020 (No 21590): P 8.70 E 3.00 I 7.94 ISP 8.04 J 2.47 SPL 2.415 SFL 4.80 SHW 5.40 SL 7.30 HLU 7.58 HLP 2.72 MHB 0.12 MUW 0.65 MTW 1.11 MHW 1.91 BAS 0.90 SFJ 0.72 DiaL 0.116 DiaT 0.080; main 15.55, headsail 10.48, spinnaker 32.12 m2",
+   "Fritz": "Fritz Segel, Das H-Boot-Trimmbuch (DE) and Trimhandbok (SV 2025-04-21)",
+   "North": "North Sails H-Boat Tuning Guide (Stegger, Christiansen, Palm)",
+   "hwiki": "h-vene.net wiki (Maston trimmaus, Etustaagi, Vantit ja vanttiruuvit, Spinaakkeri, Vinssi, Takastaagi)",
+   "Selden": "Seldén keelboat catalogue, aluminium mast sections table",
+   "offsets": "Table of offsets A.1.2 (12.8.74), transcribed CSV hboat_offsets_A12.csv"
+  },
+  "datums": {
+   "forestay_deck_point": [
+    3.47,
+    0.7952,
+    0
+   ],
+   "mast_reference_surface_y": 1.05,
+   "station8_x": 1.89,
+   "transom_top_cl": [
+    -3.95,
+    0.6293,
+    0
+   ],
+   "transom_aft_extreme_x": -4.14,
+   "_src": {
+    "forestay_deck_point": "p CR2022 3.5.2.14 forestay meets deck 1580±5 fwd of st 8; y d CL deck height interpolated from offsets col CLDeckH (st 10 783, 10.5 795)",
+    "mast_reference_surface_y": "p A.4.1 \"1050±10\" CWL to reference surface on cabin top at mast",
+    "transom_top_cl": "m reverse transom: A.4.1 shows deck/transom joint ~0.19 m fwd of the aft-most knuckle (~0.32 m above CWL); y d sheer height from offsets",
+    "transom_aft_extreme_x": "m A.5.1 LOA 8285±20 spans x≈-4.14..+4.14 about st 5 (±0.05)"
+   }
+  },
+  "spars": {
+   "mast": {
+    "material": "aluminium alloy >= 90 % Al, extrusion",
+    "heel_front_face": [
+     1.05,
+     1.05,
+     0
+    ],
+    "heel_centre": [
+     0.992,
+     1.05,
+     0
+    ],
+    "mast_step": {
+     "on": "cabin top, centreline",
+     "front_face_aft_of_st8": {
+      "min": 0.803,
+      "max": 0.883,
+      "nominal": 0.843,
+      "default": 0.84
+     },
+     "front_face_to_forestay_pin": {
+      "default": 2.42,
+      "tuning_range": [
+       2.4,
+       2.42
+      ]
+     },
+     "fore_aft_adjustment": 0.04
+    },
+    "length": 9.4,
+    "section": {
+     "fore_aft": 0.116,
+     "athwart": 0.08,
+     "class_fore_aft": [
+      0.115,
+      0.135
+     ],
+     "class_athwart": [
+      0.08,
+      0.1
+     ],
+     "wall": {
+      "min": 0.0015,
+      "max": 0.005,
+      "default": 0.0023
+     },
+     "le_radius_min": 0.02,
+     "kg_per_m": {
+      "min": 2.2,
+      "default": 2.3
+     },
+     "I_fore_aft_m4": 0.0000013,
+     "I_athwart_m4": 6.6e-7,
+     "E_Pa": 70000000000,
+     "candidates": [
+      {
+       "name": "Seldén C116",
+       "dims": [
+        0.116,
+        0.075
+       ],
+       "Iy_cm4": 126.4,
+       "Ix_cm4": 57.2,
+       "wall": 0.0023,
+       "kg_per_m": 2.26,
+       "note": "athwart 75 < class min 80"
+      },
+      {
+       "name": "Seldén C126",
+       "dims": [
+        0.126,
+        0.079
+       ],
+       "Iy_cm4": 172.2,
+       "Ix_cm4": 74.6,
+       "wall": 0.0024,
+       "kg_per_m": 2.54,
+       "note": "shown on an H-boat in the Seldén catalogue; athwart 79 marginal"
+      }
+     ]
+    },
+    "taper": {
+     "allowed_above": "forestay attachment",
+     "min_tip_section": [
+      0.065,
+      0.05
+     ],
+     "default_taper_start_s": 7.545,
+     "default_tip_section": [
+      0.08,
+      0.06
+     ]
+    },
+    "bands_s_from_heel": {
+     "band1_upper_edge": 0.55,
+     "band2_lower_edge": 7.595,
+     "band3_lower_edge": 9.25
+    },
+    "attach_s_from_heel": {
+     "forestay": 7.545,
+     "uppers": 7.545,
+     "lowers": 4.07,
+     "spreaders": 4.22,
+     "spinnaker_halyard_sheave": 7.675,
+     "pole_ring": 1.5,
+     "boom_top_min": 0.55,
+     "backstay_crane": 9.3,
+     "masthead": 9.4
+    },
+    "attach_ranges_s": {
+     "forestay": [
+      7.495,
+      7.595
+     ],
+     "uppers": [
+      7.495,
+      7.695
+     ],
+     "lowers": [
+      3.87,
+      4.17
+     ],
+     "spreaders_above_lowers": [
+      0,
+      0.2
+     ],
+     "spinnaker_halyard_sheave_max": 7.695,
+     "pole_ring": [
+      1.47,
+      1.53
+     ],
+     "band2": [
+      7.59,
+      7.6
+     ],
+     "band3_max": 9.25
+    },
+    "backstay_crane": {
+     "aft_of_aft_face": 0.2,
+     "drop_below_top": 0.1,
+     "max_aft": 0.25,
+     "max_drop": 0.15
+    },
+    "prebend_presets_m": {
+     "LW": 0.03,
+     "MWI": 0.03,
+     "MWII": 0.04,
+     "SWI": 0.05,
+     "SWII": 0.07
+    },
+    "mass": {
+     "items_kg": {
+      "extrusion": 21.62,
+      "spreaders_fittings_tangs": 2,
+      "standing_rigging": 3.15,
+      "halyards": 1.6,
+      "turnbuckles_toggles": 0.9
+     },
+     "total_kg": 29.27,
+     "cg_s_from_heel": 4.5,
+     "cg_min_s": 4.4,
+     "class_tip_weight_at_band3_min_kg": 12,
+     "tip_weight_check_kg": 13.29,
+     "min_total_for_cg_at_min_kg": 27.12
+    },
+    "_src": {
+     "heel_front_face": "d forestay deck point x minus 2.420 (North 2.42; Fritz 2.40-2.42; CR2022 3.5.2.2 843±40 aft st8 + 1580 = 2423±40); y p A.4.1 1050±10",
+     "rake_angle_deg": "d solved so forestay length (tang to deck surface) = (forestay tang - band1)+1.36 m (Fritz mark 136 cm); positive = raked aft",
+     "length": "p A.3.2 \"~9400\"",
+     "section": "p ORC2020 DiaL 0.116 / DiaT 0.080; class ranges p CR2022 3.5.2.4 (125±10 x 90±10); old A.3.2 min 115x80 2.2 kg/m; I values e scaled from Seldén C116 (Ix by (80/75)^2), E e 70 GPa",
+     "kg_per_m": "p CR2022 3.5.2.5 min 2.20; default e 2.30 (Seldén C116 2.26)",
+     "taper": "p A.3.2 / CR2022 3.5.2.6 taper only above forestay, tip min 50x65; default tip e",
+     "bands_s_from_heel": "p CR2022 3.5.2.7 band1 550±5 above reference surface; band2 7040-7050 above band1 (mid 7045 used); band3 <= 8700 above band1 (max used, = P 8.70 ORC)",
+     "forestay": "p CR2022 3.5.2.12 band2 to 100 below; default 50 below (e)",
+     "uppers": "p CR2022 3.5.2.10 within 100 of band2; default 50 below band2 (e, shared tang with forestay)",
+     "lowers": "p A.3.2 3520 (+100/-200) above band1; CR2022 3.5.2.11 3320-3620",
+     "spreaders": "p CR2022 3.5.2.17 above lowers and <= 200; default +150 (e)",
+     "spinnaker_halyard_sheave": "p CR2022 3.5.2.16 <= 100 above band2, <= 60 fwd of mast face; default +80 / 50 fwd (e); ORC ISP 8.04 vs I 7.94 consistent",
+     "pole_ring": "p CR2022 3.5.4 950±30 above band1 (North: 1.50 m over cabin top)",
+     "jib_halyard_sheave": "e 30 mm above forestay tang; internal jib halyard allowed (A.3.2)",
+     "pole_lift_sheave": "e A.3.2 shows lift sheave just below forestay; 150 below tang",
+     "pole_downhaul_cheek": "e A.3.2 cheek block near heel, 150 above heel",
+     "main_halyard_lock": "p A.3.2 hooks for main halyard (lock) near band3; Fritz shackle bolt 1.5-2 cm below band 3",
+     "backstay_crane": "p A.3.2 max 250 aft / max 150 drop; default 200/100 (e)",
+     "prebend_presets_m": "t Fritz 2.1.3 (halyard-to-mast gap near spreader height, no backstay)",
+     "mass": "e extrusion length x kg/m + fittings; standing rigging from computed wire lengths x 0.080 (4 mm) / 0.045 (3 mm) kg/m; CR2022 3.5.2.19 mast+rigging weighed at band3 supported at band1 >= 12 kg; A.3.2 CG >= 3850 above band1"
+    }
+   },
+   "spreaders": {
+    "count": 2,
+    "type": "swinging (fixed allowed)",
+    "length": 0.83,
+    "length_min": 0.7,
+    "length_tuning": [
+     0.75,
+     0.83
+    ],
+    "sweep_tip_line_aft_of_mast_groove": 0.19,
+    "sweep_tuning": {
+     "0.83": [
+      0.19,
+      0.2
+     ],
+     "0.81": 0.19,
+     "0.75": 0.16
+    },
+    "swing_stops_deg": {
+     "fwd": 5,
+     "aft": 35
+    },
+    "jib_marks_from_mast_side": {
+     "Fritz": [
+      0.4,
+      0.45
+     ],
+     "North": [
+      0.44,
+      0.54
+     ]
+    },
+    "section_e": [
+     0.035,
+     0.018
+    ],
+    "mass_each_kg": 0.45,
+    "_src": {
+     "length": "t Fritz 83 cm (recommended, Nordic Mast); North 81 cm; p CR2022 3.5.2.17 min 700 (mast face to shroud bearing)",
+     "sweep_tip_line_aft_of_mast_groove": "t Fritz 19-20 cm for 83 cm, 16 cm for 75 cm; North 19 cm for 81 cm (line between upper shrouds to aft side of mast)",
+     "sweep_angle_deg": "d atan(aft offset of tip from root at mast centre / lateral)",
+     "swing_stops_deg": "p A.3.2",
+     "section_e": "e typical aluminium spreader",
+     "mass_each_kg": "e"
+    }
+   },
+   "boom": {
+    "material": "aluminium extrusion, continuous boltrope groove, no taper",
+    "band_from_mast_aft_face": 3,
+    "length": 3.1,
+    "section": {
+     "depth": 0.09,
+     "width": 0.075,
+     "depth_range": [
+      0.075,
+      0.105
+     ],
+     "width_range": [
+      0.06,
+      0.09
+     ],
+     "kg_per_m_min": 1.25,
+     "kg_per_m": 1.4,
+     "I_vertical_m4": 5.5e-7,
+     "I_lateral_m4": 3.8e-7
+    },
+    "fittings_from_mast_aft_face": {
+     "vang": 0.8,
+     "mainsheet": 2.6,
+     "outhaul_band": 3
+    },
+    "mass_kg": 5.6,
+    "_src": {
+     "band_from_mast_aft_face": "p CR2022 3.5.3.2 inner edge <= 3000 (ORC E 3.00); A.3.2",
+     "length": "e band + outhaul end fitting",
+     "section": "p CR2022 3.5.3.1 90±15 x 75±15 >= 1.25 kg/m; old A.3.2 min 75x60; kg/m and I e",
+     "gooseneck": "p CR2022 3.5.2.18 boom top not below band1; North gooseneck mark 54.8 cm above deck; Fritz 56-56.5 cm; boom perpendicular to mast",
+     "fittings_from_mast_aft_face": "p A.3.2 \"~800\" vang fitting, \"~400\" mainsheet fitting fwd of band (3000-400)",
+     "mass_kg": "e 3.1 m x 1.4 kg/m + 1.3 kg fittings"
+    }
+   },
+   "spinnaker_pole": {
+    "length": 2.4,
+    "max_from_mast_face": 2.415,
+    "section_e": {
+     "diameter": 0.05,
+     "wall": 0.0016
+    },
+    "mass_kg": 2,
+    "height_on_mast_s": 1.5,
+    "default_height_above_cabin_top_north": 1.5,
+    "_src": {
+     "length": "p A.3.2 2400 (2415 max extension); ORC SPL 2.415; CR2022 3.5.4",
+     "section_e": "e not specified",
+     "mass_kg": "e",
+     "height_on_mast_s": "p CR2022 3.5.4 fixed ring 950±30 above band1"
+    }
+   }
+  },
+  "standing_rigging": {
+   "material": "stainless steel 1x19 (or solid rod), circular",
+   "turnbuckles": "5/16 in (Hasselfors), above deck only, adjustable while racing",
+   "wire_props": {
+    "4mm_1x19": {
+     "kg_per_m": 0.08,
+     "MBL_N": 13000,
+     "metal_area_m2": 0.0000096,
+     "E_eff_Pa": 130000000000
+    },
+    "3mm_1x19": {
+     "kg_per_m": 0.045,
+     "MBL_N": 7300,
+     "metal_area_m2": 0.0000054,
+     "E_eff_Pa": 130000000000
+    }
+   },
+   "chainplates": {
+    "upper_stbd": [
+     0.413,
+     0.6288,
+     1.004
+    ],
+    "lower_stbd": [
+     0.534,
+     0.6323,
+     0.9918
+    ],
+    "inboard_of_sheer": 0.05,
+    "rule": "within 75 mm inboard of sheerline; 2850-3250 radially from forestay-deck point",
+    "_src": {
+     "upper_stbd": "m A.2.1 aft eye bolt (1.477 aft of st 8, ±50); assignment e: the upper runs straight in profile through the swept spreader tip only from this bolt (D3)",
+     "lower_stbd": "m A.2.1 forward eye bolt (1.356 aft of st 8, ±50); assignment e (D3)",
+     "inboard_of_sheer": "e within the 75 mm rule"
+    }
+   },
+   "tension_presets_LoosPT1M": {
+    "gauge_height_above_deck": 1.45,
+    "note": "Loos PT-1M units (LE); no LE->N table is published in the sources, keep raw. Rough guide only: uppers at 36-40 LE are commonly ~15-20 % MBL on 4 mm wire.",
+    "Fritz": {
+     "LW": {
+      "wind_mps": [
+       0,
+       1.5
+      ],
+      "wind_bft": [
+       0,
+       1.5
+      ],
+      "uppers": 27,
+      "lowers": 20,
+      "forestay": [
+       16,
+       18
+      ],
+      "forestay_choppy": [
+       14,
+       15
+      ],
+      "prebend": 0.03,
+      "backstay": 0
+     },
+     "MWI": {
+      "wind_mps": [
+       1.5,
+       4
+      ],
+      "wind_bft": [
+       1.5,
+       3
+      ],
+      "uppers": 34,
+      "lowers": [
+       23,
+       25
+      ],
+      "forestay": [
+       19,
+       22
+      ],
+      "forestay_choppy": [
+       16,
+       18
+      ],
+      "prebend": 0.03,
+      "backstay": "light above 2.5-3 Bft"
+     },
+     "MWII": {
+      "wind_mps": [
+       4,
+       7
+      ],
+      "wind_bft": [
+       3,
+       4.5
+      ],
+      "uppers": 36,
+      "lowers": [
+       26,
+       28
+      ],
+      "forestay": [
+       22,
+       24
+      ],
+      "forestay_choppy": [
+       18,
+       21
+      ],
+      "prebend": 0.04,
+      "backstay": [
+       20,
+       23
+      ]
+     },
+     "SWI": {
+      "wind_mps": [
+       8,
+       12
+      ],
+      "wind_bft": [
+       4.5,
+       6
+      ],
+      "uppers": 37,
+      "lowers": [
+       29,
+       32
+      ],
+      "forestay": 26,
+      "forestay_choppy": [
+       22,
+       24
+      ],
+      "prebend": 0.05,
+      "backstay": [
+       25,
+       28
+      ]
+     },
+     "SWII": {
+      "wind_mps": [
+       12,
+       19
+      ],
+      "wind_bft": [
+       6,
+       8
+      ],
+      "uppers": [
+       39,
+       40
+      ],
+      "lowers": [
+       33,
+       35
+      ],
+      "forestay": 28,
+      "forestay_choppy": [
+       25,
+       27
+      ],
+      "prebend": 0.07,
+      "backstay": 28
+     }
+    },
+    "North": {
+     "light": {
+      "wind_mps": [
+       0,
+       2
+      ],
+      "uppers": 31,
+      "lowers": 25
+     },
+     "medium": {
+      "wind_mps": [
+       3,
+       9
+      ],
+      "uppers": 36,
+      "lowers": 30
+     },
+     "heavy": {
+      "wind_mps": [
+       10,
+       99
+      ],
+      "uppers": 41,
+      "lowers": 38
+     }
+    },
+    "loose_rig_Ottosson_hwiki": {
+     "uppers": 23,
+     "lowers": 12
+    }
+   },
+   "_src": {
+    "material": "p CR2022 3.5.2.8, A.3.2 1x19 or solid; hwiki 4 mm, turnbuckles 5/16",
+    "wire_props": "e typical catalogue values for 316 1x19",
+    "forestay": "p 4 mm min CR2022 3.5.2.9; length d from Fritz 136 cm mark (hwiki: 8060 one boat, 8340 Botnia incl turnbuckle)",
+    "upper_shroud_stbd": "d path tang -> spreader tip -> chainplate; mirror z for port",
+    "lower_shroud_stbd": "d",
+    "backstay": "p 3 mm min, >= 9500 wire CR2022 3.5.2.9; t Fritz 1:16 control",
+    "chainplates": "m A.2.1 two 8 mm s.s. eye bolts at 1356 and 1477 aft of st 8 (±30 mm), ~50 mm inboard of sheer; height = sheer (offsets). Assignment fwd=uppers / aft=lowers is e (not labelled)",
+    "tension_presets_LoosPT1M": "t Fritz 2.1.1 (DE Bft / SV m/s ranges; gauge 145 cm above deck), North on-the-water table (via hwiki), hwiki Ottosson loose-rig trim"
+   }
+  },
+  "running_rigging": [
+   {
+    "name": "main_halyard",
+    "dia": 0.004,
+    "material": "4 mm wire with rope tail (A.3.2); halyard lock hooks at top",
+    "purchase": 1,
+    "path": [
+     "main_head",
+     "mast.main_halyard_lock",
+     "mast sheave at band3",
+     "internal",
+     "exit near band1",
+     "mast cleat/winch"
+    ],
+    "locked": true
+   },
+   {
+    "name": "jib_halyard",
+    "dia": 0.006,
+    "material": "rope or wire/rope, internal allowed",
+    "purchase": 1,
+    "path": [
+     "jib_head",
+     "mast.jib_halyard_sheave",
+     "internal",
+     "exit low",
+     "cleat on mast or cabin top"
+    ]
+   },
+   {
+    "name": "spinnaker_halyard",
+    "dia": 0.006,
+    "purchase": 1,
+    "path": [
+     "spin_head",
+     "mast.spinnaker_halyard_sheave",
+     "internal",
+     "exit low",
+     "cleat"
+    ]
+   },
+   {
+    "name": "mainsheet",
+    "dia": 0.008,
+    "purchase": 5,
+    "path": [
+     "boom.mainsheet_bail",
+     "traveller car",
+     "cockpit cleat"
+    ],
+    "traveller": {
+     "x": -1.6954,
+     "y": 0.45,
+     "half_span": 0.35
+    },
+    "traveller_settings_cm_to_windward": {
+     "0-0.5Bft_flat": [
+      20,
+      25
+     ],
+     "0-0.5Bft_chop": [
+      15,
+      20
+     ],
+     "0.5-1_flat": [
+      15,
+      20
+     ],
+     "0.5-1_chop": [
+      10,
+      15
+     ],
+     "1-3_flat": [
+      10,
+      12
+     ],
+     "1-3_chop": [
+      7,
+      12
+     ],
+     "3-4.5_flat": [
+      4,
+      6
+     ],
+     "3-4.5_chop": [
+      2,
+      4
+     ],
+     "4.5+_flat": [
+      0,
+      -2
+     ],
+     "4.5+_chop": [
+      0,
+      -10
+     ]
+    }
+   },
+   {
+    "name": "vang",
+    "dia": 0.006,
+    "purchase": 16,
+    "path": [
+     "boom.vang_eye",
+     "mast base"
+    ],
+    "note": "1:16 outside boom, 1:32 inside (Fritz)"
+   },
+   {
+    "name": "outhaul",
+    "dia": 0.005,
+    "purchase": 10,
+    "path": [
+     "main clew",
+     "boom end sheave",
+     "inside boom",
+     "gooseneck",
+     "cleat"
+    ],
+    "range": [
+     8,
+     12
+    ]
+   },
+   {
+    "name": "cunningham",
+    "dia": 0.005,
+    "purchase": 4,
+    "path": [
+     "main cunningham eye",
+     "mast base",
+     "cleat"
+    ]
+   },
+   {
+    "name": "backstay_control",
+    "dia": 0.006,
+    "purchase": 16,
+    "path": [
+     "backstay lower end",
+     "cascade blocks",
+     "cockpit (both sides)"
+    ]
+   },
+   {
+    "name": "jib_sheet_stbd",
+    "dia": 0.008,
+    "purchase": 1,
+    "path": [
+     "jib_clew",
+     "jib_lead_stbd",
+     "winch_stbd",
+     "cleat"
+    ],
+    "lead": [
+     0.7204,
+     0.6876,
+     0.85
+    ],
+    "lead_dist_from_forestay_pin": 2.88,
+    "lead_range": [
+     2.85,
+     2.89
+    ],
+    "very_light_air_offset_aft": 0.03,
+    "track_half_length": 0.15
+   },
+   {
+    "name": "spinnaker_sheet_stbd",
+    "dia": 0.008,
+    "dia_tip": 0.005,
+    "purchase": 1,
+    "path": [
+     "spin clew (stbd)",
+     "spin_block_stbd (ratchet)",
+     "cockpit/winch"
+    ]
+   },
+   {
+    "name": "spinnaker_guy",
+    "note": "windward sheet led through pole end jaw",
+    "path": [
+     "spin tack",
+     "pole outer end",
+     "spin_block (windward)",
+     "cockpit"
+    ]
+   },
+   {
+    "name": "pole_topping_lift",
+    "dia": 0.005,
+    "purchase": 1,
+    "path": [
+     "pole outer end bridle",
+     "mast.pole_lift_sheave",
+     "internal",
+     "cleat"
+    ]
+   },
+   {
+    "name": "pole_downhaul",
+    "dia": 0.005,
+    "purchase": 1,
+    "path": [
+     "pole outer end bridle",
+     "mast.pole_downhaul_cheek",
+     "cockpit"
+    ]
+   },
+   {
+    "name": "barber_haulers",
+    "optional": true,
+    "path": [
+     "spinnaker sheets / jib sheets",
+     "deck blocks",
+     "cleat"
+    ]
+   }
+  ],
+  "deck_hardware": {
+   "winch_stbd": [
+    -1.5295,
+    0.78,
+    0.76
+   ],
+   "winch_stbd_botnia_cabin_top": [
+    -0.4,
+    1.02,
+    0.42
+   ],
+   "spin_block_stbd": [
+    -3.011,
+    0.6394,
+    0.6984
+   ],
+   "spin_block_adjust": [
+    0,
+    0.14
+   ],
+   "jib_lead_stbd": [
+    0.7204,
+    0.6876,
+    0.85
+   ],
+   "ga_side_deck_track_stbd": {
+    "x": [
+     0.0779,
+     0.4219
+    ],
+    "z": [
+     0.75,
+     0.84
+    ]
+   },
+   "traveller": {
+    "x": -1.6954,
+    "y": 0.45,
+    "half_span": 0.35
+   },
+   "mast_heel": [
+    0.992,
+    1.05,
+    0
+   ],
+   "_src": {
+    "winch_stbd": "m A.2.1 winch circle at 2812 px -> x (±0.05); z from transverse scale 0.54 px/mm (±0.05); y e coaming top; \"winches compulsory\" (A.2.1); one pair (hwiki Vinssi)",
+    "winch_stbd_botnia_cabin_top": "e Botnia boats from ~1976 have winches on cabin top (hwiki Historia/Vinssi); position e at aft corners of cabin top",
+    "spin_block_stbd": "m A.2.1 \"Spinnaker sheet blocks\" at aft quarter, x ±0.05; 40 mm inboard of sheer; dimension \"+0-140\" read as adjustment range (e)",
+    "jib_lead_stbd": "t North 2.88 m / Fritz 2.85-2.89 m forestay pin -> lead block centre; z 0.85 e (side deck outboard of cabin side); y sheer + 50 mm block",
+    "ga_side_deck_track_stbd": "m A.2.1 perforated track on side deck, unlabelled; 3.05-3.39 m aft of forestay, so not the tuning-guide jib lead position — kept as found",
+    "traveller": "e sheeting arrangement is free (A.2.1); traveller placed under boom mainsheet bail; half-span e >= Fritz 25 cm windward setting",
+    "mast_heel": "d"
+   }
+  },
+  "sails": {
+   "mainsail": {
+    "cloth": {
+     "material": "woven polyester",
+     "areal_mass_kg_m2": 0.27,
+     "min_areal_mass": 0.2
+    },
+    "luff": 8.7,
+    "foot": 3,
+    "headboard": 0.12,
+    "leech_straight": 9.1643,
+    "leech_max": 9.19,
+    "girths_max": {
+     "half": 1.91,
+     "three_quarter": 1.11,
+     "upper_400_below_head": 0.32,
+     "ORC_MUW_7_8": 0.65
+    },
+    "roach_extra_width_perp_luff": [
+     {
+      "leech_fraction": 0,
+      "extra": 0,
+      "flag": "d",
+      "note": "clew"
+     },
+     {
+      "leech_fraction": 0.25,
+      "extra": 0.24,
+      "flag": "e",
+      "note": "quarter width not class-controlled; smooth roach"
+     },
+     {
+      "leech_fraction": 0.5,
+      "extra": 0.35,
+      "flag": "d",
+      "note": "class 3.6.2.3 max 1910 at half height"
+     },
+     {
+      "leech_fraction": 0.75,
+      "extra": 0.27,
+      "flag": "d",
+      "note": "class 3.6.2.3 max 1110 at 3/4 height"
+     },
+     {
+      "leech_fraction": 0.875,
+      "extra": 0.17,
+      "flag": "d",
+      "note": "ORC MUW 0.65"
+     },
+     {
+      "leech_fraction": 0.9540229885057471,
+      "extra": 0.0676,
+      "flag": "d",
+      "note": "class 3.6.2.5 max 320 at 400 below head"
+     },
+     {
+      "leech_fraction": 1,
+      "extra": 0,
+      "flag": "d",
+      "note": "aft head point"
+     }
+    ],
+    "outline_uv": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      3
+     ],
+     [
+      2.175,
+      2.52
+     ],
+     [
+      4.35,
+      1.91
+     ],
+     [
+      6.525,
+      1.11
+     ],
+     [
+      7.6125,
+      0.65
+     ],
+     [
+      8.3,
+      0.32
+     ],
+     [
+      8.7,
+      0.12
+     ],
+     [
+      8.7,
+      0
+     ]
+    ],
+    "area_polygon": 15.483,
+    "area_ORC_formula": 15.481,
+    "area_class_nominal": 14.8,
+    "area_ORC_cert": 15.55,
+    "battens": [
+     {
+      "name": "main_b1",
+      "leech_fraction": 0.2,
+      "length": 0.85,
+      "full_length": false,
+      "pocket_inside_width": 0.06,
+      "_src": {
+       "leech_fraction": "p class 3.6.2.6 pockets divide leech into equal parts ±100",
+       "length": "p class 3.6.2.6 lower three pockets max 850; top may extend to mast",
+       "full_length": "e top batten modelled full length (permitted); set false and length 0.85 for A.4.1 style"
+      }
+     },
+     {
+      "name": "main_b2",
+      "leech_fraction": 0.4,
+      "length": 0.85,
+      "full_length": false,
+      "pocket_inside_width": 0.06,
+      "_src": {
+       "leech_fraction": "p class 3.6.2.6 pockets divide leech into equal parts ±100",
+       "length": "p class 3.6.2.6 lower three pockets max 850; top may extend to mast",
+       "full_length": "e top batten modelled full length (permitted); set false and length 0.85 for A.4.1 style"
+      }
+     },
+     {
+      "name": "main_b3",
+      "leech_fraction": 0.6,
+      "length": 0.85,
+      "full_length": false,
+      "pocket_inside_width": 0.06,
+      "_src": {
+       "leech_fraction": "p class 3.6.2.6 pockets divide leech into equal parts ±100",
+       "length": "p class 3.6.2.6 lower three pockets max 850; top may extend to mast",
+       "full_length": "e top batten modelled full length (permitted); set false and length 0.85 for A.4.1 style"
+      }
+     },
+     {
+      "name": "main_b4",
+      "leech_fraction": 0.8,
+      "length": null,
+      "full_length": true,
+      "pocket_inside_width": 0.06,
+      "_src": {
+       "leech_fraction": "p class 3.6.2.6 pockets divide leech into equal parts ±100",
+       "length": "p class 3.6.2.6 lower three pockets max 850; top may extend to mast",
+       "full_length": "e top batten modelled full length (permitted); set false and length 0.85 for A.4.1 style"
+      }
+     }
+    ],
+    "window_max_m2": 0.3,
+    "reefing": "optional (cruising mains often one reef)",
+    "shape_defaults": {
+     "camber": {
+      "0.25": 0.1,
+      "0.5": 0.12,
+      "0.75": 0.12,
+      "0.9": 0.1
+     },
+     "draft_pos": {
+      "0.25": 0.48,
+      "0.5": 0.47,
+      "0.75": 0.46
+     },
+     "luff_curve_max": 0.07,
+     "twist_top_batten_parallel_boom": true
+    },
+    "_src": {
+     "luff": "p CR2022 3.6.2.1 not above band3 lower edge, not below band1 (ORC P 8.70)",
+     "foot": "p CR2022 3.6.2.1 boom band (ORC E 3.00)",
+     "headboard": "p CR2022 3.6.2.4 max 120 (ORC MHB 0.12)",
+     "leech_max": "p CR2022 3.6.2.2 9190 (A.4.1 older plan 9160)",
+     "girths_max": "p CR2022 3.6.2.3/3.6.2.5; ORC MUW",
+     "area_polygon": "d polygon through outline_uv",
+     "area_ORC_formula": "d P/8*(E+2MQW+2MHW+1.5MTW+MUW+0.5MHB) with MQW = straight+0.24 (e)",
+     "cloth": "p CR2022 3.6.1.2 >= 200 g/m2 woven; default e 270 g/m2 (racing Dacron)",
+     "shape_defaults": "e typical fractional-rig main; not given in sources. Twist rule t North/Fritz (aft part of top batten parallel to boom)",
+     "luff_curve_max": "e (hwiki: luff cut with curve to match prebend)"
+    }
+   },
+   "jib": {
+    "cloth": {
+     "material": "woven polyester, single ply soft sail",
+     "areal_mass_kg_m2": 0.25,
+     "min_areal_mass": 0.2
+    },
+    "luff": 7.58,
+    "leech": 7.13,
+    "foot": 2.83,
+    "foot_median_max": 7.445,
+    "foot_median_triangle": 7.2211,
+    "top_width": 0.045,
+    "head_to_foot_750_from_tack_max": 7.58,
+    "head_to_foot_750_from_clew_max": 7.36,
+    "widths_max": {
+     "upper": {
+      "width": 0.935,
+      "luff_from_head": 2.45,
+      "leech_from_head": 2.3,
+      "straight_line": 0.9146
+     },
+     "lower": {
+      "width": 1.87,
+      "luff_from_head": 5.02,
+      "leech_from_head": 4.72,
+      "straight_line": 1.8742
+     }
+    },
+    "tack_height_above_deck": 0.0375,
+    "LP": 2.6604,
+    "area_triangle": 10.083,
+    "area_est_with_roach": 10.17,
+    "area_class_nominal": 10.2,
+    "area_ORC_cert": 10.48,
+    "battens": [
+     {
+      "name": "jib_b1_top",
+      "pocket_inside_length": 0.3,
+      "leech_fraction_from_head": 0.25
+     },
+     {
+      "name": "jib_b2_mid",
+      "pocket_inside_length": 0.35,
+      "leech_fraction_from_head": 0.5
+     },
+     {
+      "name": "jib_b3_low",
+      "pocket_inside_length": 0.45,
+      "leech_fraction_from_head": 0.75
+     }
+    ],
+    "reinforcement": {
+     "primary": 0.38,
+     "secondary": 1.14,
+     "flutter_patch": 0.115,
+     "batten_patch": 0.2
+    },
+    "hanks": "hanked to forestay; furling gear optional (CR2022 3.6.3.4)",
+    "shape_defaults": {
+     "camber": {
+      "0.25": 0.11,
+      "0.5": 0.12,
+      "0.75": 0.11
+     },
+     "draft_pos": {
+      "0.25": 0.4,
+      "0.5": 0.4,
+      "0.75": 0.4
+     },
+     "top_batten_leech_on_spreader_mark": {
+      "light_medium": 0.4,
+      "heavy": 0.45
+     }
+    },
+    "_src": {
+     "luff": "p CR2022 3.6.3.2 maxima (ORC HLU 7.58)",
+     "leech": "p CR2022 3.6.3.2",
+     "foot": "p CR2022 3.6.3.2 (A.4.1 older 2800)",
+     "widths_max": "p CR2022 3.6.3.2; straight_line d from corner triangle",
+     "corners": "d luff on forestay from tack; clew in CL plane",
+     "tack_height_above_deck": "t Fritz 3.5-4 cm",
+     "LP": "d 2*area/luff (ORC HLP 2.72 incl. girths)",
+     "battens": "p pocket lengths CR2022 3.6.3.2; leech positions e (quarters)",
+     "cloth": "p >= 200 g/m2; default e",
+     "shape_defaults": "e camber; t spreader marks Fritz (40/45 cm), North (44/54 cm)"
+    }
+   },
+   "spinnaker": {
+    "cloth": {
+     "material": "nylon",
+     "areal_mass_kg_m2": 0.04,
+     "min_areal_mass": 0.035
+    },
+    "symmetric": true,
+    "luff": 7.3,
+    "half_foot_max": 2.4,
+    "half_width_at_3500_from_head": {
+     "nominal": 2.65,
+     "tol": 0.05
+    },
+    "head_to_foot_centre_max": 9,
+    "headboard": "not allowed",
+    "area_ORC_formula": 32.12,
+    "area_ORC_cert": 32.12,
+    "area_class_nominal": 36,
+    "flat_layout_half": {
+     "note": "one half laid flat and folded on the centre line; head at origin, fold along -v. Points: head, luff point 3.5 m from head, clew, foot centre",
+     "points_uv": [
+      [
+       0,
+       0
+      ],
+      [
+       2.65,
+       -2.2864
+      ],
+      [
+       2.2956,
+       -6.0698
+      ],
+      [
+       0,
+       -6.7698
+      ]
+     ],
+     "head_to_foot_centre": 6.7698,
+     "area_flat_both_halves": 26.3774
+    },
+    "shape_defaults": {
+     "pole_horizontal": true,
+     "clews_level": true,
+     "pole_min_dist_from_forestay": 0.6
+    },
+    "_src": {
+     "luff": "p CR2022 3.6.4.2 (ORC SL 7.30)",
+     "half_foot_max": "p CR2022 3.6.4.2 (ORC SFL 4.80)",
+     "half_width_at_3500_from_head": "p CR2022 3.6.4.2 2650±50 (ORC SHW 5.40; A.4.1 older 2600-2700)",
+     "area_ORC_formula": "d SL*(SFL+4*SHW)/6 = 32.12",
+     "cloth": "p >= 35 g/m2; default e 40 g/m2",
+     "flat_layout_half": "d from class luff 7.30, half-foot 2.40, half width 2.65 at 3.5 m; foot round 0.70 e; head-to-foot-centre then 6.77 (class max 9.00 is not reachable with these maxima and straight segments, so the real sail is curved/shaped in 3D)",
+     "shape_defaults": "t North (pole horizontal, 60 cm from forestay limit)"
+    }
+   }
+  },
+  "preset_parameter_map": {
+   "mast_face_to_forestay_pin": "spars.mast.heel_front_face.x = forestay_deck_point.x - value",
+   "forestay_mark_to_deck": "forestay rest length = (forestay tang s - band1 s) + value; rake follows",
+   "gooseneck_mark_above_deck": "boom top at mast (band1) height check",
+   "spreader_length / spreader_sweep": "spars.spreaders tip position (length from mast side; tip line aft of mast groove)",
+   "tension LE (uppers/lowers/forestay/backstay)": "standing rigging pretension targets, gauge 1.45 m above deck; LE->N needs a Loos PT-1M table (not in sources)",
+   "prebend": "target mast bow (halyard gap at ~spreader height) to be produced by spreader sweep + lower tension",
+   "jib_lead_from_forestay_pin": "deck_hardware.jib_lead_stbd solved at that 3D distance",
+   "traveller_settings_cm_to_windward": "traveller car offset from CL toward windward"
+  },
+  "presets": {
+   "North": {
+    "mast_face_to_forestay_pin": 2.42,
+    "gooseneck_mark_above_deck": 0.548,
+    "forestay_mark_to_deck": 1.37,
+    "spreader_length": 0.81,
+    "spreader_sweep": 0.19,
+    "jib_lead_from_forestay_pin": 2.88,
+    "pole_height_above_cabin_top": 1.5,
+    "outhaul_from_mark": {
+     "0-4kn": 0.03,
+     "4-10kn": 0.015,
+     ">10kn": 0
+    },
+    "vang_upwind_min_kn": 16,
+    "lowers": "mast straight to 20-22 kn; then tighter so forestay fixture falls 5-10 cm to leeward"
+   },
+   "Fritz": {
+    "mast_face_to_forestay_pin": [
+     2.4,
+     2.42
+    ],
+    "heavy_crew_mast_foot": [
+     2.41,
+     2.42
+    ],
+    "light_crew_mast_foot": 2.4,
+    "gooseneck_mark_above_cabin_top": [
+     0.56,
+     0.565
+    ],
+    "forestay_mark_to_deck": 1.36,
+    "main_halyard_to_transom": {
+     "LW": 10.34,
+     "SW": 10.29
+    },
+    "spreader_length": 0.83,
+    "spreader_sweep": [
+     0.19,
+     0.2
+    ],
+    "jib_lead_from_forestay_pin": [
+     2.85,
+     2.89
+    ],
+    "jib_tack_above_deck": [
+     0.035,
+     0.04
+    ],
+    "backstay_purchase": 16,
+    "vang_purchase": [
+     16,
+     32
+    ],
+    "outhaul_purchase": [
+     8,
+     12
+    ],
+    "wind_ranges": [
+     "LW",
+     "MWI",
+     "MWII",
+     "SWI",
+     "SWII"
+    ]
+   },
+   "hwiki": {
+    "rake_plumb_offset_at_boom": [
+     0.4,
+     0.8
+    ],
+    "forestay_lengths": {
+     "one_boat": 8.06,
+     "Botnia_incl_turnbuckle": 8.34
+    }
+   }
+  },
+  "referencePose": {
+   "note": "Solved by the digitiser for the default preset (rake 4.91°, spreaders 0.83/0.19). Reference only: the rig generator recomputes every one of these from the parameters; use them to check it.",
+   "mast": {
+    "points": {
+     "forestay_tang": [
+      0.404,
+      8.5673,
+      0
+     ],
+     "uppers_tang": [
+      0.3462,
+      8.5623,
+      0.04
+     ],
+     "lowers_tang": [
+      0.6437,
+      5.1001,
+      0.04
+     ],
+     "spreader_root": [
+      0.6309,
+      5.2495,
+      0.04
+     ],
+     "spinnaker_halyard_sheave": [
+      0.4427,
+      8.7011,
+      0
+     ],
+     "jib_halyard_sheave": [
+      0.4014,
+      8.5972,
+      0
+     ],
+     "pole_lift_sheave": [
+      0.4268,
+      8.4187,
+      0
+     ],
+     "pole_ring": [
+      0.9315,
+      2.5453,
+      0
+     ],
+     "pole_downhaul_cheek": [
+      1.0471,
+      1.2003,
+      0
+     ],
+     "main_halyard_lock": [
+      0.1441,
+      10.2362,
+      0
+     ],
+     "band1": [
+      0.8873,
+      1.588,
+      0
+     ],
+     "band2": [
+      0.2841,
+      8.6072,
+      0
+     ],
+     "band3": [
+      0.1424,
+      10.2561,
+      0
+     ],
+     "masthead": [
+      0.1874,
+      10.4105,
+      0
+     ],
+     "backstay_crane_tip": [
+      -0.0611,
+      10.2888,
+      0
+     ]
+    },
+    "axis_dir": [
+     -0.0856,
+     0.9963,
+     0
+    ],
+    "rake_angle_deg": 4.912
+   },
+   "spreaders": {
+    "tip_stbd": [
+     0.3838,
+     5.2283,
+     0.8321
+    ],
+    "root_stbd": [
+     0.6309,
+     5.2495,
+     0.04
+    ],
+    "sweep_angle_deg": 17.39
+   },
+   "boom": {
+    "gooseneck": [
+     0.8613,
+     1.5406,
+     0
+    ],
+    "end": [
+     -2.1974,
+     1.2778,
+     0
+    ],
+    "points": {
+     "vang_eye": [
+      0.098,
+      1.4299,
+      0
+     ],
+     "mainsheet_bail": [
+      -1.6954,
+      1.2758,
+      0
+     ]
+    },
+    "top_at_mast_y": 1.588
+   },
+   "wires": [
+    {
+     "name": "forestay",
+     "dia": 0.004,
+     "mast": [
+      0.404,
+      8.5673,
+      0
+     ],
+     "hull": [
+      3.47,
+      0.7952,
+      0
+     ],
+     "length": 8.355,
+     "path": [
+      "mast.forestay_tang",
+      "forestay_deck_point"
+     ]
+    },
+    {
+     "name": "upper_shroud_stbd",
+     "dia": 0.004,
+     "mast": [
+      0.3462,
+      8.5623,
+      0.04
+     ],
+     "via": [
+      [
+       0.3838,
+       5.2283,
+       0.8321
+      ]
+     ],
+     "hull": [
+      0.534,
+      0.6323,
+      0.9918
+     ],
+     "length": 8.0283,
+     "radial_from_forestay_deck": 3.1033
+    },
+    {
+     "name": "lower_shroud_stbd",
+     "dia": 0.004,
+     "mast": [
+      0.6437,
+      5.1001,
+      0.04
+     ],
+     "hull": [
+      0.413,
+      0.6288,
+      1.004
+     ],
+     "length": 4.5799,
+     "radial_from_forestay_deck": 3.222
+    },
+    {
+     "name": "backstay",
+     "dia": 0.003,
+     "mast": [
+      -0.0611,
+      10.2888,
+      0
+     ],
+     "hull": [
+      -3.91,
+      0.6593,
+      0
+     ],
+     "length": 10.3702,
+     "min_wire_length_incl_terminals": 9.5,
+     "control": {
+      "purchase": 16,
+      "line": "6 mm Dyneema (Fritz: Harken HK304/HK98/HK300)",
+      "max_tension_LE": 28
+     }
+    }
+   ],
+   "mainsail": {
+    "outline_body": [
+     [
+      0.8873,
+      1.588,
+      0
+     ],
+     [
+      -2.1016,
+      1.3312,
+      0
+     ],
+     [
+      -1.8096,
+      3.5393,
+      0
+     ],
+     [
+      -1.3881,
+      5.7585,
+      0
+     ],
+     [
+      -0.7773,
+      7.994,
+      0
+     ],
+     [
+      -0.4121,
+      9.1169,
+      0
+     ],
+     [
+      -0.1422,
+      9.8302,
+      0
+     ],
+     [
+      0.0229,
+      10.2458,
+      0
+     ],
+     [
+      0.1424,
+      10.2561,
+      0
+     ]
+    ],
+    "corners": {
+     "tack": [
+      0.8873,
+      1.588,
+      0
+     ],
+     "head": [
+      0.1424,
+      10.2561,
+      0
+     ],
+     "head_aft": [
+      0.0229,
+      10.2458,
+      0
+     ],
+     "clew": [
+      -2.1016,
+      1.3312,
+      0
+     ]
+    }
+   },
+   "jib": {
+    "corners": {
+     "tack": [
+      3.4552,
+      0.8327,
+      0
+     ],
+     "head": [
+      0.6736,
+      7.8839,
+      0
+     ],
+     "clew_measurement_pose_cl": [
+      0.6263,
+      0.754,
+      0
+     ]
+    }
+   },
+   "checks": {
+    "forestay_length_tang_to_deck": 8.355,
+    "rake_plumb_offset_at_boom_m": 0.7449,
+    "main_halyard_head_to_transom_m": 10.4605,
+    "Fritz_main_halyard_to_transom_m": [
+     10.29,
+     10.34
+    ],
+    "I_forestay_tang_above_sheer_at_mast": 7.9196,
+    "ORC_I": 7.94,
+    "J_forestay_deck_to_mast_front": 2.42,
+    "ORC_J": 2.47,
+    "BAS_boom_above_sheer": 0.8954,
+    "ORC_BAS": 0.9,
+    "ISP_spin_sheave_above_sheer": 8.0534,
+    "ORC_ISP": 8.04,
+    "upper_chainplate_radial": 3.1033,
+    "lower_chainplate_radial": 3.222,
+    "radial_rule": [
+     2.85,
+     3.25
+    ],
+    "jib_clew_x_vs_lead_x": [
+     0.6263,
+     0.7204
+    ],
+    "_src": "d all; ORC values from ORC2020"
+   }
+  }
+ },
+ "parameters": {
+  "defaults": {
+   "rig": {
+    "mastFaceAftOfStation8": 0.84,
+    "forestayLength": 8.355,
+    "lowersAttachS": 4.07,
+    "spreaderAboveLowers": 0.14999999999999947,
+    "spreaderLength": 0.83,
+    "spreaderSweep": 0.19,
+    "prebend": 0.03,
+    "boomAngle": 0,
+    "jibAngle": 0
+   },
+   "rudderAngle": 0,
+   "rudderVariant": "post1972",
+   "keelMass": 725,
+   "targetWeighedMass": 1450,
+   "crewPreset": "hikingWindward",
+   "personMass": 100,
+   "resolution": {
+    "hullRings": 120,
+    "hullGirth": 33,
+    "foilChord": 33
+   }
+  },
+  "rigRanges": {
+   "mastFaceAftOfStation8": [
+    0.803,
+    0.883,
+    "CR 3.5.2.2 843 ± 40 mm"
+   ],
+   "forestayLength": [
+    8.2,
+    8.45,
+    "rake: hwiki plumb offset 0.40–0.80 m at the boom; Botnia 8.34 incl. turnbuckle"
+   ],
+   "lowersAttachS": [
+    3.87,
+    4.17,
+    "CR 3.5.2.11 3320–3620 above band 1 (band 1 at 0.55)"
+   ],
+   "spreaderAboveLowers": [
+    0,
+    0.2,
+    "CR 3.5.2.17"
+   ],
+   "spreaderLength": [
+    0.7,
+    0.9,
+    "CR 3.5.2.17 min 700; tuning 0.75–0.83"
+   ],
+   "spreaderSweep": [
+    0.1,
+    0.25,
+    "tuning 0.16–0.20 (North, Fritz); swing stops 5° fwd / 35° aft"
+   ],
+   "prebend": [
+    0,
+    0.08,
+    "Fritz presets 3–7 cm"
+   ],
+   "boomAngle": [
+    -1.4,
+    1.4,
+    "sheeting"
+   ],
+   "jibAngle": [
+    -0.6,
+    0.6,
+    "sheeting"
+   ]
+  },
+  "notes": "buildHBoat(params) accepts any subset; ranges are the class limits (or tuning practice where the rules are silent)"
+ }
+}

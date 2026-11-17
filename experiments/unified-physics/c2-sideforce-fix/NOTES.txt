@@ -1,0 +1,59 @@
+c2-sideforce-fix: the side-force fix (flag C.C2) on the sailing-test-v3 model, checked on the Delft hold-out and on the v3 test list.
+Result: docs/research/unified-experiments/c2-sideforce-fix.md
+
+Prerequisites: Node 22, Python 3 with openpyxl and Pillow, ffmpeg. Playwright with Chromium only for hb/test_page.mjs and hb/shot_air.mjs.
+Every script reads and writes out/ in this folder (git-ignored), the hb/ scripts too, and can be run from any folder.
+
+Files
+  model.js          sailing-test-v3 model.js plus the change under C.C2 (C2 = false is v3 exactly; hb/headline.mjs checks it)
+  hulls.mjs section.mjs slicelaw.mjs   h1b-holdout's hull builder and steady law, unchanged copies
+  tow.mjs           c1's captive tow; loadModel takes a fourth argument C2 (default false). SYS=33 limits it to one hull.
+  cache.mjs         builds the hold-out hulls once -> out/bodies.json (5 minutes for all 36; SYS=33 for one)
+  steady_var.mjs    steady law on the hold-out: frozen, with attachment number, with no limit
+  var.mjs           8-hull check of the model against h1b's stored steady-law predictions
+  tow_c2.mjs        all 396 upright runs with C2 on -> out/tow_c2.json (needs the full out/bodies.json)
+  score_c2.mjs      h1b scoring -> out/score_c2.txt; reads c1's rows from ../c1-holdout-rerun/out/tow.json (run c1 first)
+  extract_heeled.py heeled blocks of the Delft workbook -> out/delft_heeled.json
+  tow_heeled.mjs    205 heeled runs (10, 20 deg) -> out/tow_heeled.json
+  gif_sim.mjs gif_draw.py   the GIF
+  hb/               sailing-test-v3's scripts with this model.js. hb/data/class/ holds the owner's "H-boat Model" artifact
+                    files (model/hboat.json, model/derived.json, read as data); hb/data/v3-numbers-real.json is v3's stored
+                    test list, which hb/headline.mjs compares against. hb/lib.mjs: C2=0 in the environment switches the fix off.
+
+Data to fetch
+  out/delft_cases.json and out/holdout.json come from experiment h1b-holdout (its extract_delft.py and run_holdout.mjs,
+  which need the Delft workbooks from https://doi.org/10.4121/21501402 and https://doi.org/10.4121/21501375):
+    cp ../h1b-holdout/out/delft_cases.json ../h1b-holdout/out/holdout.json out/
+  DSYHS_all_measurements_modelscale.xlsx (https://doi.org/10.4121/21501402) into dl/ for the heeled runs.
+
+Regenerate, from this folder:
+  mkdir -p out
+  node hb/class_hboat.mjs            # out/hboat_class.json (equals v3's)
+  node hb/gen_hulls.mjs              # 20 s; out/hulls.json (equals v3's)
+  node hb/gen_sails.mjs              # 5 s; out/sails.json (equals v3's; tow.mjs carries it with the sails down)
+
+Numbers, hold-out:
+  node cache.mjs                     # 5 minutes
+  node tow_c2.mjs                    # upright runs with C2
+  node score_c2.mjs                  # the upright table (needs c1's out/tow.json)
+  node steady_var.mjs; node var.mjs
+  python3 extract_heeled.py dl/DSYHS_all_measurements_modelscale.xlsx out/delft_heeled.json
+  node tow_heeled.mjs > out/tow_heeled.log   # the heeled table
+Numbers, the H-boat (C2 off against on):
+  node hb/wash.mjs                   # keel wash removed at the rudder, 3 s
+  C2=0 node hb/scen_m1.mjs c2off     # 45 s each
+  node hb/scen_m1.mjs c2on
+  node hb/headline.mjs               # the table, and "C2 off reproduces v3 numbers-real.json exactly"
+  (hb/queue.sh runs tow_heeled and both test lists one after another.)
+
+The GIF c2-wash-old-vs-new.gif (one hull, Sysser 33 at 6 deg):
+  SYS=33 node cache.mjs              # 15 s; or the full cache
+  node gif_sim.mjs 33                # out/gif_frames.json; prints side force and centre, old and new, against the tank
+  python3 gif_draw.py out/gif_frames.json out/frames
+  ffmpeg -framerate 20 -i out/frames/f%04d.png -vf palettegen=max_colors=96 out/pal.png
+  ffmpeg -framerate 20 -i out/frames/f%04d.png -i out/pal.png -lavfi paletteuse=dither=none out/c2-wash-old-vs-new.gif
+
+Cannot run here: hb/diag.mjs, hb/scen_g1.mjs, hb/helm_chatter.mjs need the sailing-test-v2 estimated H-boat tables in
+out/old/ (hulls.json, sails.json; not in the repo). hb/t_exact.mjs needs the three pre-merge models in folders named by ORIG
+(base, r1, r2 with data/hulls.json; not in the repo). hb/table.mjs reads out/numbers-<tag>.json from hb/scen_m1.mjs runs
+tagged base, r1only, r2only and combined (R1=0 / R2=0 select them).

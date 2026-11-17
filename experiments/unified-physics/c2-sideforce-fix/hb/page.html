@@ -1,0 +1,222 @@
+<title>Sailing Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root { --bg:#f4f6f8; --panel:#ffffff; --ink:#16212b; --dim:#5d6b78; --line:#c9d3dc; --accent:#1b4f8a; --accent-ink:#ffffff; --strip:#fff4d6; --strip-ink:#6b4e00; --btn:#e8edf2; --on:#0f766e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#10161c; --panel:#18212a; --ink:#e6edf3; --dim:#9aa8b5; --line:#33414e; --accent:#7fb3ee; --accent-ink:#0b1320; --strip:#3a2f10; --strip-ink:#f5d98a; --btn:#24303b; --on:#5eead4; } }
+:root[data-theme="dark"] { --bg:#10161c; --panel:#18212a; --ink:#e6edf3; --dim:#9aa8b5; --line:#33414e; --accent:#7fb3ee; --accent-ink:#0b1320; --strip:#3a2f10; --strip-ink:#f5d98a; --btn:#24303b; --on:#5eead4; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; padding-block: 12px 28px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); overflow-x: hidden; }
+main { max-width: 1040px; margin: 0 auto; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 8px; }
+h1 { font-size: 19px; margin: 0; flex: 1 1 auto; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: var(--panel); color: var(--ink); padding: 8px 12px; font: inherit; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.strip { background: var(--strip); color: var(--strip-ink); border-radius: 8px; padding: 7px 10px; font-size: 13px; margin-bottom: 10px; }
+.strip b { font-weight: 700; }
+.layout { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 880px) { .layout { grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); align-items: start; } }
+.view { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+canvas { display: block; width: 100%; height: 46vh; min-height: 280px; max-height: 560px; touch-action: none; }
+@media (min-width: 880px) { canvas { height: 560px; } }
+.read { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
+.read div { background: var(--panel); padding: 5px 8px; min-width: 0; }
+.read span { display: block; color: var(--dim); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.read b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.ctl { margin-bottom: 9px; }
+.ctl label { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.ctl label small { color: var(--dim); }
+.ctl output { font-weight: 700; font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; height: 44px; margin: 0; accent-color: var(--accent); touch-action: pan-y; }
+.tiller input[type=range] { -webkit-appearance: none; appearance: none; height: 56px; background: transparent; cursor: grab; }
+.tiller input[type=range]::-webkit-slider-runnable-track { height: 22px; border-radius: 11px; border: 1px solid var(--line); background: linear-gradient(to right, transparent calc(50% - 1px), var(--dim) calc(50% - 1px), var(--dim) calc(50% + 1px), transparent calc(50% + 1px)), var(--btn); }
+.tiller input[type=range]::-moz-range-track { height: 22px; border-radius: 11px; border: 1px solid var(--line); background: linear-gradient(to right, transparent calc(50% - 1px), var(--dim) calc(50% - 1px), var(--dim) calc(50% + 1px), transparent calc(50% + 1px)), var(--btn); }
+.tiller input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 40px; height: 52px; margin-top: -16px; border-radius: 10px; border: 2px solid var(--panel); background: var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+.tiller input[type=range]::-moz-range-thumb { width: 36px; height: 48px; border-radius: 10px; border: 2px solid var(--panel); background: var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+.tiller input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
+.btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 4px; }
+button { font: inherit; color: var(--ink); background: var(--btn); border: 1px solid var(--line); border-radius: 8px; padding: 9px 6px; min-height: 42px; cursor: pointer; }
+button[aria-pressed="true"] { background: var(--on); color: var(--accent-ink); border-color: var(--on); font-weight: 600; }
+kbd { font: 12px ui-monospace, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; background: var(--btn); }
+.keys { color: var(--dim); font-size: 12.5px; margin-top: 9px; line-height: 1.9; }
+details { margin-top: 12px; }
+summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.two { display: grid; grid-template-columns: 1fr; gap: 10px; font-size: 13.5px; }
+@media (min-width: 640px) { .two { grid-template-columns: 1fr 1fr; } }
+.two ul { margin: 4px 0 0; padding-left: 18px; } .two h3 { font-size: 14px; margin: 0; }
+.perf { color: var(--dim); font-size: 12px; margin-top: 6px; }
+</style>
+<main>
+<header>
+  <h1>Sailing test: steer it yourself</h1>
+  <div class="seg" id="boats" role="group" aria-label="Boat"></div>
+</header>
+<div class="strip" id="strip"></div>
+<div class="layout">
+  <section class="view">
+    <canvas id="cv" aria-label="Boat from above with a view from astern"></canvas>
+    <div class="read" id="read"></div>
+  </section>
+  <section class="panel">
+    <div class="ctl tiller"><label for="helm"><span>Tiller <small>push to port &larr; (bow goes to starboard) &middot; &rarr; to starboard</small></span><output id="o-helm"></output></label><input id="helm" type="range" min="-60" max="60" step="0.1" value="0" style="direction: rtl"></div>
+    <div class="ctl"><label for="main"><span>Mainsheet <small>in &larr; &rarr; eased</small></span><output id="o-main"></output></label><input id="main" type="range" min="0" max="90" step="0.1" value="8"></div>
+    <div class="ctl"><label for="jib"><span>Jib sheet <small>in &larr; &rarr; eased</small></span><output id="o-jib"></output></label><input id="jib" type="range" min="8" max="60" step="0.1" value="12"></div>
+    <div class="ctl"><label for="crew"><span>Crew weight <small>port &larr; &rarr; starboard</small></span><output id="o-crew"></output></label><input id="crew" type="range" min="-100" max="100" step="0.1" value="100"></div>
+    <div class="ctl"><label for="wind"><span>True wind <small>from the top of the picture</small></span><output id="o-wind"></output></label><input id="wind" type="range" min="2" max="24" step="1" value="12"></div>
+    <div class="btns">
+      <button id="b-tack">Tack the jib</button>
+      <button id="b-fly" aria-pressed="false">Let jib fly</button>
+      <button id="b-puff">Puff +6 kn</button>
+      <button id="b-centre">Centre helm</button>
+      <button id="b-hold" aria-pressed="false">Hold course</button>
+      <button id="b-pause" aria-pressed="false">Pause</button>
+      <button id="b-reset">Reset</button>
+      <button id="b-stop">Stop the boat</button>
+      <button id="b-theme">Light / dark</button>
+    </div>
+    <div class="keys">Keys: <kbd>&larr;</kbd> <kbd>&rarr;</kbd> turn the bow that way, <kbd>&darr;</kbd> centre it &middot; <kbd>A</kbd> <kbd>Z</kbd> main in, out &middot; <kbd>S</kbd> <kbd>X</kbd> jib in, out &middot; <kbd>Q</kbd> <kbd>W</kbd> crew to port, starboard &middot; <kbd>J</kbd> tack the jib &middot; <kbd>F</kbd> let it fly &middot; <kbd>P</kbd> puff &middot; <kbd>H</kbd> hold course &middot; <kbd>B</kbd> other boat &middot; <kbd>R</kbd> reset &middot; <kbd>Space</kbd> pause</div>
+    <div class="perf" id="perf"></div>
+  </section>
+</div>
+<details open>
+  <summary>What is the model and what is a stand-in</summary>
+  <div class="two">
+    <div><h3>From the model</h3><ul>
+      <li>Hull, keel and rudder side force, turning, leeway and the stern swinging out: every section trades sideways momentum with slices of water it slides over. Solid arrows.</li>
+      <li>Water the hull carries round in a turn (why a tack costs speed), not reduced.</li>
+      <li>Rudder stall: one lagged attachment number per section, same constants for every fin; the blade counts as a foil of its own from its hinge. Once it lets go it carries the flat-plate force and mostly brakes. The rudder light goes amber, then red.</li>
+      <li>Heel changes the hull: it rises, its under-water shape goes lopsided and turns the bow to windward, the rudder works about a leaning stock, and sail drive and hull drag pull on opposite sides.</li>
+      <li>Rudder sucking air: when the suction on the blade exceeds the depth of water over it, air comes down from the surface and that part of the blade loses grip. From astern the blade shows grey (out of the water), amber (aired) and purple (in solid water), with the share left in water; the &ldquo;aired&rdquo; light goes amber, then red.</li>
+      <li>Heel from sail force, stability and crew weight; friction drag.</li>
+      <li>The two boats differ only in their numbers: section shapes, weight, stability, sail plan.</li>
+    </ul></div>
+    <div><h3>Stand-ins</h3><ul>
+      <li>Sails: a table computed beforehand for rigid shapes (small steady lattice, strips fading into a flat plate when stalled). No cloth, no flapping; a slack main or a jib let fly simply carries nothing. Dashed arrows.</li>
+      <li>Wave-making drag: Delft series table from each hull's dimensions.</li>
+      <li>Keel wash on the rudder: probably too strong.</li>
+      <li>Air on the rudder: a simple head-of-water rule, not checked against measurements. Topsides are straight from the waterline to the deck edge.</li>
+      <li>The tiller is held by hand at the angle you set; a let-go, free-swinging tiller is in the model but not on this page.</li>
+      <li>Flat water, steady wind, no gusts except the button, no wind change with height.</li>
+      <li>The H-boat is from the class offsets and plans: hull sections, keel, deadwood, rudder, mast and sail plan, weight and stability (class-minimum boat with 300 kg of crew). Each hull section is still an ellipse, of the real waterline beam and immersed area; the mast stands upright where the raked rig's centre of area is. The Folkboat is built from main dimensions; its stability and keel shape are estimates.</li>
+    </ul></div>
+  </div>
+</details>
+</main>
+<script>/*MODEL*/</script>
+<script>/*DRAW*/</script>
+<script>var SAIL_DATA = /*DATA*/;</script>
+<script>
+(function () {
+  'use strict';
+  var SM = SailModel, SD = SailDraw, KN = SM.KN, RAD = SM.RAD, DT = SM.C.dt;
+  var HULLS = SAIL_DATA.hulls, SAILS = SAIL_DATA.sails, keys = Object.keys(HULLS);
+  var $ = function (id) { return document.getElementById(id); };
+  var store = { get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} } };
+  var cv = $('cv'), ctx = cv.getContext('2d');
+  var S = { key: keys.indexOf(store.get('sailtest-boat')) >= 0 ? store.get('sailtest-boat') : keys[0], boat: null, track: [], trackT: 0, paused: false, hold: null, fly: false, puffT: -1, acc: 0, last: 0, stepMs: 0, frameMs: 0, simT: 0, keysDown: {}, stopT: 0 };
+  $('strip').innerHTML = '<b>Stand-ins, not the model:</b> ' + SM.PLACEHOLDERS.join(' &middot; ');
+
+  function newBoat() {
+    S.boat = new SM.Boat(HULLS[S.key], SAILS[S.key], { psiDeg: -45, u: 2.5, mainSheet: +$('main').value, jibSheet: +$('jib').value });
+    S.boat.crew = +$('crew').value / 100; S.rf = 0; S.track = []; S.hold = null; S.fly = false; S.puffT = -1; S.stopT = 0;
+    $('helm').value = 0; $('b-hold').setAttribute('aria-pressed', 'false'); $('b-fly').setAttribute('aria-pressed', 'false');
+    Array.prototype.forEach.call($('boats').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.key === S.key)); });
+    store.set('sailtest-boat', S.key);
+  }
+  keys.forEach(function (k) { var b = document.createElement('button'); b.textContent = HULLS[k].name; b.title = HULLS[k].short; b.dataset.key = k; b.onclick = function () { S.key = k; newBoat(); }; $('boats').appendChild(b); });
+
+  function wind() { var w = +$('wind').value; if (S.puffT >= 0) { var t = S.simT - S.puffT; w += 6 * Math.max(0, Math.min(1, t, 13 - t)); if (t > 13) S.puffT = -1; } return w * KN; }
+  function controls() {
+    var b = S.boat, tiller = +$('helm').value;
+    // hold course: model.js helmTo's law, but the turning rate is felt smoothed over 0.2 s, as a hand would feel it. Fed the rate of
+    // every 1/240 s step, the law flips the class H-boat's rudder half a degree each step and sculls her along (lib.mjs helmTo).
+    if (S.hold !== null) { S.rf += (b.r - S.rf) * DT / 0.2; tiller = SM.clamp(1.5 * (SM.wrap(S.hold - b.psi) / RAD) - 1.5 * (S.rf / RAD), -30, 30); $('helm').value = tiller; } else S.rf = b.r;
+    var c = { tillerDeg: tiller, mainSheet: +$('main').value, jibSheet: +$('jib').value, crew: +$('crew').value / 100, jibFly: S.fly };
+    if (S.stopT > 0) c.sails = false;
+    return c;
+  }
+  function stepSim(seconds) {
+    var n = Math.round(seconds / DT), b = S.boat;
+    for (var i = 0; i < n; i++) {
+      var c = controls();
+      if (S.pendingSide) { c.jibSide = S.pendingSide; S.pendingSide = 0; }
+      b.step(DT, c, { wind: wind(), windDir: 0 });
+      S.simT += DT;
+      if (S.stopT > 0) { S.stopT -= DT; b.u *= 0.98; b.v *= 0.98; b.r *= 0.98; }
+      if (!isFinite(b.u + b.v + b.r + b.p)) { newBoat(); break; }
+    }
+    S.trackT += seconds;
+    if (S.trackT >= 0.25) { S.trackT = 0; var B = HULLS[S.key], a = B.loa - B.bowOverhang - B.xcg; S.track.push([b.X, b.Y, b.X - a * Math.sin(b.psi), b.Y - a * Math.cos(b.psi)]); if (S.track.length > 480) S.track.shift(); }
+  }
+  function dark() { var t = document.documentElement.getAttribute('data-theme'); return t ? t === 'dark' : window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  function draw() {
+    var dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var b = S.boat, B = HULLS[S.key], s = b.snapshot(), colors = dark() ? SD.DARK : SD.LIGHT, f = w < 520 ? 13 : 15;
+    var o = { colors: colors, font: f, scale: Math.max(7, Math.min(13, w / 55)), forceScale: w < 520 ? 0.022 : 0.03, wind: wind(), windDir: 0, keelX: b.keelX, rudderX: b.rudderX };
+    SD.topView(ctx, { x: 0, y: 0, w: w, h: h }, B, s, S.track, o);
+    var iw = Math.round(Math.min(160, w * 0.33)), ih = Math.round(iw * 1.25);
+    SD.sternView(ctx, { x: w - iw - 8, y: 8, w: iw, h: ih }, B, s, Object.assign({ insetZoom: 1.4 }, o));
+    ctx.fillStyle = colors.panel; ctx.globalAlpha = 0.85; ctx.fillRect(6, h - f * 1.9 - 6, Math.min(w - 12, f * 19.5), f * 1.9); ctx.globalAlpha = 1;
+    SD.lights(ctx, 12, h - f * 0.95 - 6, s, o);
+    var rows = [['speed', s.speedKn.toFixed(1) + ' kn'], ['leeway', s.leewayDeg.toFixed(0) + '°'], ['heel', Math.abs(s.heelDeg).toFixed(0) + '° ' + (s.heelDeg > 0.5 ? 'stbd' : s.heelDeg < -0.5 ? 'port' : '')],
+      ['rudder', s.rudderDeg.toFixed(0) + '°'], ['rudder load', Math.round(Math.hypot(s.rudderY, s.rudderX || 0) / 10) * 10 + ' N'], ['water angle on rudder', s.rudderFlowDeg.toFixed(0) + '°'],
+      ['heading off the wind', Math.abs(SM.wrap(b.psi) / RAD).toFixed(0) + '°'], ['apparent wind', Math.abs(s.awaDeg).toFixed(0) + '° ' + (s.awaDeg >= 0 ? 'stbd' : 'port') + ', ' + (s.aws / KN).toFixed(0) + ' kn'], ['turn rate', (b.r / RAD).toFixed(0) + '°/s']];
+    var el = $('read');
+    if (el.children.length !== rows.length) { el.innerHTML = rows.map(function (r) { return '<div><span>' + r[0] + '</span><b></b></div>'; }).join(''); }
+    rows.forEach(function (r, i) { var bEl = el.children[i].lastChild; if (bEl.textContent !== r[1]) bEl.textContent = r[1]; });
+    $('o-helm').textContent = Math.round(+$('helm').value) + '°'; $('o-main').textContent = Math.round(+$('main').value) + '°'; $('o-jib').textContent = S.fly ? 'flying' : Math.round(+$('jib').value) + '° ' + (b.jibSide > 0 ? 'port' : 'stbd');
+    $('o-crew').textContent = (Math.abs(+$('crew').value) < 1 ? 'middle' : Math.round(Math.abs(+$('crew').value)) + '% ' + (+$('crew').value > 0 ? 'stbd' : 'port')); $('o-wind').textContent = (wind() / KN).toFixed(0) + ' kn';
+    $('perf').textContent = 'model ' + S.stepMs.toFixed(2) + ' ms per frame, ' + (S.stepMs > 0 ? Math.round(1000 / 60 / Math.max(0.01, S.stepMs)) : 0) + ' times faster than real time';
+  }
+  function keyControls(dt) {
+    var k = S.keysDown, bump = function (id, d) { var e = $(id); e.value = Math.max(+e.min, Math.min(+e.max, +e.value + d)); };
+    if (k.ArrowLeft) { bump('helm', -45 * dt); offHold(); } if (k.ArrowRight) { bump('helm', 45 * dt); offHold(); }
+    if (k.a) bump('main', -30 * dt); if (k.z) bump('main', 30 * dt); if (k.s) bump('jib', -30 * dt); if (k.x) bump('jib', 30 * dt);
+    if (k.q) bump('crew', -120 * dt); if (k.w) bump('crew', 120 * dt);
+  }
+  function frame(now) {
+    var real = Math.min(0.1, (now - S.last) / 1000 || 0); S.last = now;
+    keyControls(real);
+    if (!S.paused) { S.acc += real; var n = Math.floor(S.acc / DT); if (n > 0) { var t0 = performance.now(); stepSim(n * DT); S.acc -= n * DT; S.stepMs += ((performance.now() - t0) - S.stepMs) * 0.1; } }
+    draw();
+    S.frames = (S.frames || 0) + 1;
+    requestAnimationFrame(frame);
+  }
+  function offHold() { if (S.hold !== null) { S.hold = null; $('b-hold').setAttribute('aria-pressed', 'false'); } }
+  var acts = {
+    tack: function () { S.pendingSide = -S.boat.jibSide || 1; S.fly = false; $('b-fly').setAttribute('aria-pressed', 'false'); },
+    fly: function () { S.fly = !S.fly; $('b-fly').setAttribute('aria-pressed', String(S.fly)); },
+    puff: function () { S.puffT = S.simT; },
+    centre: function () { $('helm').value = 0; offHold(); },
+    hold: function () { S.hold = S.hold === null ? S.boat.psi : null; $('b-hold').setAttribute('aria-pressed', String(S.hold !== null)); },
+    pause: function () { S.paused = !S.paused; $('b-pause').setAttribute('aria-pressed', String(S.paused)); },
+    reset: function () { $('main').value = 8; $('jib').value = 12; $('crew').value = 100; newBoat(); },
+    stop: function () { S.stopT = 1.5; offHold(); },
+    theme: function () { document.documentElement.setAttribute('data-theme', dark() ? 'light' : 'dark'); },
+    boat: function () { S.key = keys[(keys.indexOf(S.key) + 1) % keys.length]; newBoat(); }
+  };
+  ['tack', 'fly', 'puff', 'centre', 'hold', 'pause', 'reset', 'stop', 'theme'].forEach(function (a) { $('b-' + a).addEventListener('click', acts[a]); });
+  $('helm').addEventListener('input', offHold);
+  var keyMap = { j: 'tack', f: 'fly', p: 'puff', h: 'hold', r: 'reset', b: 'boat', ' ': 'pause', ArrowDown: 'centre' };
+  window.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (keyMap[k]) { if (!e.repeat) acts[keyMap[k]](); e.preventDefault(); return; }
+    if (['ArrowLeft', 'ArrowRight', 'a', 'z', 's', 'x', 'q', 'w'].indexOf(k) >= 0) { S.keysDown[k] = true; e.preventDefault(); }
+  });
+  window.addEventListener('keyup', function (e) { var k = e.key.length === 1 ? e.key.toLowerCase() : e.key; delete S.keysDown[k]; });
+  window.addEventListener('blur', function () { S.keysDown = {}; });
+  // drag across the picture to steer: a full width is the full helm range
+  var drag = null;
+  cv.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, v: +$('helm').value }; try { cv.setPointerCapture(e.pointerId); } catch (err) {} });
+  cv.addEventListener('pointermove', function (e) { if (!drag) return; $('helm').value = Math.max(-60, Math.min(60, drag.v - (e.clientX - drag.x) / cv.clientWidth * 120)); offHold(); });
+  ['pointerup', 'pointercancel'].forEach(function (n) { cv.addEventListener(n, function () { drag = null; }); });
+  newBoat();
+  window.__sim = S;
+  requestAnimationFrame(function (t) { S.last = t; frame(t); });
+})();
+</script>

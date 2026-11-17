@@ -1,0 +1,232 @@
+--- sailing-test/code/model.js	2026-11-17 13:14:30.782727000 +0000
++++ code/model.js	2026-11-17 13:49:12.540574350 +0000
+@@ -40,6 +40,12 @@
+     tillerRate: 120,          // deg/s the rudder can follow the tiller (h4 "slammed" rate; a hand is that fast)
+     sheetRate: 25,            // deg/s of sheet angle (assumed)
+     crewRate: 0.8,            // of full travel per second (assumed)
++    // r2-broach: heeled geometry
++    SUCTION_SHARE: 2 / 3,     // share of a section's loading carried as suction on its low-pressure face (thin-aerofoil rule of thumb)
++    CD_AIRED: 2 * Math.PI / (4 + Math.PI), // cross-flow drag of a plate whose lee face is at ambient pressure (Kirchhoff-Rayleigh free streamline, 0.88)
++    FS_RELEASE: 4 / (Math.PI * Math.PI), // entrained water of a blade whose root is at a pressure-release surface, over the same blade under a wall (exact, plate)
++    heelStepDeg: 2.5, heelMaxDeg: 75, // grid of the heeled-section tables
++    heel: { rise: true, camber: true, rudderAxis: true, dragArm: true, air: true }, // each r2 term can be switched off for before/after runs (not per boat)
+   };
+   const sq = (a) => a * a, clamp = (a, lo, hi) => Math.min(hi, Math.max(lo, a));
+   const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+@@ -67,6 +73,45 @@
+     return out;
+   }
+ 
++  /** Area, lateral moment and deepest point of the part of polygon P (points [y, zeta], y to the low side, zeta up from the
++   *  upright waterline) that is under water when the boat is heeled by phi (low side down) and has risen by h. */
++  function immersed(P, sn, cs, h) {
++    const n = P.length; let S = 0, My = 0, dmax = 0; const q = [];
++    const ht = (p) => p[1] * cs - p[0] * sn + h; // height above the water
++    for (let i = 0; i < n; i++) {
++      const a = P[i], b = P[(i + 1) % n], za = ht(a), zb = ht(b);
++      if (za < 0) q.push([a[0] * cs + a[1] * sn, za]);
++      if ((za < 0) !== (zb < 0)) { const f = za / (za - zb), y = a[0] + (b[0] - a[0]) * f, z = a[1] + (b[1] - a[1]) * f; q.push([y * cs + z * sn, 0]); }
++    }
++    for (let i = 0; i < q.length; i++) { const a = q[i], b = q[(i + 1) % q.length], c = a[0] * b[1] - b[0] * a[1]; S += c; My += (a[0] + b[0]) * c; if (-a[1] > dmax) dmax = -a[1]; }
++    S *= 0.5; My /= 6;
++    return [Math.abs(S), Math.abs(S) > 1e-9 ? My / S : 0, dmax];
++  }
++  /** Heeled-section tables from the boat's own section data: for each heel angle the rise of the hull that keeps the
++   *  displaced volume, and per station the canoe body's deepest immersed point and the lateral position of its
++   *  immersed area. Topsides: straight from the waterline to the deck edge (max beam, at the freeboard height). */
++  function heelGeometry(d) {
++    const n = d.n, dx = d.dx, F = d.rig.freeboard, flare = (d.beam / 2) / Math.max.apply(null, d.halfBeam);
++    const polys = [];
++    for (let i = 0; i < n; i++) {
++      const b = d.halfBeam[i], Tc = d.canoeDepth[i];
++      if (b < 1e-6) { polys.push(null); continue; }
++      const P = []; for (let k = 0; k <= 32; k++) { const t = (k / 32) * Math.PI; P.push([-b * Math.cos(t), -Tc * Math.sin(t)]); }
++      P.push([b * flare, F], [-b * flare, F]); polys.push(P);
++    }
++    const vol = (sn, cs, h) => { let V = 0; for (let i = 0; i < n; i++) if (polys[i]) V += immersed(polys[i], sn, cs, h)[0] * dx; return V; };
++    const V0 = vol(0, 1, 0), tab = [];
++    for (let deg = 0; deg <= C.heelMaxDeg + 1e-9; deg += C.heelStepDeg) {
++      const sn = Math.sin(deg * RAD), cs = Math.cos(deg * RAD);
++      let lo = -0.5, hi = 1.5; for (let it = 0; it < 40; it++) { const mid = 0.5 * (lo + hi); if (vol(sn, cs, mid) > V0) lo = mid; else hi = mid; }
++      const h = deg === 0 ? 0 : 0.5 * (lo + hi), yc = new Float64Array(n), dc = new Float64Array(n); let sy = 0, sa = 0;
++      for (let i = 0; i < n; i++) if (polys[i]) { const r = immersed(polys[i], sn, cs, h); yc[i] = r[1]; dc[i] = r[2]; sy += r[0] * r[1]; sa += r[0]; }
++      const dyc = new Float64Array(n); for (let i = 0; i < n; i++) dyc[i] = (yc[Math.min(n - 1, i + 1)] - yc[Math.max(0, i - 1)]) / ((Math.min(n - 1, i + 1) - Math.max(0, i - 1)) * dx);
++      tab.push({ h, yc, dyc, dc, ycMean: sa > 0 ? sy / sa : 0 });
++    }
++    return tab;
++  }
++
+   class Boat {
+     /** data: one entry of hulls.json; sails: its entry of sails.json; init: { psiDeg, u, X, Y } */
+     constructor(data, sails, init) {
+@@ -81,6 +126,8 @@
+       // Delft residuary curve, as a fraction of canoe-body weight against Froude number
+       this.rrFn = data.delftRr.map((q) => q[0]); this.rrV = data.delftRr.map((q) => Math.max(0, q[1]));
+       this.ncell = Math.ceil(data.L / C.markerSpacing) + 1;
++      this.hg = heelGeometry(data); this.hRise = 0; this.ycMean = 0;
++      this.wDc = new Float64Array(n); this.wDyc = new Float64Array(n); this.wYc = new Float64Array(n);
+       this.reset(init);
+     }
+     reset(init) {
+@@ -92,12 +139,26 @@
+       this.crew = 0; // -1 full to port, +1 full to starboard
+       this.markers = []; const d = C.markerSpacing;
+       for (let x = d / 2; x < this.d.L; x += d) this.markers.push(this.newMarker(x));
+-      this.Xatt = new Float64Array(this.ncell).fill(1);
++      this.Xatt = new Float64Array(this.ncell).fill(1); this.Fa = new Float64Array(this.ncell);
+       this.sf = new Float64Array(12); this.sfInit = false; // lagged sail force coefficients
+       this.out = { sailX: 0, sailY: 0, mainX: 0, mainY: 0, jibX: 0, jibY: 0, keelY: 0, rudderY: 0, rudderFlowDeg: 0, rudderAttach: 1, fMain: 1, fJib: 1, awaDeg: 0, aws: 0, boomDeg: 0, jibDeg: 0, wave: 0, friction: 0, hullX: 0, crewK: 0 };
+       this._tmp = new Float64Array(13);
+     }
+-    newMarker(x) { return { x, Plin: 0, Patt: 0, Pw: 0, Pcf: 0, Aw: 0, xw: 0, s: 0, ell: 0, G: 0, cap: 0, _arm: 0, _z: 0, _c: 1, _cell: 0, _kf: 1, _dP: 0 }; }
++    newMarker(x) { return { x, _fa: 0, Plin: 0, Patt: 0, Pw: 0, Pcf: 0, Aw: 0, xw: 0, s: 0, ell: 0, G: 0, cap: 0, _arm: 0, _z: 0, _c: 1, _cell: 0, _kf: 1, _dP: 0 }; }
++    /** Heeled-section values at the present heel (linear in heel between table rows). */
++    setHeel(phi) {
++      const H = C.heel, a = Math.min(Math.abs(phi) / RAD, C.heelMaxDeg - 1e-6) / C.heelStepDeg, k = Math.floor(a), f = a - k, t0 = this.hg[k], t1 = this.hg[k + 1];
++      const sg = phi >= 0 ? 1 : -1, n = this.d.n, ch = Math.cos(phi), T = this.d.T, cd = this.d.canoeDepth;
++      this.hRise = H.rise ? t0.h + (t1.h - t0.h) * f : 0; this.ycMean = H.dragArm ? sg * (t0.ycMean + (t1.ycMean - t0.ycMean) * f) : 0;
++      for (let i = 0; i < n; i++) {
++        this.wDc[i] = H.rise ? t0.dc[i] + (t1.dc[i] - t0.dc[i]) * f : cd[i] * ch;
++        this.wDyc[i] = H.camber ? sg * (t0.dyc[i] + (t1.dyc[i] - t0.dyc[i]) * f) : 0;
++        this.wYc[i] = sg * (t0.yc[i] + (t1.yc[i] - t0.yc[i]) * f);
++      }
++    }
++    at(arr, x) { const n = this.d.n, q = clamp(x / this.d.dx, 0, n - 1), i = Math.min(n - 2, Math.floor(q)), f = q - i; return arr[i] + (arr[i + 1] - arr[i]) * f; }
++    /** Deepest immersed point of the heeled section at x [m below the water], and the same for the canoe body alone. */
++    depthAt(x, ch) { return Math.max(this.at(this.wDc, x), this.at(this.d.T, x) * ch - this.hRise); }
+     cell(c, x) { const d = C.markerSpacing, n = this.d.n, dx = this.d.dx; return (cumAt(c, x + d / 2, dx, n) - cumAt(c, x - d / 2, dx, n)) / d; }
+     kirch(X) { const q = 0.5 * (1 + Math.sqrt(X)); return q * q; }
+     residuary(Fn) {
+@@ -114,7 +175,8 @@
+     step(dt, ctl, env) {
+       const d0 = this.d, rho = WATER.rho, d = C.markerSpacing;
+       const u = this.u, v = this.v, r = this.r, p = this.p, phi = this.phi;
+-      const ch = Math.cos(phi), ch2 = ch * ch;
++      const ch = Math.cos(phi), ch2 = ch * ch, H = C.heel, chr = H.rudderAxis ? Math.max(ch, 0.2) : 1, tph = Math.tan(clamp(phi, -1.4, 1.4));
++      this.setHeel(phi); const hR = this.hRise;
+ 
+       // ---- controls with rate limits
+       const dOld = this.delta;
+@@ -148,6 +210,7 @@
+         const mx = q * sf[0], my = q * sf[1], jx = q * sf[5], jy = q * sf[6];
+         Xs += mx + jx; Ys += (my + jy) * ch; Ks += q * (sf[2] + sf[7]);
+         Ns += q * (sf[3] + sf[8]) * ch + aMast * (my + jy) * ch - Math.sin(phi) * q * (sf[4] + sf[9]);
++        o.nLever = -Math.sin(phi) * q * (sf[4] + sf[9]); o.nSailSide = q * (sf[3] + sf[8]) * ch + aMast * (my + jy) * ch;
+         o.mainX = mx; o.mainY = my * ch; o.jibX = jx; o.jibY = jy * ch; o.sailX = mx + jx; o.sailY = (my + jy) * ch;
+         o.fMain = on ? sf[10] / 100 : 1; o.fJib = on ? sf[11] / 100 : 1; o.awaDeg = awa / RAD; o.aws = V;
+         o.boomDeg = -side * c[12] / 10; o.jibDeg = ctl.jibFly ? -side * Math.min(80, Math.abs(awa) / RAD) : -this.jibSide * this.jibSheet; // drawing: positive = clew to starboard
+@@ -161,18 +224,31 @@
+ 
+       // ---- water
+       let Yc = 0, Nc = 0, Kc = 0, Xc = 0, m11 = 0, m12 = 0, m13 = 0, m22 = 0, m23 = 0, m33 = 0, Iy = 0, b1 = 0, b2 = 0, b3 = 0;
+-      let Yrud = 0, Ykeel = 0, Xrud = 0, flowS = 0, flowW = 0, attS = 0;
+-      const dxs = u * dt, n = d0.n, sdx = d0.dx, Xatt = this.Xatt;
++      let Ndrag = 0, airS = 0, Nrud = 0, Yrud = 0, Ykeel = 0, Xrud = 0, flowS = 0, flowW = 0, attS = 0;
++      const dxs = u * dt, n = d0.n, sdx = d0.dx, Xatt = this.Xatt, Fa = this.Fa;
+       for (let mi = 0; mi < this.markers.length; mi++) {
+         const m = this.markers[mi];
+         const x0 = m.x, x1 = x0 + dxs, dx = Math.abs(dxs), xm = 0.5 * (x0 + x1);
+-        const A0 = this.cell(this.cA, x0) * ch2, A1 = this.cell(this.cA, x1) * ch2;
+-        const Tm = this.cell(this.cT, xm) * ch, sh = this.cell(this.cS, xm), fr = this.cell(this.cR, xm);
++        // r2: a section's entrained water scales with the square of its true depth below the water at this heel
++        // (for a blade: its tip depth, T cos(heel) minus the hull's rise; before, T cos(heel) with no rise)
++        const Tu0 = this.at(d0.T, x0), Tu1 = this.at(d0.T, x1), Tum = this.at(d0.T, xm);
++        // r2 AIR (a): where the suction a station carries exceeds the head of water over its blade, the surface is drawn down
++        // to the blade and stops acting as a wall there; Fa is the share of the blade's span where that is so (lagged, per station)
++        const ci = clamp(Math.floor(x1 / d), 0, this.ncell - 1); m._cell = ci;
++        const kfs = H.air ? 1 - (1 - C.FS_RELEASE) * Fa[ci] : 1;
++        const A0 = Tu0 > 1e-6 ? this.cell(this.cA, x0) * sq(this.depthAt(x0, ch) / Tu0) * kfs : 0, A1 = Tu1 > 1e-6 ? this.cell(this.cA, x1) * sq(this.depthAt(x1, ch) / Tu1) * kfs : 0;
++        const Tm = Tum > 1e-6 ? this.cell(this.cT, xm) * this.depthAt(xm, ch) / Tum : 0, sh = this.cell(this.cS, xm), fr = this.cell(this.cR, xm);
+         const arm = d0.xcg - xm, z = C.depthFrac * Tm;
++        // r2: the canoe body's immersed area sits to the low side by yc(x); a slice passing along the hull is pushed sideways
++        // at u dyc/dx by the canoe body's share of the section (half-ellipse value pi/2 depth^2), not by the blade, which is straight
++        const dcn = this.at(this.wDc, xm), cfrac = A1 > 1e-9 ? Math.min(1, 0.5 * Math.PI * dcn * dcn / A1) : 1;
++        const wcam = u * this.at(this.wDyc, xm) * cfrac;
+         // local surface: turned by theta where the rudder is over
+         const sO = fr * tOld, cO = 1 / Math.sqrt(1 + sO * sO), snO = sO * cO;
+         const wlat = v + r * arm - p * z;
+-        const w = u * snO + wlat * cO;            // section's speed through still water, normal to its surface
++        // r2: the rudder turns about its heeled stock, so its angle sets the full blade-normal speed u sin(angle); in the
++        // horizontal measure used here (blade-normal times 1/cos heel) that is u sin / cos(heel)
++        const w = u * snO / chr + (wlat + wcam) * cO; // section's speed through still water, normal to its surface
+         const ut = u * cO - wlat * snO;           // and along its surface
+         const invUt = ut / (ut * ut + sq(C.uEps));
+         if (m.Aw > 0) m.xw += dx;
+@@ -182,12 +258,20 @@
+         const wrel = w - wash, target = A1 * wrel;
+         const Teff = Math.sqrt((2 * A1) / Math.PI);
+         m.ell = (A1 > A0 && A1 > 0 ? m.ell * (A0 / A1) : m.ell) + dx;
+-        const cap = 0.5 * Math.abs(ut) * C.CL_MAX * Teff * m.ell; m.cap = cap;
++        const cap = 0.5 * Math.abs(ut) * C.CL_MAX * (Teff / Math.sqrt(kfs)) * m.ell; m.cap = cap; // the limit goes with the blade's true depth
+         // attachment number of this station: lagged, body-fixed
+-        const ci = clamp(Math.floor(x1 / d), 0, this.ncell - 1); m._cell = ci;
+         {
+           const ratio = Math.abs(m.Plin) / Math.max(cap, 1e-9);
+-          const Xt = 1 / (1 + Math.exp(clamp((ratio - C.STALL_OFFSET) / C.STALL_DROP, -40, 40)));
++          let Xt = 1 / (1 + Math.exp(clamp((ratio - C.STALL_OFFSET) / C.STALL_DROP, -40, 40)));
++          // r2 AIR (b): once a station has let go, air fills the separated face over the same share of span, and attachment
++          // is regained only on the span air cannot reach. Inception is unchanged: it needs separated flow (Harwood et al. 2016).
++          {
++            const cover = Math.max(0, this.at(d0.canoeDepth, x1) * ch - hR), span = this.at(d0.T, x1) * ch - hR - cover;
++            const head = C.SUCTION_SHARE * ratio * C.CL_MAX * ut * ut / (2 * G0);
++            const fa = H.air && span > 1e-3 ? clamp((head - cover) / span, 0, 1) : 0;
++            Fa[ci] += (fa - Fa[ci]) * (1 - Math.exp(-Math.abs(ut) * dt / (C.ATTACH_LAG * Math.max(m.ell, d))));
++            if (Xatt[ci] < Xt) Xt = Math.min(Xt, Math.max(Xatt[ci], 1 - Fa[ci]));
++          }
+           Xatt[ci] += (Xt - Xatt[ci]) * (1 - Math.exp(-Math.abs(ut) * dt / (C.ATTACH_LAG * Math.max(m.ell, d))));
+         }
+         const kf = this.kirch(Xatt[ci]);
+@@ -221,7 +305,9 @@
+           m.s += (Math.abs(wrel) * dt) / Tm;
+           const cdv = C.CD_ROUND + (C.CD_SHARP - C.CD_ROUND) * sh, s0 = C.S0_ROUND * (1 - sh);
+           const grown = s0 > 1e-9 ? 1 - Math.exp(-m.s / s0) : 1;
+-          fcf = 0.5 * cdv * grown * Tm * Math.abs(wrel) * wrel;
++          // r2 AIR (c): on the aired share of the span the separated lee face is at ambient pressure, not at wake suction
++          const aired = H.air ? 1 - Fa[ci] * (1 - C.CD_AIRED / C.CD_SHARP) : 1;
++          fcf = 0.5 * cdv * aired * grown * Tm * Math.abs(wrel) * wrel;
+           m.Pcf += fcf * dt;
+         }
+         const dPconv = m.Patt - before + shedNow;
+@@ -229,9 +315,13 @@
+         // suction along the chord, fading as the loading saturates; and the wake's energy is paid for
+         const sucK = Math.abs(m.Plin) > 1e-12 ? sq(Math.min(1, Math.abs(m.Patt / m.Plin))) : 1;
+         const St = rho * d * invUt * (sucK * w * dPconv - washMid * shedNow) / dt;
+-        const Fy = Fn * cO - St * snO, Fx = Fn * snO + St * cO;
+-        Yc += Fy; Nc += Fy * arm; Kc += -Fy * z; Xc += Fx;
+-        Yrud += Fy * fr; Ykeel += Fy * (1 - fr); Xrud += Fx * fr;
++        const Fy = Fn * cO - St * snO * chr, Fx = Fn * snO / chr + St * cO;
++        // r2: fore-and-aft forces act where the section is: the blade's share out to the high side at (depth + rise) tan(heel),
++        // the canoe body's share at its immersed area's centre on the low side
++        const yoff = H.dragArm ? cfrac * this.at(this.wYc, xm) - (1 - cfrac) * (z + hR) * tph : 0;
++        Yc += Fy; Nc += Fy * arm - yoff * Fx; Kc += -Fy * z; Xc += Fx; Ndrag -= yoff * Fx;
++        Yrud += Fy * fr; Ykeel += Fy * (1 - fr); Xrud += Fx * fr; Nrud += Fy * arm * fr;
++        if (fr > 0.5) { airS += (A1 + 1e-9) * Fa[ci]; }
+         if (fr > 0.5) { const wt = A1 + 1e-9; flowS += wt * Math.atan2(wrel, Math.abs(ut)); flowW += wt; attS += wt * Xatt[ci]; }
+ 
+         // entrained water follows changes in time at once: mass matrix (lateral part of the normal direction)
+@@ -239,7 +329,7 @@
+         m11 += gl; m12 += gl * arm; m13 += -gl * z; m22 += gl * arm * arm; m23 += -gl * arm * z; m33 += gl * z * z;
+         Iy += gl * wlat;
+         if (fr > 0 && tNew !== tOld) { // the rudder being moved pushes water at once
+-          const sN = fr * tNew, cN = 1 / Math.sqrt(1 + sN * sN), dwr = (u * sN * cN + wlat * cN) - w;
++          const sN = fr * tNew, cN = 1 / Math.sqrt(1 + sN * sN), dwr = (u * sN * cN / chr + (wlat + wcam) * cN) - w;
+           b1 -= g * dwr * cN; b2 -= g * dwr * cN * arm; b3 += g * dwr * cN * z; m._dP = m.G * dwr;
+         }
+         m._arm = arm; m._z = z; m._c = cO; m._kf = kf;
+@@ -255,6 +345,7 @@
+ 
+       // ---- total momentum update
+       const M = d0.mass, Iz = M * sq(d0.kYaw), Ix = M * sq(d0.kRoll);
++      Nc += this.ycMean * (Rf + Rw); Ndrag += this.ycMean * (Rf + Rw); // r2: hull friction and wave drag act at the immersed hull's centre
+       const f1 = Yc + Ys - M * u * r, f2 = Nc + Ns, f3 = Kc + Ks + Kcrew - M * G0 * d0.GM * Math.sin(phi);
+       const sol = solve3(M + m11, m12, m13, Iz + m22, m23, Ix + m33, f1 * dt + b1, f2 * dt + b2, f3 * dt + b3);
+       const dv = sol[0], dr = sol[1], dp = sol[2];
+@@ -282,7 +373,7 @@
+ 
+       o.keelY = Ykeel; o.rudderY = Yrud; o.rudderX = Xrud; o.hullX = Xc; o.friction = Rf; o.wave = Rw;
+       o.rudderFlowDeg = flowW > 0 ? flowS / flowW / RAD : 0; o.rudderAttach = flowW > 0 ? attS / flowW : 1;
+-      o.entrained = m11; o.turnDrag = -r * (M * v + Iy);
++      o.nRud = Nrud; o.nHull = Nc - Nrud; o.nDrag = Ndrag; o.rudderAir = flowW > 0 ? airS / flowW : 0; o.rise = hR; o.rudderDepth = this.depthAt(this.rudderX, ch); o.rudderCover = this.at(d0.canoeDepth, this.rudderX) * ch - hR; o.entrained = m11; o.turnDrag = -r * (M * v + Iy);
+     }
+ 
+     /** Derived readouts. */

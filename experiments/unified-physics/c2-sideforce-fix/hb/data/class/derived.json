@@ -1,0 +1,2323 @@
+{
+ "schema": "hboat-derived/1",
+ "note": "Computed by the generators from model/hboat.json with the default parameters. Nothing here is a source figure.",
+ "principal": {
+  "loa": 8.251,
+  "loaClass": 8.285,
+  "lwlKVL": 6.3,
+  "beamMax": 2.184,
+  "beamORC": 2.188,
+  "stemHead": [
+   4.16,
+   0.83
+  ],
+  "transom": {
+   "bottom": [
+    -4.091,
+    0.281
+   ],
+   "top": [
+    -3.925,
+    0.652
+   ]
+  },
+  "draftDesign": 1.3,
+  "freeboardAtStation5": 0.618
+ },
+ "conditions": {
+  "measurement": {
+   "id": "measurement",
+   "note": "ORC certificate displacement 1456 kg with the weighed-boat CG, sea water",
+   "mass": 1456,
+   "rho": 1025,
+   "cg": [
+    -0.1568,
+    -0.1901,
+    0
+   ],
+   "sinkage": -0.0474,
+   "trimDeg": -0.6584,
+   "waterlineAboveKVLAtOrigin": -0.0474,
+   "volume": 1.4205,
+   "cb": [
+    -0.1573,
+    -0.2347,
+    0.0001
+   ],
+   "wettedArea": 12.0776,
+   "waterplaneArea": 6.984,
+   "lcf": -0.2874,
+   "immersionKgPerMm": 7.1586,
+   "lwl": 6.0581,
+   "bwl": 1.7432,
+   "draft": 1.2628,
+   "vcgAboveWaterline": -0.1427,
+   "gmTransverse": 0.7875
+  },
+  "classMinimum": {
+   "id": "classMinimum",
+   "note": "weighed boat at the class minimum 1450 kg (CR 3.7), sea water",
+   "mass": 1450,
+   "rho": 1025,
+   "cg": [
+    -0.1568,
+    -0.1901,
+    0
+   ],
+   "sinkage": -0.0483,
+   "trimDeg": -0.6618,
+   "waterlineAboveKVLAtOrigin": -0.0483,
+   "volume": 1.4146,
+   "cb": [
+    -0.1573,
+    -0.2355,
+    0.0001
+   ],
+   "wettedArea": 12.0585,
+   "waterplaneArea": 6.9686,
+   "lcf": -0.2871,
+   "immersionKgPerMm": 7.1428,
+   "lwl": 6.0527,
+   "bwl": 1.7411,
+   "draft": 1.262,
+   "vcgAboveWaterline": -0.1419,
+   "gmTransverse": 0.7862
+  },
+  "sailing": {
+   "id": "sailing",
+   "note": "weighed boat + sails, gear and three crew (100 kg) on the centreline height of the hiking preset, sea water",
+   "mass": 1776.7012,
+   "rho": 1025,
+   "cg": [
+    -0.3157,
+    -0.0024,
+    0
+   ],
+   "sinkage": -0.0107,
+   "trimDeg": -1.4913,
+   "waterlineAboveKVLAtOrigin": -0.0107,
+   "volume": 1.7334,
+   "cb": [
+    -0.3207,
+    -0.1938,
+    0.0001
+   ],
+   "wettedArea": 13.1001,
+   "waterplaneArea": 7.8471,
+   "lcf": -0.4612,
+   "immersionKgPerMm": 8.0433,
+   "lwl": 6.3857,
+   "bwl": 1.8369,
+   "draft": 1.3122,
+   "vcgAboveWaterline": 0.0084,
+   "gmTransverse": 0.6664
+  },
+  "sailingBaltic": {
+   "id": "sailingBaltic",
+   "note": "as sailing, brackish Gulf of Finland water ρ 1005",
+   "mass": 1776.7012,
+   "rho": 1005,
+   "cg": [
+    -0.3157,
+    -0.0024,
+    0
+   ],
+   "sinkage": -0.0062,
+   "trimDeg": -1.4736,
+   "waterlineAboveKVLAtOrigin": -0.0062,
+   "volume": 1.7679,
+   "cb": [
+    -0.3205,
+    -0.19,
+    0.0001
+   ],
+   "wettedArea": 13.195,
+   "waterplaneArea": 7.9189,
+   "lcf": -0.462,
+   "immersionKgPerMm": 7.9585,
+   "lwl": 6.4127,
+   "bwl": 1.8453,
+   "draft": 1.3165,
+   "vcgAboveWaterline": 0.0039,
+   "gmTransverse": 0.669
+  }
+ },
+ "hydrostaticTable": [
+  {
+   "waterlineAboveKVL": -0.12,
+   "displacementSea": 978.2312,
+   "volume": 0.9544,
+   "lcb": -0.01,
+   "vcb": -0.3107,
+   "waterplaneArea": 5.4915,
+   "lcf": -0.0985,
+   "kgPerMm": 5.6288,
+   "wettedArea": 10.2879,
+   "lwl": 5.6522,
+   "bwl": 1.5125
+  },
+  {
+   "waterlineAboveKVL": -0.1,
+   "displacementSea": 1094.6316,
+   "volume": 1.0679,
+   "lcb": -0.0206,
+   "vcb": -0.2894,
+   "waterplaneArea": 5.8642,
+   "lcf": -0.1206,
+   "kgPerMm": 6.0108,
+   "wettedArea": 10.7518,
+   "lwl": 5.741,
+   "bwl": 1.5765
+  },
+  {
+   "waterlineAboveKVL": -0.08,
+   "displacementSea": 1218.6512,
+   "volume": 1.1889,
+   "lcb": -0.0319,
+   "vcb": -0.2691,
+   "waterplaneArea": 6.235,
+   "lcf": -0.142,
+   "kgPerMm": 6.3908,
+   "wettedArea": 11.2134,
+   "lwl": 5.7927,
+   "bwl": 1.6385
+  },
+  {
+   "waterlineAboveKVL": -0.06,
+   "displacementSea": 1350.2935,
+   "volume": 1.3174,
+   "lcb": -0.0437,
+   "vcb": -0.2497,
+   "waterplaneArea": 6.6088,
+   "lcf": -0.1649,
+   "kgPerMm": 6.774,
+   "wettedArea": 11.668,
+   "lwl": 5.9178,
+   "bwl": 1.6983
+  },
+  {
+   "waterlineAboveKVL": -0.04,
+   "displacementSea": 1489.5937,
+   "volume": 1.4533,
+   "lcb": -0.0562,
+   "vcb": -0.231,
+   "waterplaneArea": 6.9798,
+   "lcf": -0.1883,
+   "kgPerMm": 7.1543,
+   "wettedArea": 12.1228,
+   "lwl": 6.0484,
+   "bwl": 1.7518
+  },
+  {
+   "waterlineAboveKVL": -0.02,
+   "displacementSea": 1636.4142,
+   "volume": 1.5965,
+   "lcb": -0.0691,
+   "vcb": -0.2129,
+   "waterplaneArea": 7.3426,
+   "lcf": -0.2114,
+   "kgPerMm": 7.5261,
+   "wettedArea": 12.5746,
+   "lwl": 6.1752,
+   "bwl": 1.8015
+  },
+  {
+   "waterlineAboveKVL": 0,
+   "displacementSea": 1790.4808,
+   "volume": 1.7468,
+   "lcb": -0.0823,
+   "vcb": -0.1955,
+   "waterplaneArea": 7.6847,
+   "lcf": -0.2335,
+   "kgPerMm": 7.8769,
+   "wettedArea": 13.0144,
+   "lwl": 6.2997,
+   "bwl": 1.8396
+  },
+  {
+   "waterlineAboveKVL": 0.02,
+   "displacementSea": 1951.3609,
+   "volume": 1.9038,
+   "lcb": -0.0956,
+   "vcb": -0.1785,
+   "waterplaneArea": 8.0078,
+   "lcf": -0.2538,
+   "kgPerMm": 8.208,
+   "wettedArea": 13.4434,
+   "lwl": 6.4217,
+   "bwl": 1.8758
+  },
+  {
+   "waterlineAboveKVL": 0.04,
+   "displacementSea": 2118.6739,
+   "volume": 2.067,
+   "lcb": -0.1089,
+   "vcb": -0.162,
+   "waterplaneArea": 8.3136,
+   "lcf": -0.2728,
+   "kgPerMm": 8.5214,
+   "wettedArea": 13.8635,
+   "lwl": 6.5406,
+   "bwl": 1.9059
+  },
+  {
+   "waterlineAboveKVL": 0.06,
+   "displacementSea": 2292.1758,
+   "volume": 2.2363,
+   "lcb": -0.122,
+   "vcb": -0.146,
+   "waterplaneArea": 8.6127,
+   "lcf": -0.2912,
+   "kgPerMm": 8.828,
+   "wettedArea": 14.2825,
+   "lwl": 6.6574,
+   "bwl": 1.9358
+  },
+  {
+   "waterlineAboveKVL": 0.08,
+   "displacementSea": 2471.7641,
+   "volume": 2.4115,
+   "lcb": -0.1349,
+   "vcb": -0.1303,
+   "waterplaneArea": 8.9075,
+   "lcf": -0.3095,
+   "kgPerMm": 9.1302,
+   "wettedArea": 14.7021,
+   "lwl": 6.7718,
+   "bwl": 1.9642
+  }
+ ],
+ "stability": {
+  "condition": "weighed boat 1450 kg, free trim, sea water; cabin trunk watertight, cockpit well floods",
+  "gz": [
+   {
+    "heelDeg": 0,
+    "gz": 0.0001,
+    "sinkage": -0.0483,
+    "trimDeg": -0.6618
+   },
+   {
+    "heelDeg": 5,
+    "gz": 0.0681,
+    "sinkage": -0.0516,
+    "trimDeg": -0.6284
+   },
+   {
+    "heelDeg": 10,
+    "gz": 0.1337,
+    "sinkage": -0.0608,
+    "trimDeg": -0.5374
+   },
+   {
+    "heelDeg": 15,
+    "gz": 0.1963,
+    "sinkage": -0.0756,
+    "trimDeg": -0.3942
+   },
+   {
+    "heelDeg": 20,
+    "gz": 0.255,
+    "sinkage": -0.0953,
+    "trimDeg": -0.2082
+   },
+   {
+    "heelDeg": 25,
+    "gz": 0.3103,
+    "sinkage": -0.119,
+    "trimDeg": 0.0102
+   },
+   {
+    "heelDeg": 30,
+    "gz": 0.3626,
+    "sinkage": -0.1461,
+    "trimDeg": 0.254
+   },
+   {
+    "heelDeg": 35,
+    "gz": 0.4129,
+    "sinkage": -0.1764,
+    "trimDeg": 0.5115
+   },
+   {
+    "heelDeg": 40,
+    "gz": 0.4621,
+    "sinkage": -0.2094,
+    "trimDeg": 0.7751
+   },
+   {
+    "heelDeg": 45,
+    "gz": 0.5063,
+    "sinkage": -0.2437,
+    "trimDeg": 1.0414
+   },
+   {
+    "heelDeg": 50,
+    "gz": 0.5417,
+    "sinkage": -0.2775,
+    "trimDeg": 1.2959
+   },
+   {
+    "heelDeg": 55,
+    "gz": 0.5708,
+    "sinkage": -0.3096,
+    "trimDeg": 1.5279
+   },
+   {
+    "heelDeg": 60,
+    "gz": 0.5939,
+    "sinkage": -0.34,
+    "trimDeg": 1.7069
+   },
+   {
+    "heelDeg": 65,
+    "gz": 0.6127,
+    "sinkage": -0.3687,
+    "trimDeg": 1.7876
+   },
+   {
+    "heelDeg": 70,
+    "gz": 0.6364,
+    "sinkage": -0.3947,
+    "trimDeg": 1.7567
+   },
+   {
+    "heelDeg": 75,
+    "gz": 0.6336,
+    "sinkage": -0.4257,
+    "trimDeg": 1.6961
+   },
+   {
+    "heelDeg": 80,
+    "gz": 0.6087,
+    "sinkage": -0.4601,
+    "trimDeg": 1.6177
+   },
+   {
+    "heelDeg": 85,
+    "gz": 0.5783,
+    "sinkage": -0.4933,
+    "trimDeg": 1.5056
+   },
+   {
+    "heelDeg": 90,
+    "gz": 0.5424,
+    "sinkage": -0.5247,
+    "trimDeg": 1.3625
+   },
+   {
+    "heelDeg": 95,
+    "gz": 0.5017,
+    "sinkage": -0.5538,
+    "trimDeg": 1.191
+   },
+   {
+    "heelDeg": 100,
+    "gz": 0.457,
+    "sinkage": -0.5804,
+    "trimDeg": 0.9937
+   },
+   {
+    "heelDeg": 105,
+    "gz": 0.4089,
+    "sinkage": -0.6041,
+    "trimDeg": 0.7731
+   },
+   {
+    "heelDeg": 110,
+    "gz": 0.3582,
+    "sinkage": -0.6249,
+    "trimDeg": 0.5344
+   },
+   {
+    "heelDeg": 115,
+    "gz": 0.3058,
+    "sinkage": -0.6426,
+    "trimDeg": 0.282
+   },
+   {
+    "heelDeg": 120,
+    "gz": 0.2525,
+    "sinkage": -0.6571,
+    "trimDeg": 0.0186
+   },
+   {
+    "heelDeg": 125,
+    "gz": 0.1994,
+    "sinkage": -0.6683,
+    "trimDeg": -0.2534
+   },
+   {
+    "heelDeg": 130,
+    "gz": 0.1479,
+    "sinkage": -0.6763,
+    "trimDeg": -0.5305
+   },
+   {
+    "heelDeg": 135,
+    "gz": 0.0987,
+    "sinkage": -0.6813,
+    "trimDeg": -0.8088
+   },
+   {
+    "heelDeg": 140,
+    "gz": 0.0531,
+    "sinkage": -0.6834,
+    "trimDeg": -1.0821
+   },
+   {
+    "heelDeg": 145,
+    "gz": 0.013,
+    "sinkage": -0.6829,
+    "trimDeg": -1.3467
+   },
+   {
+    "heelDeg": 150,
+    "gz": -0.0193,
+    "sinkage": -0.6801,
+    "trimDeg": -1.5971
+   },
+   {
+    "heelDeg": 155,
+    "gz": -0.0407,
+    "sinkage": -0.6758,
+    "trimDeg": -1.8256
+   },
+   {
+    "heelDeg": 160,
+    "gz": -0.0499,
+    "sinkage": -0.67,
+    "trimDeg": -2.0189
+   },
+   {
+    "heelDeg": 165,
+    "gz": -0.051,
+    "sinkage": -0.6619,
+    "trimDeg": -2.1472
+   },
+   {
+    "heelDeg": 170,
+    "gz": -0.0471,
+    "sinkage": -0.6515,
+    "trimDeg": -2.175
+   },
+   {
+    "heelDeg": 175,
+    "gz": -0.0353,
+    "sinkage": -0.6402,
+    "trimDeg": -2.1108
+   },
+   {
+    "heelDeg": 180,
+    "gz": 0.0001,
+    "sinkage": -0.6312,
+    "trimDeg": -2.0422
+   }
+  ],
+  "limitOfPositiveStabilityDeg": 147.0066,
+  "withoutCabin": {
+   "gz": [
+    {
+     "heelDeg": 0,
+     "gz": 0.0001,
+     "sinkage": -0.0483,
+     "trimDeg": -0.6618
+    },
+    {
+     "heelDeg": 5,
+     "gz": 0.0681,
+     "sinkage": -0.0516,
+     "trimDeg": -0.6284
+    },
+    {
+     "heelDeg": 10,
+     "gz": 0.1337,
+     "sinkage": -0.0608,
+     "trimDeg": -0.5374
+    },
+    {
+     "heelDeg": 15,
+     "gz": 0.1963,
+     "sinkage": -0.0756,
+     "trimDeg": -0.3942
+    },
+    {
+     "heelDeg": 20,
+     "gz": 0.255,
+     "sinkage": -0.0953,
+     "trimDeg": -0.2082
+    },
+    {
+     "heelDeg": 25,
+     "gz": 0.3103,
+     "sinkage": -0.119,
+     "trimDeg": 0.0102
+    },
+    {
+     "heelDeg": 30,
+     "gz": 0.3626,
+     "sinkage": -0.1461,
+     "trimDeg": 0.254
+    },
+    {
+     "heelDeg": 35,
+     "gz": 0.4129,
+     "sinkage": -0.1764,
+     "trimDeg": 0.5115
+    },
+    {
+     "heelDeg": 40,
+     "gz": 0.4621,
+     "sinkage": -0.2094,
+     "trimDeg": 0.7751
+    },
+    {
+     "heelDeg": 45,
+     "gz": 0.5063,
+     "sinkage": -0.2437,
+     "trimDeg": 1.0414
+    },
+    {
+     "heelDeg": 50,
+     "gz": 0.5417,
+     "sinkage": -0.2775,
+     "trimDeg": 1.2959
+    },
+    {
+     "heelDeg": 55,
+     "gz": 0.5708,
+     "sinkage": -0.3096,
+     "trimDeg": 1.5279
+    },
+    {
+     "heelDeg": 60,
+     "gz": 0.5939,
+     "sinkage": -0.34,
+     "trimDeg": 1.7069
+    },
+    {
+     "heelDeg": 65,
+     "gz": 0.612,
+     "sinkage": -0.3684,
+     "trimDeg": 1.7882
+    },
+    {
+     "heelDeg": 70,
+     "gz": 0.632,
+     "sinkage": -0.3927,
+     "trimDeg": 1.7608
+    },
+    {
+     "heelDeg": 75,
+     "gz": 0.6238,
+     "sinkage": -0.4201,
+     "trimDeg": 1.7087
+    },
+    {
+     "heelDeg": 80,
+     "gz": 0.5905,
+     "sinkage": -0.4495,
+     "trimDeg": 1.6468
+    },
+    {
+     "heelDeg": 85,
+     "gz": 0.551,
+     "sinkage": -0.4768,
+     "trimDeg": 1.5598
+    },
+    {
+     "heelDeg": 90,
+     "gz": 0.506,
+     "sinkage": -0.5017,
+     "trimDeg": 1.4508
+    },
+    {
+     "heelDeg": 95,
+     "gz": 0.4564,
+     "sinkage": -0.5241,
+     "trimDeg": 1.3225
+    },
+    {
+     "heelDeg": 100,
+     "gz": 0.4029,
+     "sinkage": -0.5437,
+     "trimDeg": 1.1777
+    },
+    {
+     "heelDeg": 105,
+     "gz": 0.3462,
+     "sinkage": -0.5603,
+     "trimDeg": 1.0193
+    },
+    {
+     "heelDeg": 110,
+     "gz": 0.2871,
+     "sinkage": -0.5738,
+     "trimDeg": 0.8492
+    },
+    {
+     "heelDeg": 115,
+     "gz": 0.2262,
+     "sinkage": -0.5842,
+     "trimDeg": 0.6665
+    },
+    {
+     "heelDeg": 120,
+     "gz": 0.1643,
+     "sinkage": -0.5913,
+     "trimDeg": 0.4711
+    },
+    {
+     "heelDeg": 125,
+     "gz": 0.1022,
+     "sinkage": -0.5953,
+     "trimDeg": 0.2641
+    },
+    {
+     "heelDeg": 130,
+     "gz": 0.0409,
+     "sinkage": -0.5961,
+     "trimDeg": 0.0474
+    },
+    {
+     "heelDeg": 135,
+     "gz": -0.0185,
+     "sinkage": -0.5939,
+     "trimDeg": -0.1772
+    },
+    {
+     "heelDeg": 140,
+     "gz": -0.0749,
+     "sinkage": -0.5891,
+     "trimDeg": -0.407
+    },
+    {
+     "heelDeg": 145,
+     "gz": -0.127,
+     "sinkage": -0.582,
+     "trimDeg": -0.6381
+    },
+    {
+     "heelDeg": 150,
+     "gz": -0.173,
+     "sinkage": -0.5729,
+     "trimDeg": -0.8604
+    },
+    {
+     "heelDeg": 155,
+     "gz": -0.2101,
+     "sinkage": -0.5624,
+     "trimDeg": -1.0661
+    },
+    {
+     "heelDeg": 160,
+     "gz": -0.2339,
+     "sinkage": -0.5515,
+     "trimDeg": -1.2449
+    },
+    {
+     "heelDeg": 165,
+     "gz": -0.2374,
+     "sinkage": -0.5418,
+     "trimDeg": -1.3836
+    },
+    {
+     "heelDeg": 170,
+     "gz": -0.2109,
+     "sinkage": -0.5343,
+     "trimDeg": -1.4966
+    },
+    {
+     "heelDeg": 175,
+     "gz": -0.1283,
+     "sinkage": -0.5321,
+     "trimDeg": -1.5942
+    },
+    {
+     "heelDeg": 180,
+     "gz": 0.0001,
+     "sinkage": -0.5324,
+     "trimDeg": -1.6563
+    }
+   ],
+   "limitOfPositiveStabilityDeg": 133.4419
+  },
+  "orcEstimate": {
+   "limitOfPositiveStabilityDeg": 120.1,
+   "stabilityIndex": 118.2
+  }
+ },
+ "mass": {
+  "weighed": {
+   "mass": 1450,
+   "cg": [
+    -0.1568,
+    -0.1901,
+    0
+   ],
+   "inertiaAboutCg": [
+    [
+     2191.3533,
+     -73.7363,
+     0.0021
+    ],
+    [
+     -73.7363,
+     2818.7209,
+     0.0004
+    ],
+    [
+     0.0021,
+     0.0004,
+     4726.7797
+    ]
+   ],
+   "radiiOfGyration": {
+    "roll": 1.2293,
+    "yaw": 1.3943,
+    "pitch": 1.8055
+   },
+   "items": [
+    {
+     "id": "hullShell",
+     "group": "hull",
+     "mass": 220.1,
+     "cg": [
+      -0.21,
+      0.029,
+      0
+     ],
+     "flag": "d",
+     "source": "d offsets girth × laminate 2022 (above joint 1.2 m girth 8.97, below 12.8, keel band 17.1 kg/m2) + transom/stem 0.52 m2; area 21.4 m2"
+    },
+    {
+     "id": "deckMoulding",
+     "group": "hull",
+     "mass": 199.2,
+     "cg": [
+      -0.32,
+      0.72,
+      0
+     ],
+     "flag": "d",
+     "source": "d 11.2 m2 sandwich @12.3 + 5.9 m2 single skin @10.5; rule min 180 kg (CR 3.2.2) ✓"
+    },
+    {
+     "id": "hullDeckJoint",
+     "group": "hull",
+     "mass": 4.5,
+     "cg": [
+      -0.25,
+      0.63,
+      0
+     ],
+     "flag": "e",
+     "source": "e bolts ø5@200 + mating compound"
+    },
+    {
+     "id": "keelBoltsAndPlates",
+     "group": "appendages",
+     "mass": 7,
+     "cg": [
+      0.065,
+      -0.42,
+      0
+     ],
+     "flag": "e",
+     "source": "e 7×M16 + 6 mm plates"
+    },
+    {
+     "id": "floors",
+     "group": "interior",
+     "mass": 13,
+     "cg": [
+      0,
+      -0.38,
+      0
+     ],
+     "flag": "e",
+     "source": "e 8 floors 5x450 CSM"
+    },
+    {
+     "id": "mainAccommodationMoulding",
+     "group": "interior",
+     "mass": 36,
+     "cg": [
+      -0.4,
+      -0.05,
+      0
+     ],
+     "flag": "e",
+     "source": "e ~5 m2 @ 6.6–9.6 kg/m2"
+    },
+    {
+     "id": "fwdAccommodationMoulding",
+     "group": "interior",
+     "mass": 17,
+     "cg": [
+      2,
+      0.05,
+      0
+     ],
+     "flag": "e",
+     "source": "e ~2.5 m2 @6.6"
+    },
+    {
+     "id": "aftMouldingAndBulkhead",
+     "group": "interior",
+     "mass": 17,
+     "cg": [
+      -2,
+      0.25,
+      0
+     ],
+     "flag": "e",
+     "source": "e ~3 m2 @5.1 + bulkhead"
+    },
+    {
+     "id": "plywoodBulkheads",
+     "group": "interior",
+     "mass": 26,
+     "cg": [
+      0.4,
+      0.15,
+      0
+     ],
+     "flag": "e",
+     "source": "e 12 mm ply ~2.6 m2 incl. 3x450 tabbing"
+    },
+    {
+     "id": "soleTeak",
+     "group": "interior",
+     "mass": 12,
+     "cg": [
+      0.1,
+      -0.3,
+      0
+     ],
+     "flag": "e",
+     "source": "e 1.2 m2 × 16 mm teak"
+    },
+    {
+     "id": "joinery",
+     "group": "interior",
+     "mass": 22,
+     "cg": [
+      0,
+      0.25,
+      0
+     ],
+     "flag": "e",
+     "source": "e shelves, pantry, locker, berth tops, washboards, sliding hatch"
+    },
+    {
+     "id": "beams",
+     "group": "interior",
+     "mass": 6,
+     "cg": [
+      0.95,
+      0.95,
+      0
+     ],
+     "flag": "e",
+     "source": "e mast beam 90x75 ash + deck beams 30x75"
+    },
+    {
+     "id": "hatches",
+     "group": "deckGear",
+     "mass": 9,
+     "cg": [
+      -0.8,
+      0.6,
+      0
+     ],
+     "flag": "e",
+     "source": "e fore, aft stowage, 2 seat lockers, sole"
+    },
+    {
+     "id": "deckFittings",
+     "group": "deckGear",
+     "mass": 22,
+     "cg": [
+      -0.6,
+      0.8,
+      0
+     ],
+     "flag": "e",
+     "source": "e winches 2×2.5, cleats, fairleads, tracks, handrails, eye bolts, stem fitting, bearings, light"
+    },
+    {
+     "id": "drainsAndSeacocks",
+     "group": "interior",
+     "mass": 3,
+     "cg": [
+      -1.6,
+      -0.1,
+      0
+     ],
+     "flag": "e",
+     "source": "e"
+    },
+    {
+     "id": "keel",
+     "group": "appendages",
+     "mass": 725,
+     "cg": [
+      -0.1077,
+      -0.9297,
+      0
+     ],
+     "flag": "p",
+     "source": "CR 3.3.3 725 ± 10 kg; CG and inertia from the A.1.3 geometry (effective density 7063 kg/m³)"
+    },
+    {
+     "id": "rudderBlade",
+     "group": "appendages",
+     "mass": 4.7,
+     "cg": [
+      -2.9312,
+      -0.5659,
+      0
+     ],
+     "flag": "e",
+     "source": "A.3.3 geometry; mass estimated from 4×450 g/m² CSM per side + foam core"
+    },
+    {
+     "id": "rudderStock",
+     "group": "appendages",
+     "mass": 4.73,
+     "cg": [
+      -2.835,
+      0.115,
+      0
+     ],
+     "flag": "d",
+     "source": "Ø25 solid stainless (CR 3.4.2), 7.9 kg/dm³ × length"
+    },
+    {
+     "id": "tiller",
+     "group": "deckGear",
+     "mass": 1.5075,
+     "cg": [
+      -2.335,
+      0.82,
+      0
+     ],
+     "flag": "e",
+     "source": "not controlled (CR 3.4.6); typical"
+    },
+    {
+     "id": "mastExtrusion",
+     "group": "rig",
+     "mass": 21.6207,
+     "cg": [
+      0.6155,
+      5.7349,
+      0
+     ],
+     "flag": "e",
+     "source": "CR 3.5.2.5 ≥ 2.20 kg/m; 2.3 kg/m assumed"
+    },
+    {
+     "id": "mastFittings",
+     "group": "rig",
+     "mass": 2.9,
+     "cg": [
+      0.7059,
+      5.1879,
+      0
+     ],
+     "flag": "e",
+     "source": "RIG.spars.mast.mass.items_kg (tangs, sheaves, spreader brackets, crane)"
+    },
+    {
+     "id": "spreaderStbd",
+     "group": "rig",
+     "mass": 0.45,
+     "cg": [
+      0.5455,
+      5.2474,
+      0.436
+     ],
+     "flag": "e",
+     "source": "aluminium spreader"
+    },
+    {
+     "id": "spreaderPort",
+     "group": "rig",
+     "mass": 0.45,
+     "cg": [
+      0.5455,
+      5.2474,
+      -0.436
+     ],
+     "flag": "e",
+     "source": "aluminium spreader"
+    },
+    {
+     "id": "forestay",
+     "group": "rig",
+     "mass": 0.6684,
+     "cg": [
+      1.9449,
+      4.6843,
+      0
+     ],
+     "flag": "d",
+     "source": "4 mm 1×19 stainless"
+    },
+    {
+     "id": "upperShroudStbd",
+     "group": "rig",
+     "mass": 0.6429,
+     "cg": [
+      0.4066,
+      4.6248,
+      0.7126
+     ],
+     "flag": "d",
+     "source": "4 mm 1×19 stainless"
+    },
+    {
+     "id": "upperShroudPort",
+     "group": "rig",
+     "mass": 0.6429,
+     "cg": [
+      0.4066,
+      4.6248,
+      -0.7126
+     ],
+     "flag": "d",
+     "source": "4 mm 1×19 stainless"
+    },
+    {
+     "id": "lowerShroudStbd",
+     "group": "rig",
+     "mass": 0.3663,
+     "cg": [
+      0.6079,
+      2.8703,
+      0.5159
+     ],
+     "flag": "d",
+     "source": "4 mm 1×19 stainless"
+    },
+    {
+     "id": "lowerShroudPort",
+     "group": "rig",
+     "mass": 0.3663,
+     "cg": [
+      0.6079,
+      2.8703,
+      -0.5159
+     ],
+     "flag": "d",
+     "source": "4 mm 1×19 stainless"
+    },
+    {
+     "id": "backstay",
+     "group": "rig",
+     "mass": 0.4633,
+     "cg": [
+      -1.9717,
+      5.4278,
+      0
+     ],
+     "flag": "d",
+     "source": "3 mm 1×19 stainless"
+    },
+    {
+     "id": "halyards",
+     "group": "rig",
+     "mass": 1.6,
+     "cg": [
+      0.5769,
+      5.6564,
+      0
+     ],
+     "flag": "e",
+     "source": "halyards hoisted, along the mast (CR 3.5.2.19)"
+    },
+    {
+     "id": "boom",
+     "group": "rig",
+     "mass": 5.6,
+     "cg": [
+      -0.675,
+      1.4171,
+      0
+     ],
+     "flag": "e",
+     "source": "CR 3.5.3.1 ≥ 1.25 kg/m; bare boom with fittings"
+    },
+    {
+     "id": "correctorSt2",
+     "group": "correctors",
+     "mass": 32.2459,
+     "cg": [
+      -1.89,
+      0.615,
+      0
+     ],
+     "flag": "d",
+     "source": "CR 3.7.1 lead under the deck at stations 2 and 8, solved to the minimum weight"
+    },
+    {
+     "id": "correctorSt8",
+     "group": "correctors",
+     "mass": 32.2459,
+     "cg": [
+      1.89,
+      0.704,
+      0
+     ],
+     "flag": "d",
+     "source": "CR 3.7.1 lead under the deck at stations 2 and 8, solved to the minimum weight"
+    }
+   ]
+  },
+  "sailing": {
+   "mass": 1776.7012,
+   "cg": [
+    -0.3157,
+    -0.0024,
+    0.2061
+   ],
+   "inertiaAboutCg": [
+    [
+     3059.2258,
+     168.1392,
+     319.0037
+    ],
+    [
+     168.1392,
+     3708.6641,
+     -286.1189
+    ],
+    [
+     319.0037,
+     -286.1189,
+     5713.9338
+    ]
+   ],
+   "radiiOfGyration": {
+    "roll": 1.3122,
+    "yaw": 1.4448,
+    "pitch": 1.7933
+   },
+   "crewPreset": "hikingWindward"
+  }
+ },
+ "appendages": {
+  "keel": {
+   "volume": 0.1026,
+   "centroid": [
+    -0.1077,
+    -0.9297,
+    0
+   ],
+   "mass": 739.0172,
+   "wettedArea": 2.0904,
+   "lateralArea": 0.8984,
+   "density": 7200,
+   "rootChord": {
+    "le": [
+     0.84,
+     -0.6
+    ],
+    "te": [
+     -0.729,
+     -0.6
+    ],
+    "halfTMax": 0.075
+   },
+   "tOverCRoot": 0.0478,
+   "tOverCTemplate": 0.0807
+  },
+  "rudder": {
+   "area": 0.3048,
+   "span": 0.8202,
+   "meanChord": 0.3716,
+   "centroidOfArea": [
+    -2.9741,
+    -0.5945
+   ],
+   "volume": 0.0082,
+   "balance": 0.1638,
+   "aspectRatio": 2.2074
+  },
+  "rudderPre1972": {
+   "area": 0.2604,
+   "span": 0.6692,
+   "meanChord": 0.3891,
+   "centroidOfArea": [
+    -2.9503,
+    -0.5317
+   ],
+   "volume": 0.0073,
+   "balance": 0.1917,
+   "aspectRatio": 1.7197
+  }
+ },
+ "rig": {
+  "rakeDeg": 4.7904,
+  "params": {
+   "mastFaceAftOfStation8": 0.84,
+   "forestayLength": 8.355,
+   "lowersAttachS": 4.07,
+   "spreaderAboveLowers": 0.15,
+   "spreaderLength": 0.83,
+   "spreaderSweep": 0.19,
+   "prebend": 0.03,
+   "boomAngle": 0,
+   "jibAngle": 0
+  },
+  "mastPoints": {
+   "heel": [
+    0.992,
+    1.05,
+    0
+   ],
+   "forestayTang": [
+    0.4197,
+    8.5735,
+    0
+   ],
+   "jibHalyardSheave": [
+    0.4172,
+    8.6034,
+    0
+   ],
+   "upperTangStbd": [
+    0.3619,
+    8.5686,
+    0.04
+   ],
+   "upperTangPort": [
+    0.3619,
+    8.5686,
+    -0.04
+   ],
+   "lowerTangStbd": [
+    0.6818,
+    5.1083,
+    0.04
+   ],
+   "lowerTangPort": [
+    0.6818,
+    5.1083,
+    -0.04
+   ],
+   "spreaderRootStbd": [
+    0.6691,
+    5.2577,
+    0.04
+   ],
+   "spreaderRootPort": [
+    0.6691,
+    5.2577,
+    -0.04
+   ],
+   "spinnakerHalyardSheave": [
+    0.4487,
+    8.7064,
+    0
+   ],
+   "poleLiftSheave": [
+    0.4346,
+    8.4242,
+    0
+   ],
+   "poleRing": [
+    0.9436,
+    2.5512,
+    0
+   ],
+   "poleDownhaulCheek": [
+    1.0396,
+    1.2045,
+    0
+   ],
+   "band1": [
+    0.8964,
+    1.5939,
+    0
+   ],
+   "band2": [
+    0.4155,
+    8.6233,
+    0
+   ],
+   "band3": [
+    0.1617,
+    10.2628,
+    0
+   ],
+   "mainHalyardLock": [
+    0.163,
+    10.2479,
+    0
+   ],
+   "masthead": [
+    0.207,
+    10.4172,
+    0
+   ],
+   "backstayCrane": [
+    -0.0334,
+    10.1963,
+    0
+   ],
+   "gooseneck": [
+    0.8696,
+    1.5465,
+    0
+   ]
+  },
+  "spreaders": [
+   {
+    "root": [
+     0.6691,
+     5.2577,
+     0.04
+    ],
+    "tip": [
+     0.4219,
+     5.237,
+     0.8321
+    ]
+   },
+   {
+    "root": [
+     0.6691,
+     5.2577,
+     -0.04
+    ],
+    "tip": [
+     0.4219,
+     5.237,
+     -0.8321
+    ]
+   }
+  ],
+  "boom": {
+   "gooseneck": [
+    0.8696,
+    1.5465,
+    0
+   ],
+   "end": [
+    -2.2196,
+    1.2876,
+    0
+   ],
+   "section": [
+    0.09,
+    0.075
+   ],
+   "points": {
+    "vangEye": [
+     0.1061,
+     1.4374,
+     0
+    ],
+    "mainsheetBail": [
+     -1.6877,
+     1.287,
+     0
+    ],
+    "outhaulBand": [
+     -2.09,
+     1.2985,
+     0
+    ]
+   }
+  },
+  "wires": [
+   {
+    "name": "forestay",
+    "points": [
+     [
+      0.4197,
+      8.5735,
+      0
+     ],
+     [
+      3.47,
+      0.7952,
+      0
+     ]
+    ],
+    "dia": 0.004,
+    "length": 8.355
+   },
+   {
+    "name": "upperShroudStbd",
+    "points": [
+     [
+      0.3619,
+      8.5686,
+      0.04
+     ],
+     [
+      0.4219,
+      5.237,
+      0.8321
+     ],
+     [
+      0.413,
+      0.6288,
+      1.004
+     ]
+    ],
+    "dia": 0.004,
+    "length": 8.0364
+   },
+   {
+    "name": "upperShroudPort",
+    "points": [
+     [
+      0.3619,
+      8.5686,
+      -0.04
+     ],
+     [
+      0.4219,
+      5.237,
+      -0.8321
+     ],
+     [
+      0.413,
+      0.6288,
+      -1.004
+     ]
+    ],
+    "dia": 0.004,
+    "length": 8.0364
+   },
+   {
+    "name": "lowerShroudStbd",
+    "points": [
+     [
+      0.6818,
+      5.1083,
+      0.04
+     ],
+     [
+      0.534,
+      0.6323,
+      0.9918
+     ]
+    ],
+    "dia": 0.004,
+    "length": 4.5784
+   },
+   {
+    "name": "lowerShroudPort",
+    "points": [
+     [
+      0.6818,
+      5.1083,
+      -0.04
+     ],
+     [
+      0.534,
+      0.6323,
+      -0.9918
+     ]
+    ],
+    "dia": 0.004,
+    "length": 4.5784
+   },
+   {
+    "name": "backstay",
+    "points": [
+     [
+      -0.0334,
+      10.1963,
+      0
+     ],
+     [
+      -3.91,
+      0.6593,
+      0
+     ]
+    ],
+    "dia": 0.003,
+    "length": 10.2948
+   }
+  ],
+  "lines": [
+   {
+    "name": "mainHalyard",
+    "points": [
+     [
+      0.1698,
+      10.2635,
+      0
+     ],
+     [
+      0.163,
+      10.2479,
+      0
+     ]
+    ],
+    "dia": 0.004,
+    "purchase": 1,
+    "note": "locked at the masthead (hook)"
+   },
+   {
+    "name": "jibHalyard",
+    "points": [
+     [
+      0.6879,
+      7.8895,
+      0
+     ],
+     [
+      0.4172,
+      8.6034,
+      0
+     ],
+     [
+      0.992,
+      1.05,
+      0
+     ]
+    ],
+    "dia": 0.006,
+    "purchase": 1,
+    "note": "internal below the sheave"
+   },
+   {
+    "name": "spinnakerHalyard",
+    "points": [
+     [
+      0.4487,
+      8.7064,
+      0
+     ],
+     [
+      0.992,
+      1.05,
+      0
+     ]
+    ],
+    "dia": 0.006,
+    "purchase": 1
+   },
+   {
+    "name": "mainsheet",
+    "points": [
+     [
+      -1.6877,
+      1.287,
+      0
+     ],
+     [
+      -1.6954,
+      0.45,
+      0
+     ]
+    ],
+    "dia": 0.008,
+    "purchase": 5
+   },
+   {
+    "name": "vang",
+    "points": [
+     [
+      0.1061,
+      1.4374,
+      0
+     ],
+     [
+      0.9853,
+      1.1297,
+      0
+     ]
+    ],
+    "dia": 0.006,
+    "purchase": 16
+   },
+   {
+    "name": "outhaul",
+    "points": [
+     [
+      -2.0932,
+      1.3434,
+      0
+     ],
+     [
+      -2.2196,
+      1.2876,
+      0
+     ],
+     [
+      0.8696,
+      1.5465,
+      0
+     ]
+    ],
+    "dia": 0.005,
+    "purchase": 10,
+    "note": "inside the boom"
+   },
+   {
+    "name": "cunningham",
+    "points": [
+     [
+      0.8755,
+      1.843,
+      0
+     ],
+     [
+      0.992,
+      1.05,
+      0
+     ]
+    ],
+    "dia": 0.005,
+    "purchase": 4
+   },
+   {
+    "name": "backstayControl",
+    "points": [
+     [
+      -3.91,
+      0.6593,
+      0
+     ],
+     [
+      -3.66,
+      0.7093,
+      0
+     ]
+    ],
+    "dia": 0.006,
+    "purchase": 16,
+    "note": "cascade 1:16, led to both sides of the cockpit"
+   },
+   {
+    "name": "jibSheetStbd",
+    "points": [
+     [
+      0.6262,
+      0.7598,
+      0
+     ],
+     [
+      0.7204,
+      0.6876,
+      0.85
+     ],
+     [
+      -1.5295,
+      0.78,
+      0.76
+     ]
+    ],
+    "dia": 0.008,
+    "purchase": 1
+   },
+   {
+    "name": "jibSheetPort",
+    "points": [
+     [
+      0.6262,
+      0.7598,
+      0
+     ],
+     [
+      0.7204,
+      0.6876,
+      -0.85
+     ],
+     [
+      -1.5295,
+      0.78,
+      -0.76
+     ]
+    ],
+    "dia": 0.008,
+    "purchase": 1
+   },
+   {
+    "name": "poleToppingLift",
+    "points": [
+     [
+      0.4346,
+      8.4242,
+      0
+     ],
+     [
+      0.992,
+      1.05,
+      0
+     ]
+    ],
+    "dia": 0.005,
+    "purchase": 1,
+    "note": "pole end not posed"
+   },
+   {
+    "name": "poleDownhaul",
+    "points": [
+     [
+      1.0396,
+      1.2045,
+      0
+     ]
+    ],
+    "dia": 0.005,
+    "purchase": 1,
+    "note": "pole end not posed"
+   },
+   {
+    "name": "spinnakerSheetStbd",
+    "points": [
+     [
+      -3.011,
+      0.6394,
+      0.6984
+     ],
+     [
+      -1.5295,
+      0.78,
+      0.76
+     ]
+    ],
+    "dia": 0.008,
+    "purchase": 1,
+    "note": "clew end set by the spinnaker"
+   },
+   {
+    "name": "spinnakerSheetPort",
+    "points": [
+     [
+      -3.011,
+      0.6394,
+      -0.6984
+     ],
+     [
+      -1.5295,
+      0.78,
+      -0.76
+     ]
+    ],
+    "dia": 0.008,
+    "purchase": 1,
+    "note": "clew end set by the spinnaker"
+   }
+  ],
+  "hardware": {
+   "winchStbd": [
+    -1.5295,
+    0.78,
+    0.76
+   ],
+   "winchPort": [
+    -1.5295,
+    0.78,
+    -0.76
+   ],
+   "winchStbdCabinTop": [
+    -0.4,
+    1.02,
+    0.42
+   ],
+   "winchPortCabinTop": [
+    -0.4,
+    1.02,
+    -0.42
+   ],
+   "spinBlockStbd": [
+    -3.011,
+    0.6394,
+    0.6984
+   ],
+   "spinBlockPort": [
+    -3.011,
+    0.6394,
+    -0.6984
+   ],
+   "jibLeadStbd": [
+    0.7204,
+    0.6876,
+    0.85
+   ],
+   "jibLeadPort": [
+    0.7204,
+    0.6876,
+    -0.85
+   ],
+   "travellerCentre": [
+    -1.6954,
+    0.45,
+    0
+   ],
+   "mastHeel": [
+    0.992,
+    1.05,
+    0
+   ]
+  },
+  "sails": {
+   "main": {
+    "name": "mainsail",
+    "corners": {
+     "tack": [
+      0.8964,
+      1.5939,
+      0
+     ],
+     "clew": [
+      -2.0932,
+      1.3434,
+      0
+     ],
+     "head": [
+      0.1698,
+      10.2635,
+      0
+     ],
+     "headAft": [
+      0.0502,
+      10.2535,
+      0
+     ]
+    },
+    "outline": [
+     [
+      0.8964,
+      1.5939,
+      0
+     ],
+     [
+      -2.0932,
+      1.3434,
+      0
+     ],
+     [
+      -1.7965,
+      3.5509,
+      0
+     ],
+     [
+      -1.3702,
+      5.7692,
+      0
+     ],
+     [
+      -0.7547,
+      8.0034,
+      0
+     ],
+     [
+      -0.3871,
+      9.1255,
+      0
+     ],
+     [
+      -0.1157,
+      9.8382,
+      0
+     ],
+     [
+      0.0502,
+      10.2535,
+      0
+     ],
+     [
+      0.1698,
+      10.2635,
+      0
+     ]
+    ],
+    "battens": [
+     {
+      "name": "main_b1",
+      "from": [
+       -1.8482,
+       3.1659,
+       0
+      ],
+      "to": [
+       -1.0012,
+       3.2368,
+       0
+      ]
+     },
+     {
+      "name": "main_b2",
+      "from": [
+       -1.5228,
+       4.9752,
+       0
+      ],
+      "to": [
+       -0.6758,
+       5.0462,
+       0
+      ]
+     },
+     {
+      "name": "main_b3",
+      "from": [
+       -1.0966,
+       6.7625,
+       0
+      ],
+      "to": [
+       -0.2495,
+       6.8335,
+       0
+      ]
+     },
+     {
+      "name": "main_b4",
+      "from": [
+       -0.5829,
+       8.5277,
+       0
+      ],
+      "to": [
+       0.309,
+       8.6025,
+       0
+      ]
+     }
+    ],
+    "area": 15.4833
+   },
+   "jib": {
+    "name": "jib",
+    "corners": {
+     "tack": [
+      3.4553,
+      0.8327,
+      0
+     ],
+     "head": [
+      0.6879,
+      7.8895,
+      0
+     ],
+     "clew": [
+      0.6262,
+      0.7598,
+      0
+     ]
+    },
+    "outline": [
+     [
+      3.4553,
+      0.8327,
+      0
+     ],
+     [
+      0.6879,
+      7.8895,
+      0
+     ],
+     [
+      0.6876,
+      7.8445,
+      0
+     ],
+     [
+      0.6262,
+      0.7598,
+      0
+     ]
+    ],
+    "battens": [
+     {
+      "name": "jib_b1_top",
+      "from": [
+       0.6725,
+       6.1071,
+       0
+      ],
+      "to": [
+       0.9518,
+       6.2166,
+       0
+      ]
+     },
+     {
+      "name": "jib_b2_mid",
+      "from": [
+       0.6571,
+       4.3246,
+       0
+      ],
+      "to": [
+       0.9829,
+       4.4524,
+       0
+      ]
+     },
+     {
+      "name": "jib_b3_low",
+      "from": [
+       0.6417,
+       2.5422,
+       0
+      ],
+      "to": [
+       1.0606,
+       2.7065,
+       0
+      ]
+     }
+    ],
+    "area": 10.083
+   },
+   "spinnakerFlat": {
+    "outline": [
+     [
+      0,
+      0
+     ],
+     [
+      2.65,
+      -2.2864
+     ],
+     [
+      2.2956,
+      -6.0698
+     ],
+     [
+      0,
+      -6.7698
+     ],
+     [
+      -2.2956,
+      -6.0698
+     ],
+     [
+      -2.65,
+      -2.2864
+     ]
+    ],
+    "area": 26.3771,
+    "corners": {
+     "head": [
+      0,
+      0
+     ],
+     "clewA": [
+      2.2956,
+      -6.0698
+     ],
+     "clewB": [
+      -2.2956,
+      -6.0698
+     ]
+    }
+   }
+  },
+  "checks": {
+   "I": {
+    "model": 7.926,
+    "reference": 7.94,
+    "note": "forestay tang above the sheer at the mast (ORC I)"
+   },
+   "J": {
+    "model": 2.42,
+    "reference": 2.47,
+    "note": "forestay deck point to mast front (ORC J measures to the sheer-line intersection)"
+   },
+   "P": {
+    "model": 8.7,
+    "reference": 8.7,
+    "note": "band 1 → band 3 (ORC P)"
+   },
+   "E": {
+    "model": 3,
+    "reference": 3,
+    "note": "boom band (ORC E)"
+   },
+   "ISP": {
+    "model": 8.0589,
+    "reference": 8.04,
+    "note": "spinnaker sheave above the sheer (ORC ISP)"
+   },
+   "BAS": {
+    "model": 0.9464,
+    "reference": 0.9,
+    "note": "band 1 above the sheer (ORC BAS)"
+   },
+   "forestayLength": {
+    "model": 8.355,
+    "reference": 8.355,
+    "note": "tang → deck point"
+   },
+   "rakeDeg": {
+    "model": 4.7904,
+    "note": "mast axis aft of vertical"
+   },
+   "halyardToTransom": {
+    "model": 10.4304,
+    "note": "Fritz 10.29–10.34 (main halyard to transom top)"
+   },
+   "upperChainplateRadial": {
+    "model": 3.2219,
+    "note": "CR 3.5.2.15 limits 2.85–3.25"
+   },
+   "lowerChainplateRadial": {
+    "model": 3.1033,
+    "note": "CR 3.5.2.15 limits 2.85–3.25"
+   },
+   "mainArea": {
+    "model": 15.4833,
+    "reference": 15.55,
+    "note": "ORC main area"
+   },
+   "jibArea": {
+    "model": 10.083,
+    "reference": 10.48,
+    "note": "ORC headsail area (triangle here; roach not modelled)"
+   },
+   "spinnakerFlatArea": {
+    "model": 26.3771,
+    "reference": 32.12,
+    "note": "flat layout; ORC area uses its own formula on SLU/SHW/SFL"
+   }
+  },
+  "presets": {
+   "LW": 4.7904,
+   "MWI": 4.7904,
+   "MWII": 4.7904,
+   "SWI": 4.7904,
+   "SWII": 4.7904
+  }
+ },
+ "meshes": {
+  "hull": {
+   "triangles": 16800,
+   "volume": 9.0305,
+   "area": 34.2605
+  },
+  "keel": {
+   "triangles": 1580,
+   "volume": 0.1025,
+   "area": 2.0893
+  },
+  "stub": {
+   "triangles": 496,
+   "volume": 0.0263,
+   "area": 0.9409
+  },
+  "skeg": {
+   "triangles": 496,
+   "volume": 0.0042,
+   "area": 0.4715
+  },
+  "rudder": {
+   "triangles": 1712,
+   "volume": 0.0084,
+   "area": 0.6449
+  },
+  "cabin": {
+   "triangles": 1440,
+   "volume": 1.0091,
+   "area": 8.2422
+  },
+  "cockpitWell": {
+   "triangles": 512,
+   "volume": 0.8295,
+   "area": 7.8941
+  },
+  "coamings": {
+   "triangles": 144,
+   "volume": 0.019,
+   "area": 1.1913
+  },
+  "toeRail": {
+   "triangles": 2492,
+   "volume": 0,
+   "area": 1.6831
+  }
+ },
+ "comparison": [
+  {
+   "quantity": "Displacement (kg)",
+   "model": 1456,
+   "reference": 1456,
+   "source": "ORC OD certificate 2020 (input)"
+  },
+  {
+   "quantity": "Draft (m)",
+   "model": 1.2628,
+   "reference": 1.26,
+   "source": "ORC OD certificate"
+  },
+  {
+   "quantity": "Immersion (kg/mm)",
+   "model": 7.1586,
+   "reference": 7.3,
+   "source": "ORC OD certificate \"Sink\""
+  },
+  {
+   "quantity": "Wetted surface (m²)",
+   "model": 12.0776,
+   "reference": 12.11,
+   "source": "ORC 2026 SUI 174 (measured boat; OD certificate 10.64)"
+  },
+  {
+   "quantity": "Beam max (m)",
+   "model": 2.184,
+   "reference": 2.188,
+   "source": "ORC MB"
+  },
+  {
+   "quantity": "LOA (m)",
+   "model": 8.251,
+   "reference": 8.285,
+   "source": "class rules / A.5.1 (±0.020)"
+  },
+  {
+   "quantity": "VCG below waterline (m)",
+   "model": 0.1427,
+   "reference": 0.12,
+   "source": "ORC VCGM"
+  },
+  {
+   "quantity": "Keel volume × 7.2 kg/dm³ (kg)",
+   "model": 739.0172,
+   "reference": 725,
+   "source": "CR 3.3.3 725 ± 10"
+  },
+  {
+   "quantity": "I (m)",
+   "model": 7.926,
+   "reference": 7.94,
+   "source": "ORC"
+  },
+  {
+   "quantity": "ISP (m)",
+   "model": 8.0589,
+   "reference": 8.04,
+   "source": "ORC"
+  },
+  {
+   "quantity": "Main area (m²)",
+   "model": 15.4833,
+   "reference": 15.55,
+   "source": "ORC"
+  },
+  {
+   "quantity": "Jib area (m²)",
+   "model": 10.083,
+   "reference": 10.48,
+   "source": "ORC (includes roach)"
+  },
+  {
+   "quantity": "Limit of positive stability (°)",
+   "model": 147.0066,
+   "reference": 120.1,
+   "source": "ORC estimate (own formula)"
+  }
+ ]
+}

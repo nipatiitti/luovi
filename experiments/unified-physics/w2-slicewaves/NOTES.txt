@@ -1,0 +1,40 @@
+w2-slicewaves: wave-making drag from the waves each transverse slice of water is left with (the slice wave method).
+Result note: docs/research/unified-experiments/w2-slicewaves.md. Throwaway research code; nothing in packages/ imports it.
+
+Needs Python 3 with numpy (2.x) and openpyxl; Pillow, ffmpeg and the DejaVu fonts only for the GIFs.
+Every script can be run from any folder. Results go to out/ and downloads to dl/, both beside the scripts and git-ignored.
+Set OMP_NUM_THREADS=1 on a shared machine. Cost: about 1 s per hull and speed on one core.
+
+The two demo boats (no downloads needed)
+  python3 run_boats.py       # Michell, slice model A and hybrid C for the H-boat and the Folkboat canoe bodies, about 3 minutes.
+                             # Writes out/boats.json and ../reference-model/data/wave-slice.json (model A at the Delft
+                             # table's 13 Froude points, 0.15 to 0.75, as a fraction of canoe-body weight; raw, no smoothing).
+  python3 compare_boats.py   # newtons against knots for the four sources, and the speed each gives for the same drive
+  boat_sections.json is the input: the H-boat's real sections below the static waterline (from the class table of
+  offsets) and the Folkboat's demo sections. To rebuild it after the reference model's hull data change:
+  python3 make_boat_sections.py ../reference-model/out/hboat_sea.json ../reference-model/out/hulls.json
+
+The tank comparison (needs the open Delft Systematic Yacht Hull Series data from 4TU.ResearchData, not in the repository)
+  dl/geo/IGS/SYSSERnn_surface.igs               hull surfaces: geometriesIGSmodelscale.zip from https://doi.org/10.4121/21501330, unzipped into dl/geo/
+  dl/hs_a.xlsx                                  DSYHS_hydrostatics_modelscale.xlsx from https://doi.org/10.4121/21501375
+  dl/DSYHS_all_measurements_modelscale.xlsx     tank measurements from https://doi.org/10.4121/21501402
+  python3 t_wigley.py    # checks: mode equation against the closed form; body-exact slice against the thin slice; energy against work
+  python3 t_born.py      # the three waterline rules (contact, calm, conserve) on a heavy and the lightest hull
+  python3 t_conv.py      # numerical sensitivity (steps, grid, panels, spreading width, smoothing)
+  python3 run_w2.py      # Michell, A, B, pure 2D+t on Wigley, Series 60 and the 36 Delft hulls -> out/w2.json, about 6 minutes
+  python3 run_c.py       # hybrid C (slices sideways, the blocking march R3b for following waves) -> out/w2c.json, about 6 minutes
+  python3 run_trim.py    # A and Michell at the tank's measured sinkage and trim, eight hulls -> out/w2trim.json
+  python3 table.py       # summary tables, and model A split into the three hulls seen when the waterline rule was chosen and the other 33
+  python3 curves_w2.py   # fine speed curves for the third GIF -> out/curves_w2.json
+  python3 gifs_w2.py A B C   # the three GIFs into out/
+
+Files
+  slice.py     the slice solver (2D boundary elements marched in time) and models A and B
+  hybrid.py    model C
+  boats.py     the demo boats as section stacks; the reference model's friction line and table lookup
+  common.py    paths and the Delft loaders; repairs.py the w1 repairs (R1b, the blocking march R3 and R3b); s60.py the Series 60
+               offsets and tank table (Kim and Jenkins 1981, DTNSRDC/SPD-1013-01); geom.py and iges.py cut the Delft CAD
+               surfaces into sections; wave.py the thin-ship sum; hulls.py the Wigley hull; delftdata.py the tank workbook
+               reader; viz.py drawing helpers. geom.py, iges.py, wave.py, hulls.py, delftdata.py and viz.py are copies from
+               ../h3b-waves-fix and the w1 experiment.
+  The Series 60 tank numbers and the Wigley band are a few published figures typed into s60.py and run_w2.py.

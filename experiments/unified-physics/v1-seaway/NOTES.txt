@@ -1,0 +1,34 @@
+v1-seaway: the sailing-test-v3 model with heave and pitch from the slice law, on flat water and in the reference sea.
+Result: docs/research/unified-experiments/v1-seaway.md
+
+Prerequisites: Node 22, Python 3 with Pillow, ffmpeg, the DejaVu fonts. Every script reads and writes out/ beside itself
+(git-ignored) and can be run from any folder. Nothing is downloaded.
+
+Files
+  model.js          C.SEA (false = v3), C.RADIATION (0 = the law as proposed), makeSea()
+  patch.py          the exact edits that turned v3's model.js into this model.js (documentation of the change; it edits
+                    ./model.js in the working directory, so do not run it here)
+  data/v3/hulls.json, data/v3/sails.json   the tables the model runs on: v3's hull table with hboat.sea added, and v3's sail
+                    table. Kept (520 KB) because their generators belong to sailing-test-v3, which is not in the repo
+                    (c2-sideforce-fix/hb/gen_hulls.mjs and gen_sails.mjs give the same tables without hboat.sea).
+                    lib.mjs reads them; SET=<folder> reads another folder beside this file.
+  data/class/       the owner's "H-boat Model" artifact files (model/hboat.json, model/derived.json), read as data
+  class_hboat.mjs   v3's loft plus real section tables over the whole length -> out/hboat_class.json and out/hboat_sea.json.
+                    out/hboat_sea.json equals hboat.sea inside data/v3/hulls.json.
+  sealib.mjs lib.mjs render.py   helpers and the GIF renderer
+
+Regenerate, from this folder:
+  mkdir -p out
+  node class_hboat.mjs               # optional: rebuilds the sea tables, 1 s
+  node chk_decay.mjs                 # free decay, heave and pitch, at rest and 5 kn, both steps
+  node chk_tow.mjs                   # towed stability after a pitch kick, by speed
+  node chk_long.mjs                  # step sizes
+  node chk_flat.mjs                  # flat water under sail
+  node chk_rao.mjs                   # regular head waves -> out/rao.json (6 minutes)
+  node scen_sea.mjs law 240          # the reference sea runs -> out/sea-<tag>.json, out/frames-*.json, about 25 s each
+  node scen_sea.mjs rad 240 rad
+  node scen_sea.mjs law120 120
+  node scen_sea.mjs rad120 120 rad
+  node chk_cost.mjs                  # cost per step
+The GIFs (after chk_rao.mjs and the law and rad sea runs):
+  python3 render.py curves side astern   # out/response-curves.gif, seaway-side-closehauled.gif, seaway-astern-closehauled.gif
