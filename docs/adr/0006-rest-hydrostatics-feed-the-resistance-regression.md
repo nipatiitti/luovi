@@ -13,3 +13,7 @@ Decided by the ticket on resistance regression inputs ([#20](https://github.com/
 - The trim correction of Keuning and Sonnenberg 1998 is left out until a benchmark miss asks for it.
 - Water density and kinematic viscosity are scenario constants exposed by the environment query, not ship data and not per-point samples.
 - The hull chapter's wording on per-tick regression hydrostatics is corrected through the design doc corrections ticket; the per-tick geometry pass stays for buoyancy and the friction wetted area.
+
+## Superseded, 2026-11-17
+
+Superseded by `docs/adr/0014`: the owner retired the resistance regression per hull family. Hull, keel and rudder forces come from the section momentum law on the actual geometry, and upright wave-making drag from the slice wave method, provisionally. The text above is kept as the record of the earlier decision.

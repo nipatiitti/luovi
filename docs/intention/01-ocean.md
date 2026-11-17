@@ -90,7 +90,7 @@ Two-way, asymmetric, loosely coupled, and only at the local layer. This is how R
 Forces per hull panel, from Kerner's method (under 1 ms per boat):
 
 1. Hydrostatic + Froude–Krylov: ρg·(h\_water − z\_panel) using the sampled local height. Gives wave-induced heave, pitch and roll for free.
-2. Added mass and radiation damping: empirical coefficients per axis, not simulated.
+2. Added mass and radiation damping: empirical coefficients per axis, not simulated. (Status 2026-11-17: the hull model of ADR 0014 computes added mass and wave-making damping per section from the geometry instead; see the Hull tab.)
 3. Viscous drag: quadratic in relative velocity (orbital velocity minus panel velocity). This is what lets a wave push a hull sideways.
 4. Slamming: impulse when relative normal velocity at panel entry exceeds a threshold; also spawns spray.
 

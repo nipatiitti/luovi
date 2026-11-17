@@ -17,3 +17,7 @@ Decided by the owner on 2026-10-24 in the build step 1 retrospective ([#26](http
 - A benchmark that logs a cost keeps logging it; no benchmark gate fails on milliseconds.
 - GPU timestamp queries stay in `tool-scenario` as a profiling aid.
 - The design doc's budget passages are corrections for the design doc corrections work.
+
+## Status note, 2026-11-17
+
+The accepted hull model (`docs/adr/0014`) steps at 240 steps a second. The owner named the 60 Hz tick and CPU-only physics as not sacred; what stays wanted is determinism for replays, real time on a mid-tier machine and a precompute per hull of hours at most. Whether the determinism clock becomes 240 Hz or the hull substeps inside a 60 Hz tick is under review, together with sail physics in the next session.

@@ -24,3 +24,7 @@ Decided by the Worker and state buffer handoff ticket ([#12](https://github.com/
 - Inputs cross by `postMessage`, one input per message as the contract defines it, next tick by default. A key press sends the control's range limit in its direction and a key release sends the control's current value read from the newest slot, so the cited rate in `sim-world` is the slew and a held key is two inputs. After an environment edit the Worker posts the effective scenario, with the regenerated sea description when the sea block changed; the renderer rebuilds its band and tail on receipt.
 - Recording, replay and snapshot save are not in the tool before build-order step 9. The Worker stamps applied ticks because the contract says so, which is all a later export needs.
 - Hosting: the page must be cross-origin isolated for the shared array, with COOP `same-origin` and COEP `require-corp`. The dev server sets both; a deployment sets them at the edge (Cloudflare Workers through the SvelteKit adapter when it comes up). The tool refuses to start without isolation and says why; there is no message-copy fallback.
+
+## Status note, 2026-11-17
+
+The four lag doubles per lifting surface in the layout above belong to the retired lattice of ADR 0007. Under `docs/adr/0014` the hull carries per-section water state instead (attachment, shed wake and four wave-making memory numbers per section). The layout is redone with the ship data contract, which waits until after sail physics; the flat buffer and the Worker are unchanged.

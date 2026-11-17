@@ -24,3 +24,7 @@ Decided by the VLM lattice, heel bins, inverse strategy and cross-flow blend tic
 ## Amendment, 2026-10-24
 
 The millisecond budget the full product was weighed against (the hero boat's 1 ms) is dropped by `docs/adr/0013`; the decision above stands without it.
+
+## Superseded, 2026-11-17
+
+Superseded by `docs/adr/0014`: the owner retired the vortex lattice with heel bins and basis superposition, the cross-flow strip, the per-surface stall weights, the Wagner and Küssner lag pairs and the constant 6x6 added mass with its Kirchhoff terms. Side force, stall, heel effects and added mass now come from the section momentum law on the actual geometry. The text above is kept as the record of the earlier decision.

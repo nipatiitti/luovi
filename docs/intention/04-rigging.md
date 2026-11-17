@@ -6,6 +6,8 @@ Oct 22, 2026 · @Niilo
 
 The rig is a constraint graph solved with substepped XPBD. A running line is one constraint over its whole path through its blocks, not a chain of ropes; standing rigging is pretensioned unilateral constraints; spars are rigid bodies, or bending spars under a direct rod solve. Winching, belaying, bracing and mast tuning are all changes to constraint rest lengths. For a full-rigged ship the lines and spars are cheap; the coarse cloth dominates, and the whole rig with its sails fits the Aero tab's budget of under 2 ms per tick (ADR 0008).
 
+**Status, 2026-11-17: under review.** The unified physics session found that cheap live cloth fails at two solver passes at 240 steps a second and proposed the rig as a directly solved tension structure, untested ([b-cloth-and-rig.md](https://github.com/nipatiitti/luovi/blob/claude/project-thread-mqnuze/docs/research/unified-sails/b-cloth-and-rig.md) on the archive branch `claude/project-thread-mqnuze`, draft pull request [#49](https://github.com/nipatiitti/luovi/pull/49); ADR 0008 status note). Sail and rig physics is the next session's subject; the text below is the earlier design.
+
 ## Rope model
 
 | Element                                                                            | Model                                                                                                                                                  | Why                                                                                                                                                                                                            |
