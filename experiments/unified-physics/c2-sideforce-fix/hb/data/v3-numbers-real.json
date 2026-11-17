@@ -1,0 +1,578 @@
+{
+ "flags": {
+  "R1": true,
+  "R2": true
+ },
+ "hardOver": {
+  "hboat 5kn 30": {
+   "peakRate": 18.2,
+   "hdg4": 65,
+   "hdg8": 116,
+   "lost4pct": 39,
+   "minAttach": 0.97,
+   "peakLoadN": 1965,
+   "peakAir": 0.07
+  },
+  "hboat 5kn 45": {
+   "peakRate": 25.6,
+   "hdg4": 87,
+   "hdg8": 145,
+   "lost4pct": 57,
+   "minAttach": 0.92,
+   "peakLoadN": 2328,
+   "peakAir": 0.12
+  },
+  "hboat 5kn 60": {
+   "peakRate": 33,
+   "hdg4": 102,
+   "hdg8": 161,
+   "lost4pct": 74,
+   "minAttach": 0.73,
+   "peakLoadN": 2810,
+   "peakAir": 0.22
+  },
+  "hboat 1kn 30": {
+   "peakRate": 4.2,
+   "hdg4": 15,
+   "hdg8": 32,
+   "lost4pct": 2,
+   "minAttach": 0.84,
+   "peakLoadN": 613,
+   "peakAir": 0
+  },
+  "hboat 1kn 45": {
+   "peakRate": 6.3,
+   "hdg4": 23,
+   "hdg8": 46,
+   "lost4pct": 12,
+   "minAttach": 0.66,
+   "peakLoadN": 613,
+   "peakAir": 0
+  },
+  "hboat 1kn 60": {
+   "peakRate": 8.4,
+   "hdg4": 29,
+   "hdg8": 56,
+   "lost4pct": 27,
+   "minAttach": 0.41,
+   "peakLoadN": 613,
+   "peakAir": 0
+  },
+  "ifboat 5kn 30": {
+   "peakRate": 12.1,
+   "hdg4": 42,
+   "hdg8": 83,
+   "lost4pct": 32,
+   "minAttach": 0.85,
+   "peakLoadN": 1165,
+   "peakAir": 0.02
+  },
+  "ifboat 5kn 45": {
+   "peakRate": 15.9,
+   "hdg4": 54,
+   "hdg8": 103,
+   "lost4pct": 49,
+   "minAttach": 0.48,
+   "peakLoadN": 1587,
+   "peakAir": 0.06
+  },
+  "ifboat 5kn 60": {
+   "peakRate": 19.5,
+   "hdg4": 64,
+   "hdg8": 114,
+   "lost4pct": 65,
+   "minAttach": 0.15,
+   "peakLoadN": 2253,
+   "peakAir": 0.12
+  },
+  "ifboat 1kn 30": {
+   "peakRate": 2.7,
+   "hdg4": 7,
+   "hdg8": 17,
+   "lost4pct": 4,
+   "minAttach": 0.86,
+   "peakLoadN": 310,
+   "peakAir": 0
+  },
+  "ifboat 1kn 45": {
+   "peakRate": 3.5,
+   "hdg4": 10,
+   "hdg8": 24,
+   "lost4pct": 11,
+   "minAttach": 0.51,
+   "peakLoadN": 310,
+   "peakAir": 0
+  },
+  "ifboat 1kn 60": {
+   "peakRate": 4.2,
+   "hdg4": 13,
+   "hdg8": 29,
+   "lost4pct": 22,
+   "minAttach": 0.22,
+   "peakLoadN": 310,
+   "peakAir": 0
+  }
+ },
+ "tack": {
+  "hboat 20": {
+   "headToWindS": 2.4,
+   "newCourseS": 7.1,
+   "speedLostPct": 32,
+   "lostToWindwardM": 3.1
+  },
+  "hboat 35": {
+   "headToWindS": 1.6,
+   "newCourseS": 5.1,
+   "speedLostPct": 40,
+   "lostToWindwardM": 5
+  },
+  "ifboat 20": {
+   "headToWindS": 6.1,
+   "newCourseS": 10.6,
+   "speedLostPct": 37,
+   "lostToWindwardM": 1.5
+  },
+  "ifboat 35": {
+   "headToWindS": 3.6,
+   "newCourseS": 7.2,
+   "speedLostPct": 45,
+   "lostToWindwardM": 5.1
+  }
+ },
+ "handsOff": {
+  "hboat centred": {
+   "steadyRudder": -3.07,
+   "offAfter15s": 15.8,
+   "sense": "luffs",
+   "rudderEnds": 0
+  },
+  "hboat let go": {
+   "steadyRudder": -3.07,
+   "offAfter15s": -40.3,
+   "sense": "bears away",
+   "rudderEnds": -43
+  },
+  "ifboat centred": {
+   "steadyRudder": 3.98,
+   "offAfter15s": -5.8,
+   "sense": "bears away",
+   "rudderEnds": 0
+  },
+  "ifboat let go": {
+   "steadyRudder": 3.98,
+   "offAfter15s": -5.4,
+   "sense": "bears away",
+   "rudderEnds": 0
+  }
+ },
+ "steady": {
+  "hboat close-hauled 8": {
+   "kn": 5.52,
+   "leeway": 2.6,
+   "heel": 4.9,
+   "weatherHelm": -0.3,
+   "grip": 1,
+   "air": 0,
+   "offCourse": -0.2
+  },
+  "hboat close-hauled 12": {
+   "kn": 6.42,
+   "leeway": 2.6,
+   "heel": 23.1,
+   "weatherHelm": 3.1,
+   "grip": 1,
+   "air": 0.02,
+   "offCourse": 2
+  },
+  "hboat close-hauled 16": {
+   "kn": 6.63,
+   "leeway": 2.2,
+   "heel": 36.6,
+   "weatherHelm": 7.9,
+   "grip": 1,
+   "air": 0.16,
+   "offCourse": 5.3
+  },
+  "hboat close-hauled 20": {
+   "kn": 6.47,
+   "leeway": 2.7,
+   "heel": 43.2,
+   "weatherHelm": 11.5,
+   "grip": 1,
+   "air": 0.25,
+   "offCourse": 7.7
+  },
+  "hboat close-hauled 24": {
+   "kn": 6.18,
+   "leeway": 4,
+   "heel": 49.1,
+   "weatherHelm": 15.4,
+   "grip": 0.91,
+   "air": 0.37,
+   "offCourse": 10.3
+  },
+  "hboat beam reach 8": {
+   "kn": 5.98,
+   "leeway": 1.4,
+   "heel": -5.4,
+   "weatherHelm": -0.7,
+   "grip": 1,
+   "air": 0,
+   "offCourse": -0.5
+  },
+  "hboat beam reach 12": {
+   "kn": 7.18,
+   "leeway": 1.2,
+   "heel": 6.1,
+   "weatherHelm": 1.2,
+   "grip": 1,
+   "air": 0,
+   "offCourse": 0.8
+  },
+  "hboat beam reach 16": {
+   "kn": 8.1,
+   "leeway": 0.3,
+   "heel": 19.8,
+   "weatherHelm": 5.1,
+   "grip": 1,
+   "air": 0.09,
+   "offCourse": 3.4
+  },
+  "hboat beam reach 20": {
+   "kn": 8.54,
+   "leeway": -1.2,
+   "heel": 31.8,
+   "weatherHelm": 10.9,
+   "grip": 1,
+   "air": 0.33,
+   "offCourse": 7.3
+  },
+  "hboat beam reach 24": {
+   "kn": 8.01,
+   "leeway": -2.4,
+   "heel": 41.2,
+   "weatherHelm": 21.2,
+   "grip": 0.76,
+   "air": 0.59,
+   "offCourse": 14.1
+  },
+  "ifboat close-hauled 8": {
+   "kn": 5.37,
+   "leeway": 4.3,
+   "heel": 4.3,
+   "weatherHelm": -7.2,
+   "grip": 1,
+   "air": 0,
+   "offCourse": -4.8
+  },
+  "ifboat close-hauled 12": {
+   "kn": 6.14,
+   "leeway": 5.1,
+   "heel": 17.8,
+   "weatherHelm": -4,
+   "grip": 1,
+   "air": 0,
+   "offCourse": -2.7
+  },
+  "ifboat close-hauled 16": {
+   "kn": 6.33,
+   "leeway": 5.5,
+   "heel": 30.7,
+   "weatherHelm": 5.1,
+   "grip": 1,
+   "air": 0,
+   "offCourse": 3.4
+  },
+  "ifboat close-hauled 20": {
+   "kn": 6.18,
+   "leeway": 5.8,
+   "heel": 36.7,
+   "weatherHelm": 12.9,
+   "grip": 0.89,
+   "air": 0.18,
+   "offCourse": 8.6
+  },
+  "ifboat close-hauled 24": {
+   "kn": 5.62,
+   "leeway": 6.6,
+   "heel": 40,
+   "weatherHelm": 20.7,
+   "grip": 0.7,
+   "air": 0.28,
+   "offCourse": 13.8
+  },
+  "ifboat beam reach 8": {
+   "kn": 5.52,
+   "leeway": 2,
+   "heel": -3.5,
+   "weatherHelm": -3.3,
+   "grip": 1,
+   "air": 0,
+   "offCourse": -2.2
+  },
+  "ifboat beam reach 12": {
+   "kn": 6.49,
+   "leeway": 2.2,
+   "heel": 4.2,
+   "weatherHelm": -0.6,
+   "grip": 1,
+   "air": 0,
+   "offCourse": -0.4
+  },
+  "ifboat beam reach 16": {
+   "kn": 7.14,
+   "leeway": 1.4,
+   "heel": 14.9,
+   "weatherHelm": 5.6,
+   "grip": 1,
+   "air": 0,
+   "offCourse": 3.7
+  },
+  "ifboat beam reach 20": {
+   "kn": 7.19,
+   "leeway": -1.2,
+   "heel": 26.9,
+   "weatherHelm": 21,
+   "grip": 0.72,
+   "air": 0.36,
+   "offCourse": 14
+  },
+  "ifboat beam reach 24": {
+   "kn": 6.41,
+   "leeway": -0.7,
+   "heel": 33.7,
+   "weatherHelm": 37,
+   "grip": 0.11,
+   "air": 0.62,
+   "offCourse": 24.7
+  }
+ },
+ "puff": {
+  "hboat 22 held": {
+   "startKn": 7.2,
+   "startHeel": 6,
+   "peakHeel": 39,
+   "peakHelm": 16,
+   "minGrip": 1,
+   "peakAir": 0.51,
+   "peakOff": 10,
+   "peakLoad": 2380,
+   "endHdg": -80,
+   "endHeel": 37,
+   "endKn": 8.5,
+   "endOff": 10
+  },
+  "hboat 22 eased": {
+   "startKn": 7.2,
+   "startHeel": 6,
+   "peakHeel": 29,
+   "peakHelm": 7,
+   "minGrip": 1,
+   "peakAir": 0.24,
+   "peakOff": 3,
+   "peakLoad": 1390,
+   "endHdg": -91,
+   "endHeel": 1,
+   "endKn": 6.8,
+   "endOff": -1
+  },
+  "hboat 28 held": {
+   "startKn": 7.2,
+   "startHeel": 6,
+   "peakHeel": 53,
+   "peakHelm": 35,
+   "minGrip": 0.63,
+   "peakAir": 0.94,
+   "peakOff": 22,
+   "peakLoad": 2729,
+   "endHdg": -70,
+   "endHeel": 47,
+   "endKn": 7.2,
+   "endOff": 20
+  },
+  "hboat 28 eased": {
+   "startKn": 7.2,
+   "startHeel": 6,
+   "peakHeel": 43,
+   "peakHelm": 14,
+   "minGrip": 1,
+   "peakAir": 0.5,
+   "peakOff": 6,
+   "peakLoad": 1977,
+   "endHdg": -90,
+   "endHeel": 8,
+   "endKn": 7.5,
+   "endOff": 0
+  },
+  "hboat 32 held": {
+   "startKn": 7.2,
+   "startHeel": 6,
+   "peakHeel": 61,
+   "peakHelm": 35,
+   "minGrip": 0.22,
+   "peakAir": 0.9,
+   "peakOff": 36,
+   "peakLoad": 2467,
+   "endHdg": -65,
+   "endHeel": 48,
+   "endKn": 6.5,
+   "endOff": 25
+  },
+  "hboat 32 eased": {
+   "startKn": 7.2,
+   "startHeel": 6,
+   "peakHeel": 51,
+   "peakHelm": 21,
+   "minGrip": 0.98,
+   "peakAir": 0.76,
+   "peakOff": 9,
+   "peakLoad": 2160,
+   "endHdg": -89,
+   "endHeel": 14,
+   "endKn": 7.9,
+   "endOff": 1
+  },
+  "ifboat 22 held": {
+   "startKn": 6.5,
+   "startHeel": 4,
+   "peakHeel": 33,
+   "peakHelm": 34,
+   "minGrip": 0.21,
+   "peakAir": 0.66,
+   "peakOff": 21,
+   "peakLoad": 2999,
+   "endHdg": -71,
+   "endHeel": 32,
+   "endKn": 6.9,
+   "endOff": 19
+  },
+  "ifboat 22 eased": {
+   "startKn": 6.5,
+   "startHeel": 4,
+   "peakHeel": 25,
+   "peakHelm": 11,
+   "minGrip": 0.99,
+   "peakAir": 0.11,
+   "peakOff": 5,
+   "peakLoad": 935,
+   "endHdg": -95,
+   "endHeel": 1,
+   "endKn": 6.4,
+   "endOff": -5
+  },
+  "ifboat 28 held": {
+   "startKn": 6.5,
+   "startHeel": 4,
+   "peakHeel": 45,
+   "peakHelm": 35,
+   "minGrip": 0.15,
+   "peakAir": 0.73,
+   "peakOff": 43,
+   "peakLoad": 5133,
+   "endHdg": -61,
+   "endHeel": 38,
+   "endKn": 6.6,
+   "endOff": 29
+  },
+  "ifboat 28 eased": {
+   "startKn": 6.5,
+   "startHeel": 4,
+   "peakHeel": 37,
+   "peakHelm": 26,
+   "minGrip": 0.57,
+   "peakAir": 0.46,
+   "peakOff": 11,
+   "peakLoad": 2535,
+   "endHdg": -94,
+   "endHeel": 9,
+   "endKn": 7,
+   "endOff": -4
+  },
+  "ifboat 32 held": {
+   "startKn": 6.5,
+   "startHeel": 4,
+   "peakHeel": 52,
+   "peakHelm": 35,
+   "minGrip": 0.2,
+   "peakAir": 0.75,
+   "peakOff": 51,
+   "peakLoad": 4051,
+   "endHdg": -56,
+   "endHeel": 31,
+   "endKn": 6.3,
+   "endOff": 34
+  },
+  "ifboat 32 eased": {
+   "startKn": 6.5,
+   "startHeel": 4,
+   "peakHeel": 44,
+   "peakHelm": 35,
+   "minGrip": 0.42,
+   "peakAir": 0.6,
+   "peakOff": 16,
+   "peakLoad": 3457,
+   "endHdg": -92,
+   "endHeel": 14,
+   "endKn": 7.4,
+   "endOff": -2
+  }
+ },
+ "bearAway": {
+  "hboat 20 pinned": {
+   "startKn": 6.5,
+   "startHeel": 43,
+   "peakHeel": 51,
+   "peakHelm": 35,
+   "minGrip": 0.81,
+   "peakAir": 0.57,
+   "peakOff": 73,
+   "peakLoad": 2893,
+   "endHdg": -109,
+   "endHeel": 19,
+   "endKn": 6.5,
+   "endOff": 1
+  },
+  "hboat 24 pinned": {
+   "startKn": 6.2,
+   "startHeel": 49,
+   "peakHeel": 62,
+   "peakHelm": 35,
+   "minGrip": 0.02,
+   "peakAir": 0.73,
+   "peakOff": 101,
+   "peakLoad": 2450,
+   "endHdg": -34,
+   "endHeel": 22,
+   "endKn": 2.4,
+   "endOff": 76
+  },
+  "ifboat 20 pinned": {
+   "startKn": 6.2,
+   "startHeel": 37,
+   "peakHeel": 44,
+   "peakHelm": 35,
+   "minGrip": 0.14,
+   "peakAir": 0.58,
+   "peakOff": 74,
+   "peakLoad": 2871,
+   "endHdg": -44,
+   "endHeel": 41,
+   "endKn": 4.6,
+   "endOff": 66
+  },
+  "ifboat 24 pinned": {
+   "startKn": 5.6,
+   "startHeel": 40,
+   "peakHeel": 48,
+   "peakHelm": 35,
+   "minGrip": 0.16,
+   "peakAir": 0.5,
+   "peakOff": 84,
+   "peakLoad": 2653,
+   "endHdg": -35,
+   "endHeel": 42,
+   "endKn": 3.9,
+   "endOff": 75
+  }
+ }
+}

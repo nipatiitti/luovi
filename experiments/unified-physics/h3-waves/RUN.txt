@@ -1,0 +1,8 @@
+Reproduce (Python 3, numpy, Pillow, openpyxl, ffmpeg), from any folder. Outputs go to out/ beside the scripts:
+  1. download DSYHS_all_measurements_modelscale.xlsx from https://doi.org/10.4121/21501402 into dl/
+  2. python3 t_wigley.py                      # Wigley check, low-speed limit, station convergence
+  3. python3 run_delft.py <path to xlsx>      # Delft comparison, stern-damping test, transfer test -> out/delft.json
+  4. python3 run_cat_dipole.py                # catamaran interference, hull lifting, side-force dipole
+  5. python3 t_sens.py <xlsx>; python3 t_sens2.py <xlsx>   # sensitivity to the assumed hull lines
+  6. python3 gif1.py; python3 gif2.py; python3 gif3.py     # the three GIFs
+wave.py is the model; hulls.py builds the section stacks; delftdata.py reads the tank data; viz.py draws.

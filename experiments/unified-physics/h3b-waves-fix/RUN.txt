@@ -1,0 +1,10 @@
+Reproduce (Python 3, numpy, Pillow, openpyxl, ffmpeg). Run from any folder; downloads go in dl/ beside the scripts, outputs land in out/.
+  dl/geo/IGS/SYSSERnn_surface.igs      from https://doi.org/10.4121/21501330 (geometriesIGSmodelscale.zip, unzipped into dl/geo/)
+  dl/hs_a.xlsx                         DSYHS_hydrostatics_modelscale.xlsx from https://doi.org/10.4121/21501375
+  tank data: DSYHS_all_measurements_modelscale.xlsx from https://doi.org/10.4121/21501402 saved as dl/DSYHS_all_measurements_modelscale.xlsx, or pass its path to run1.py
+  python3 t_geom.py     # real section stacks against the published hydrostatics
+  python3 run1.py       # Michell, Hogner, Noblesse zeroth-order on five hulls, even keel and at measured sinkage and trim -> out/run1.json
+  python3 t_panel.py; python3 t_panel2.py   # the panel solve and its failed Wigley convergence check
+  python3 gifs.py       # both GIFs
+iges.py reads the CAD surfaces; geom.py cuts sections; methods.py holds the three sums; panel.py the panel solve;
+wave.py, hulls.py, delftdata.py, viz.py are unchanged copies from the h3-waves experiment.

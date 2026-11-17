@@ -1,0 +1,25 @@
+c1-holdout-rerun: the h1b hold-out hulls towed captive through the sailing-test-v3 time-domain model, four flag settings.
+Result: docs/research/unified-experiments/c1-holdout-rerun.md. No GIFs.
+
+Prerequisites: Node 22. Every script reads and writes out/ beside itself (git-ignored) and can be run from any folder.
+
+Files
+  model.js          a copy of sailing-test-v3's model.js, unchanged
+  hulls.mjs section.mjs slicelaw.mjs   h1b-holdout's hull builder and steady law, unchanged copies
+  tow.mjs           the captive tow -> out/tow.json (SYS=33 or SYS=3,33 limits the hulls; SCALE=1 tows at model scale)
+  score.mjs         scores out/tow.json the way h1b scored its hold-out -> out/score.txt (the table in the result)
+  diag.mjs          where the base model parts from h1b's steady law -> out/diag.txt
+
+Data to fetch
+  out/delft_cases.json and out/holdout.json come from experiment h1b-holdout (its extract_delft.py and run_holdout.mjs,
+  which need the Delft workbooks from https://doi.org/10.4121/21501402 and https://doi.org/10.4121/21501375).
+  out/sails.json: any H-boat sail table; tow.mjs carries it with the sails down, so it never enters a number. The v3 table is
+  kept in v1-seaway/data/v3/sails.json (c2-sideforce-fix/hb/gen_sails.mjs regenerates the same file).
+
+Regenerate, from this folder:
+  mkdir -p out
+  cp ../h1b-holdout/out/delft_cases.json ../h1b-holdout/out/holdout.json out/
+  cp ../v1-seaway/data/v3/sails.json out/
+  node tow.mjs                       # heels 0 10 20; about 30 s per hull per heel, so plan on an hour or more for all 35
+  node score.mjs
+  node diag.mjs

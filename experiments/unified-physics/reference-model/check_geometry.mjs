@@ -1,0 +1,22 @@
+// check_geometry.mjs: the section stack the model runs on (out/hulls.json) against the artifact's derived.json (sailing condition).
+import fs from 'fs';
+const rd = (p) => JSON.parse(fs.readFileSync(new URL(p, import.meta.url), 'utf8'));
+const Hh = rd('./out/hulls.json').hboat, D = rd('./data/class/derived.json'), A = rd('./data/class/hboat.json').appendages, K = rd('./out/hboat_class.json').check, c = D.conditions.sailing;
+const xF = K.waterline.xFwd, tr = c.trimDeg * Math.PI / 180, yw = (x) => (c.sinkage + Math.sin(tr) * x) / Math.cos(tr), n = Hh.n, dx = Hh.dx;
+const integ = (f) => { let s = 0; for (let i = 0; i < n * 8; i++) { const x = (i + 0.5) * dx / 8, q = Math.min(n - 2, Math.floor(x / dx)), t = x / dx - q, at = (a) => a[q] + (a[q + 1] - a[q]) * t; s += f(x, at) * dx / 8; } return s; };
+const lin = (pts, x) => { for (let i = 1; i < pts.length; i++) if ((pts[i - 1][0] - x) * (pts[i][0] - x) <= 0) return pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * (x - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0] || 1); return x > Math.max(pts[0][0], pts[pts.length - 1][0]) === (pts[0][0] > pts[pts.length - 1][0]) ? pts[0][1] : pts[pts.length - 1][1]; };
+const kb = Hh.blades[0].profile, rb = Hh.blades[2].profile, ru = A.rudder.planform_xy_body, rootEdge = [ru[ru.length - 3], ru[ru.length - 2], ru[ru.length - 1]];
+const vol = integ((x, at) => 0.5 * Math.PI * at(Hh.halfBeam) * at(Hh.canoeDepth));
+const keelLat = integ((x, at) => (x > kb[0][0] && x < kb[kb.length - 1][0] ? Math.max(0, at(Hh.T) - (yw(xF - x) + 0.6)) : 0));
+const rudAll = integ((x, at) => (x > rb[0][0] ? Math.max(0, at(Hh.T) - at(Hh.canoeDepth)) : 0));
+const rudBlade = integ((x, at) => (x > rb[0][0] ? Math.max(0, at(Hh.T) - (yw(xF - x) - lin(rootEdge, Math.max(xF - x, rootEdge[2][0])))) : 0));
+const row = (nm, a, b, note = '') => console.log(nm.padEnd(46), String(a).padStart(8), String(b).padStart(8), ((a / b - 1) * 100).toFixed(1).padStart(6) + ' %', note);
+console.log(''.padEnd(46), '   stack', ' derived');
+row('waterline length m', Hh.L, c.lwl); row('waterline beam m', +(2 * Math.max(...Hh.halfBeam)).toFixed(3), c.bwl);
+row('canoe body volume m3', +vol.toFixed(3), K.canoeVolume.derivedTotalLessAppendages, '(derived: total 1.733 less keel, stub, deadwood, rudder meshes; the format carries no blade volume)');
+row('canoe wetted area, loft m2', K.canoeWetted.loft, +(c.wettedArea - K.canoeWetted.derivedAppendageMeshes).toFixed(3), '(derived: total less appendage meshes, which overlap the hull a little)');
+row('wetted area the model uses m2', Hh.wetted, c.wettedArea, '(ellipse girths + both faces of each blade)');
+row('keel lateral area below the iron root m2', +keelLat.toFixed(3), D.appendages.keel.lateralArea);
+row('rudder lateral area, real root edge down m2', +rudBlade.toFixed(3), D.appendages.rudder.area);
+row('rudder as the stack has it (to the ellipse) m2', +rudAll.toFixed(3), D.appendages.rudder.area, '(the gap between blade and hull counts as blade)');
+row('draft m', +Math.max(...Hh.T).toFixed(3), c.draft);

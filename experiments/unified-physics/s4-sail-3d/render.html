@@ -1,0 +1,46 @@
+<!doctype html><html><body style="margin:0;background:#fff"><canvas id="c" width="900" height="560"></canvas><script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const INK='#1c2530',MUT='#6b7785',GRID='#d9dee4',DRIVE='#1f8a4c',HEEL='#c0392b',WAKE='#4a7fb5',LUFFW='#e08a1e',EDGEW='#9aa5b1',REF='#111';
+function col(v){ // dp/q : positive (pushing to leeward) warm, negative (backwinded) blue
+  const t=Math.max(-1,Math.min(1,v/6)); if(t>=0){const a=Math.pow(t,0.6);return `rgb(${Math.round(250-10*a)},${Math.round(240-150*a)},${Math.round(225-190*a)})`;}
+  const a=Math.pow(-t,0.6);return `rgb(${Math.round(235-190*a)},${Math.round(240-130*a)},${Math.round(250-40*a)})`;}
+function proj(view){ // returns fn (x,y,z)->[sx,sy]
+  if(view.kind==='aft') return (x,y,z)=>[view.cx+y*view.sc, view.cy-z*view.sc];
+  if(view.kind==='top') return (x,y,z)=>[view.cx+y*view.sc, view.cy-x*view.sc];
+  return (x,y,z)=>[view.cx+(-x*0.62+y*0.72)*view.sc, view.cy-z*view.sc+(x*0.22+y*0.26)*view.sc];
+}
+function text(s,x,y,o){o=o||{};ctx.font=(o.b?'600 ':'')+(o.sz||13)+'px Helvetica,Arial,sans-serif';ctx.fillStyle=o.c||INK;ctx.textAlign=o.al||'left';ctx.textBaseline=o.bl||'alphabetic';ctx.fillText(s,x,y);}
+function arrow(x0,y0,x1,y1,c,w){const L=Math.hypot(x1-x0,y1-y0);if(L<2)return;ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=w||3;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();const ux=(x1-x0)/L,uy=(y1-y0)/L,h=Math.min(10,L*0.5);ctx.beginPath();ctx.moveTo(x1+ux*2,y1+uy*2);ctx.lineTo(x1-ux*h-uy*h*0.5,y1-uy*h+ux*h*0.5);ctx.lineTo(x1-ux*h+uy*h*0.5,y1-uy*h-ux*h*0.5);ctx.closePath();ctx.fill();}
+function drawSail(view,geom,dp,q,opt){opt=opt||{};const P=proj(view),c=geom.corners;
+  for(let p=0;p<geom.Np;p++){ctx.beginPath();for(let k=0;k<4;k++){const o=12*p+3*k,[sx,sy]=P(c[o],c[o+1],c[o+2]);k?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);}ctx.closePath();ctx.fillStyle=col(dp[p]/q);ctx.fill();ctx.strokeStyle='rgba(40,50,60,0.35)';ctx.lineWidth=0.6;ctx.stroke();}
+}
+function drawWake(view,wk,opt){opt=opt||{};const P=proj(view);
+  for(const E of wk){ if(E.k==='luff'&&!E.G) continue; const m1=E.m+1; const c=E.k==='luff'?LUFFW:E.k==='leech'?WAKE:EDGEW; ctx.strokeStyle=c;
+    const stepI=E.k==='leech'||E.k==='luff'?1:Math.max(1,Math.floor(E.m/3));
+    for(let i=0;i<m1;i+=stepI){ctx.beginPath();let on=false;for(let r=0;r<E.nr;r++){ if(E.k==='luff'){const t=Math.min(i,E.m-1);const live=r===0?(E.G[t]||E.G[Math.max(0,i-1)]):(E.G[(Math.min(r,E.nr-2))*E.m+t]||E.G[(Math.max(0,r-1))*E.m+t]); if(!live){on=false;continue;}}
+        const o=3*(r*m1+i),[sx,sy]=P(E.W[o],E.W[o+1],E.W[o+2]);on?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);on=true;}ctx.globalAlpha=0.55;ctx.lineWidth=1;ctx.stroke();}
+    for(let r=2;r<E.nr;r+=2){ctx.beginPath();let on=false;for(let i=0;i<m1;i++){ if(E.k==='luff'){const t=Math.min(i,E.m-1);if(!(E.G[(Math.min(r,E.nr-2))*E.m+t])){on=false;continue;}}
+        const o=3*(r*m1+i),[sx,sy]=P(E.W[o],E.W[o+1],E.W[o+2]);on?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);on=true;}ctx.globalAlpha=Math.max(0.12,0.6-0.014*r);ctx.lineWidth=1;ctx.stroke();}
+    ctx.globalAlpha=1;}
+}
+function frameBox(x,y,w,h,title){ctx.strokeStyle=GRID;ctx.lineWidth=1;ctx.strokeRect(x+0.5,y+0.5,w,h);if(title)text(title,x+8,y+17,{sz:12,c:MUT,b:1});}
+function plot(b,o){ // b:{x,y,w,h}, o:{xr,yr,xt,yt,xl,yl}
+  const X=v=>b.x+(v-o.xr[0])/(o.xr[1]-o.xr[0])*b.w,Y=v=>b.y+b.h-(v-o.yr[0])/(o.yr[1]-o.yr[0])*b.h;
+  ctx.strokeStyle=GRID;ctx.lineWidth=1;for(const t of o.xt){ctx.beginPath();ctx.moveTo(X(t),b.y);ctx.lineTo(X(t),b.y+b.h);ctx.stroke();text(String(t),X(t),b.y+b.h+13,{sz:11,c:MUT,al:'center'});}
+  for(const t of o.yt){ctx.beginPath();ctx.moveTo(b.x,Y(t));ctx.lineTo(b.x+b.w,Y(t));ctx.stroke();text(String(t),b.x-5,Y(t)+4,{sz:11,c:MUT,al:'right'});}
+  ctx.strokeStyle=INK;ctx.lineWidth=1;ctx.strokeRect(b.x+0.5,b.y+0.5,b.w,b.h);
+  if(o.xl)text(o.xl,b.x+b.w/2,b.y+b.h+27,{sz:11.5,al:'center'}); if(o.yl)text(o.yl,b.x,b.y-6,{sz:12,b:1});
+  return {X,Y};}
+function line(ax,pts,c,w,dash){ctx.strokeStyle=c;ctx.lineWidth=w||2;ctx.setLineDash(dash||[]);ctx.beginPath();pts.forEach((p,i)=>{const x=ax.X(p[0]),y=ax.Y(p[1]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);}
+function dots(ax,pts,c,r,hollow){for(const p of pts){ctx.beginPath();ctx.arc(ax.X(p[0]),ax.Y(p[1]),r||3.5,0,7);if(hollow){ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=1.6;ctx.stroke();}else{ctx.fillStyle=c;ctx.fill();}}}
+function legend(x,y,items){let yy=y;for(const it of items){if(it.dot){ctx.beginPath();ctx.arc(x+9,yy-4,3.5,0,7);if(it.hollow){ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=it.c;ctx.lineWidth=1.6;ctx.stroke();}else{ctx.fillStyle=it.c;ctx.fill();}}else{ctx.strokeStyle=it.c;ctx.lineWidth=it.w||2;ctx.setLineDash(it.dash||[]);ctx.beginPath();ctx.moveTo(x,yy-4);ctx.lineTo(x+18,yy-4);ctx.stroke();ctx.setLineDash([]);}text(it.t,x+24,yy,{sz:11});yy+=14;}}
+function header(t,cap){ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);text(t,14,24,{sz:18,b:1});text(cap,14,44,{sz:13,c:'#3a4654'});}
+function colourKey(x,y){for(let i=0;i<80;i++){ctx.fillStyle=col(-6+12*i/79);ctx.fillRect(x+i*1.5,y,1.6,8);}text('backwinded',x-3,y+8,{sz:10.5,c:MUT,al:'right'});text('pressure pushing to leeward',x+124,y+8,{sz:10.5,c:MUT});}
+function windArrow(view,beta,x,y,label){const b=beta*Math.PI/180;let dx,dy;if(view.kind==='top'){dx=Math.sin(b);dy=Math.cos(b);}else{const P=proj({kind:'ob',cx:0,cy:0,sc:1});const a=P(-Math.cos(b),Math.sin(b),0);const l=Math.hypot(a[0],a[1]);dx=a[0]/l;dy=a[1]/l;}
+  arrow(x-dx*22,y-dy*22,x+dx*22,y+dy*22,'#3b6ea5',3);text(label||'wind',x,y-30,{sz:11,c:'#3b6ea5',al:'center'});}
+function forceArrows(view,F,ce,scale,opt){ // top view: drive along bow (up), heel force to leeward (right)
+  const P=proj(view),[x0,y0]=P(ce[0],ce[1],ce[2]);const a=P(ce[0]+F[0]*scale,ce[1],ce[2]),bb=P(ce[0],ce[1]+F[1]*scale,ce[2]),t=P(ce[0]+F[0]*scale,ce[1]+F[1]*scale,ce[2]);
+  arrow(x0,y0,t[0],t[1],INK,2);arrow(x0,y0,a[0],a[1],DRIVE,3.5);arrow(x0,y0,bb[0],bb[1],HEEL,3.5);
+  ctx.beginPath();ctx.arc(x0,y0,4,0,7);ctx.fillStyle=INK;ctx.fill();}
+window.SCENES={};
+</script><script src="scenes.js"></script></body></html>

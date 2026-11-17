@@ -3,7 +3,8 @@
   // A type or interface that names part of an exported signature stays exported so a caller can name it too.
   "ignoreExportsUsedInFile": { "interface": true, "type": true },
   "workspaces": {
-    ".": { "entry": ["scripts/*.js"] },
+    // experiments/ holds standalone throwaway scripts run by hand, outside the build.
+    ".": { "entry": ["scripts/*.js"], "ignore": ["experiments/**"] },
     "packages/tool-validate": {
       // The CLI that `pnpm validate` runs, the explicit benchmark list, and the browser page that run-browsers.ts
       // hands to Vite by URL rather than by import.

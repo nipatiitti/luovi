@@ -9,3 +9,9 @@ packages/tool-validate/.engines/
 .svelte-kit/
 packages/tool-scenario/build/
 packages/tool-scenario/.shots/
+
+# Throwaway physics experiments: generated data, frames, GIFs and downloaded tank data stay local.
+experiments/unified-physics/*/out/
+experiments/unified-physics/*/dl/
+experiments/unified-physics/package-lock.json
+experiments/unified-physics/*/__pycache__/

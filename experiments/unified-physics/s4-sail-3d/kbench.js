@@ -1,0 +1,9 @@
+// counts kernel evaluations per flow step (instrumented copy of seg) and times the bare kernel
+const fs = require('fs'); let src = fs.readFileSync(__dirname + '/uvlm.js', 'utf8');
+src = src.replace("function seg(px, py, pz, ax, ay, az, bx, by, bz, rc2) {", "function seg(px, py, pz, ax, ay, az, bx, by, bz, rc2) { SEGN++;").replace("let KCOUNT = 0;", "let KCOUNT = 0, SEGN = 0;").replace("kcount: () => KCOUNT", "kcount: () => SEGN, seg");
+fs.mkdirSync(__dirname + '/out', { recursive: true }); fs.writeFileSync(__dirname + '/out/uvlm_count.js', src); // git-ignored
+const U = require('./out/uvlm_count.js'); const L = require('./lib.js');
+function mk(sails, world, beta) { const W = new U.World(Object.assign({ dt: 0.05, R: 36, luffShed: true, wind: U.windProfile(6, 5.9, beta, 0.1) }, world)); for (const s of sails) W.addSail(s, 6, 12); W.finalize(); return W; }
+const cases = [['main, attached (wake by wind + sail only)', [U.fujinMain(10, 12)], { luffShed: false, selfRows: 0 }, 30], ['main, stalled, luff shedding + first-chord wake self-induction', [U.fujinMain(85, 12)], { k0: 1 }, 150], ['main + jib, attached', [U.fujinMain(8, 12), U.fujinJib(14, 12)], { luffShed: false, selfRows: 0 }, 30]];
+for (const [name, sails, world, beta] of cases) { const W = mk(sails, world, beta); for (let k = 0; k < 60; k++) W.step(); const k0 = U.kcount(), t0 = process.hrtime.bigint(); for (let k = 0; k < 20; k++) W.step(); const ms = Number(process.hrtime.bigint() - t0) / 1e6 / 20; console.log(`${name}: ${ms.toFixed(1)} ms/step, ${((U.kcount() - k0) / 20 / 1e6).toFixed(2)} million kernel evaluations/step, ${(ms * 1e6 / ((U.kcount() - k0) / 20)).toFixed(0)} ns each (all overheads included)`); }
+let s = 0; const t0 = process.hrtime.bigint(); for (let k = 0; k < 5e6; k++) { U.seg(k * 1e-6, 1.1, 2.2, 0, 0, 0, 1, 0.5, 0.2, 0.01); } console.log('bare kernel', (Number(process.hrtime.bigint() - t0) / 5e6).toFixed(1), 'ns');
