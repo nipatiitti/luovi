@@ -38,3 +38,7 @@ Node 26 on an Apple M1 Pro, one thread, aero evaluated every substep, median of 
 ## Amendment, 2026-10-24
 
 The 1 ms and 2 ms budgets this ADR measures against are dropped by `docs/adr/0013`; the decision and its measured costs stand. The full-rigged ship's substep count is chosen by profiling at step 6, not against 2 ms.
+
+## Status note, 2026-11-17: under review
+
+The unified physics session (on the archive branch `claude/project-thread-mqnuze`, draft pull request [#49](https://github.com/nipatiitti/luovi/pull/49): [docs/research/unified-sails/](https://github.com/nipatiitti/luovi/tree/claude/project-thread-mqnuze/docs/research/unified-sails/) and the s1 to s4 results in [docs/research/unified-experiments/](https://github.com/nipatiitti/luovi/tree/claude/project-thread-mqnuze/docs/research/unified-experiments/)) found that cheap live cloth fails: with the air coupled explicitly it blows up, and two solver passes at 240 steps a second are not enough; it needs four passes, or 480 to 960 steps a second. Lumping the air's added mass onto the cloth was the only variant that snatched the sheet, and the owner preferred its flogging. The candidate rig is a directly solved tension structure, untested. The owner named the XPBD cloth and rig solver, per-triangle sail polars and CPU-only physics as not sacred. Nothing here is decided yet: sail and rig physics is the next session's subject, and this record stands until then.

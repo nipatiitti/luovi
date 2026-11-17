@@ -1,119 +1,90 @@
 # Hull hydrodynamics
 
-Oct 22, 2026 · @Niilo
+Nov 17, 2026 · @Niilo
 
 ## Bottom line
 
-There is no single formula that covers a dinghy, an H-boat, a 96 m full-rigger and a catamaran, but one architecture does: an MMG-style modular force sum where each module gets class-specific coefficients derived from the actual hull geometry. Coefficients come from published regressions wherever the hull sits inside a regression's family (most of the fleet does); offline CFD is a calibration step reserved for hull shapes no regression has seen. Every hull shares the same appendage, cross-flow, wave and wake modules.
+One law covers the hull, the keel and the rudder of every boat: the section (slice) momentum law. Each underwater body is a stack of transverse sections cut from the real lines, and each section trades momentum with the slice of water it is passing through. The slice is fixed in the water, so the water the keel has turned is still turning when the rudder reaches it. Side force, yaw moment, the rudder's grip and stall, weather helm growing with heel, the rudder airing in a broach, heave and pitch on waves and slamming are all what that law does on the immersed geometry at the current attitude (ADR 0014).
 
-Michell thin-ship theory is dropped from the leeway and wake paths: it assumes the hull is slender along the direction of motion, so any drift angle produces spurious source strengths and an oversold wake. It survives only as an optional upright resistance curve for very slender hulls with no other data.
+The hull family is data, never a code path. There are no modes, no flags, no speed or angle thresholds and no regression per hull family; a fin keel, a long keel, an integral keel on a full-rigged ship and a wide flat hull differ only in their sections. This replaces the earlier outline of a regression table per family, a vortex lattice with heel bins, a cross-flow strip, stall weights and a constant 6x6 added mass (ADR 0006 and ADR 0007, both superseded).
 
-## Force modules
+## What the law computes
 
 ```mermaid
 flowchart LR
-    subgraph hydro["Hydro (coefficients per hull class, structure shared)"]
-        res["Hull resistance<br/>CFD surrogate or DSYHS/ORC"]
-        lift["Hull + appendage lift<br/>VLM, weighted by stall"]
-        cf["Cross-flow drag<br/>summed at every angle"]
-        wave["Buoyancy + wave forces<br/>panel method on the 2D field"]
-    end
-    rb["6-DOF rigid body<br/>6x6 added mass<br/>non-lifting damping, Munk<br/>per hull, or per demihull<br/>60 Hz fixed tick"]
-    subgraph env["Environment"]
-        aero["Aero (sails, rig, hull)<br/>see Aero"]
-        wake["Wake pressure patch<br/>reaction from the patch solver"]
-        mass["Moving mass<br/>deck water, crew"]
-        prop["Propeller, tug, mooring<br/>optional per boat"]
-    end
-    res --> rb
-    lift --> rb
-    cf --> rb
-    wave --> rb
+    geo["Sections of hull, keel, rudder<br/>from the real lines"]
+    water["Water slices fixed in the water<br/>momentum each has been given"]
+    law["Section momentum law<br/>per section, per step"]
+    waves["Sea at each section<br/>height and orbital velocity"]
+    rb["6-DOF rigid body<br/>240 steps a second"]
+    drag["Wave-making drag<br/>slice wave table, per hull"]
+    aero["Sails and rig<br/>see Aero"]
+    geo --> law
+    water --> law
+    waves --> law
+    law --> rb
+    drag --> rb
     aero --> rb
-    wake --> rb
-    mass --> rb
-    prop --> rb
-    style rb stroke-width:3px
+    rb --> law
+    style law stroke-width:3px
 ```
 
-Eight force modules sum into one rigid body.
+The law reads the sections and the water slices; the rigid body sees the summed force.
 
-Each module returns a force and moment in the body frame; the rigid body sees only the sum. Lift and cross-flow drag are both summed at every angle; a per-surface stall weight on the local inflow angle moves the share between them, and there is no speed threshold (ADR 0007).
+Per section and per step, the law takes the immersed shape at the current heel, trim and sinkage, the section's velocity relative to the local water (orbital velocity included) and the momentum already in the water slice it is in. The force on the section is the rate at which it changes that momentum. From this one rule come:
 
-## Resistance: regressions first, geometry at heel, CFD only where they fail
+- **Sideways force and yaw moment** of hull and keel at any leeway, ahead or astern, and the rudder's lift up to stall and its flat-plate force beyond it.
+- **Wash:** the keel leaves turned water behind it, and the rudder works in it.
+- **Heel effects:** the immersed sections change shape as she heels, so weather helm grows with heel, the lateral centre moves, and the rudder loses grip and draws air as it lifts towards the surface.
+- **Vertical motion:** heave and pitch on waves, with hydrostatic and wave pressure from the sea at each section, and slamming when a section's water mass changes suddenly. A per-section wave-making memory (four numbers per section, passive for any parameters) carries the energy the boat radiates as waves; without it she hobby-horses four to five times too much.
+- **The free tiller:** the rudder is a hinge with its own inertia, so a let-go tiller is a result, not a setting.
 
-Upright resistance versus speed comes from the regression whose family the hull belongs to. The hydrostatics that regression needs (waterline length, displacement, wetted area, prismatic and midship coefficients) are the load condition's rest hydrostatics, computed once at load from the baked section stacks; recomputing them at the current heel, trim and sinkage every tick would double-count the heel the regression already corrects for (ADR 0006). Only the friction wetted area follows the attitude.
+Righting moment is never a coefficient: it comes from buoyancy of the immersed sections against the mass distribution.
 
-| Hull family                                          | Regression                                                                                           | Why it fits                                                                                                                                                                                                                                                           | Example boats                     |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| Merchant-type displacement hulls, L/B 5–9, Fn < 0.35 | Holtrop–Mennen for resistance; Kijima/Inoue for sway–yaw derivatives                                 | Built on exactly this population of steel cargo hulls                                                                                                                                                                                                                 | Suomen Joutsen (1902 cargo hull)  |
-| Traditional wooden workboats, full keel, L/B 4–5     | Holtrop–Mennen (marginal at low L/B but usable); Kijima; cross-flow drag                             | Low Froude, modest heel, hull itself is the lifting body                                                                                                                                                                                                              | Linden, Svanhild                  |
-| Classic and modern fin-keel yachts                   | DSYHS (Keuning & Katgert 2008) with heel correction; ORC VPP residuary model                         | Hull sits inside the series                                                                                                                                                                                                                                           | H-boat and most procedural yachts |
-| Long-keel classics with overhangs                    | DSYHS with effective-at-heel hydrostatics; keel treated as part of the hull                          | Regressions never saw an integral keel, and a hull whose sailing length grows when heeled (a J-Class with long overhangs) needs effective-at-heel hydrostatics the DSYHS form does not take; the Wolfson Unit J-Class VPP work shows standard VPPs need reformulation | J-Class                           |
-| Wide, flat, planing maxis, Fn to 0.9                 | ORC 2013 LVR/BTR model for displacement speeds; Savitsky-type dynamic lift blended in above Fn ≈ 0.5 | Beyond DSYHS range and family; dynamic trim and planing lift dominate                                                                                                                                                                                                 | Volvo Open 70                     |
+## What is data
 
-Where a hull leaves every regression's family, run offline CFD (OpenFOAM) to calibrate: a handful of heeled free-surface runs for the long-keel classic, about twenty speed × heel runs to set the planing blend for the maxi, and nothing for the rest of the fleet. The split is cheap because free surface matters only for resistance versus speed; the drift problem is calibrated with double-body runs or, usually, not at all (see Side force). The budget is set when a v2 hull needs calibration; Levin and Larsson 2017's 30 hours on 100 cores per equilibrium point is the scale of a full free-surface run, which is why a full grid of 60–100 points is never needed.
+Per boat: the sections of hull, keel and rudder from the real lines (the H-boat from her class offsets), the mass items and their positions, the rudder's hinge line and travel, and one precomputed table of upright wave-making drag against speed. Nothing in the law is fitted per boat or per family.
 
-Viscous resistance is ITTC-57 friction under the regression family's own convention (for DSYHS, Reynolds number on 0.7 LWL and form factor 1), with the wetted area from the geometry at the current heel and sinkage; there is no free-standing form factor (ADR 0006). Resistance is evaluated for both surge directions so sternway is drag-limited, never undefined; the residuary table is read on |Fn|. Added resistance in waves comes from the panel method, not from a regression.
+Wave-making drag is the one piece taken from a table rather than live, because the waves a hull makes at a given speed take seconds, not microseconds, to compute. The table comes from the slice wave method: each water slice is left with the waves the passing body-exact sections made, summed in Michell's weighting with no constant (ADR 0014). It is about a second per hull and speed on one core. It is provisional: for a typical heavy keelboat it runs about 0.4 knots slow near 5 knots and within 10% above 7 knots; heavy hulls come out slow, light hulls fast. The same slice waves are a candidate source for the visible wake later.
 
-## Side force: lift at small drift, cross-flow drag at large
+## Validated, and how well
 
-Side force, yaw moment and induced drag at leeway are a lifting-body problem. Solve it live with a vortex-lattice method (VLM) on the submerged hull, keel and rudder: about 150 panels per lattice on the H-boat, mirrored at the free surface with a rigid-wall image at every Froude number plus Slooff's per-strip pressure relief (κ about 1.5), which also lowers the centre of lateral resistance (ADR 0007). Geometry is rigid, so the influence matrix is inverted once at load, per heel bin, to produce about 30 basis solutions and then dropped; the per-tick solve is a weighted sum of those bases. Heel-induced side force comes from building the carried-over lattice on the heeled mid-surface of each heel bin, and keel–rudder upwash and rudder behaviour in the keel wake come at the same price. The same solver covers every keel topology without special cases: a fin keel and spade rudder (H-boat), a low-aspect keel integral with the hull (J-Class, the schooners, where the hull itself is the lifting surface), and a canting keel with daggerboards and twin rudders (Volvo Open 70), where the keel is simply a lifting body at its own cant angle and the windward rudder's panels lose weight as they lift clear of the water.
+"Good enough" is judged by feel and by order of magnitude together, not by a hard 5% gate. The owner's impressions give direction and ordering; a remembered figure of his is a rough band; tank measurements win over remembered figures; a mismatch is raised only when it is about a factor of two or of the wrong kind.
 
-Cross-flow drag is always present alongside the lift, with no drift or speed threshold (ADR 0007). The hull module integrates ½ρ·C\_D(x)·T(x)·|v\_n|·v\_n over the union of hull and non-lifting appendage sections, with T(x) the local submerged section height, C\_D from section shape and the 0.52 finite-length factor, in the strip form Obokata 1987 gives. The linear manoeuvring derivatives (Y\_v, N\_v, Y\_r, N\_r) are derived from the VLM basis at load, so a separate derivative term never duplicates the VLM's lift; Kijima regressions are the fallback for a hull with no VLM-derived source. Beyond stall a cited C\_N(α) appendage polar over 0 to 90° carries a fin's force, because the v\_n² plate law gives a quarter to a half of the measured normal force between stall and 40 to 55°.
+| Behaviour                                      | Evidence                                                         | Result                                                                                                       |
+| ---------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Side force of hull and keel, upright           | 35 Delft hulls the law had never seen, 396 runs                  | Per-hull means 6% low to 13% high; centre 0.03 of the length aft of the tank's                               |
+| Rudder                                         | Tank foils, free fins of aspect 1 to 3                           | Stalls and turns into a flat plate like the foils; peak lift 10 to 25% low                                   |
+| Tack, H-boat, close-hauled to close-hauled     | Owner's race videos: 7 to 8 s                                    | 7.1 s at 20 degrees of helm, 6.1 s with the side-force fix                                                   |
+| Weather helm against wind, H-boat close-hauled | Owner's feel; Perry: 2 to 4 degrees is best                      | About neutral at 4 m/s, 3 degrees at 6 m/s, 7 at 8 m/s, 10 at 10 m/s, 15 at 12 m/s                           |
+| Broach                                         | Owner's feel                                                     | Emergent: helm runs out, rudder airs, she rounds up; easing the main saves her                               |
+| Seaway, reference sea Hs 0.42 m, Tp 2.9 s      | Classical strip theory as a stand-in; no measured yacht data yet | Close-hauled 2.4 degrees of pitch rms, about 4 slams a minute, 0.17 knots lost                               |
+| Wave-making drag                               | 36 Delft hulls, Wigley hull, Series 60 ship form                 | Median 1.0 to 1.7 of the tank from Froude 0.25 to 0.40, 0.7 to 0.85 above; Michell's sum alone is 2.8 to 3.8 |
 
-The stall weight is the one place to tune carefully: per surface, on the local inflow angle, with onset and end set by aspect ratio (rudder about 20°, keel beyond 30°), smooth enough that the handoff is invisible when a boat stalls out of a tack or gathers sternway (ADR 0007).
+The model runs at 240 steps a second and is stable there and at 120 on waves. How that relates to the 60 Hz determinism clock is under review (ADR 0013 status note).
 
-## Rigid body, buoyancy and damping
+The pass marks from the owner's own sailing are rough bands, not gates: a fin keel needs constant small corrections and a long keel tracks like on rails and turns 1.2 to 1.4 times slower; more rudder turns faster up to the tiller's real limit of about 45 to 50 degrees; at a crawl a hard-over rudder is mostly a brake; the stern swings out across the old track in a turn; in a 6 to 8 m/s Helsinki coast sea the motion goes stable, stable, small bob, big bob, settle.
 
-Six-DOF rigid body per boat with an explicit 6×6 added-mass matrix (sway and roll added mass are large for keeled hulls, largest for a long-keel classic) and roll, pitch and yaw damping terms for the non-lifting remainder; the VLM supplies the lift part of the damping from p, q and r in its right-hand side, and the Munk yaw moment is the Kirchhoff term of the 6×6 added mass, owned by the rigid body and by nothing else (ADR 0007). Without these the drift onset is too snappy and heel overshoots on every gust. Righting moment is never a coefficient: it comes from the panel buoyancy against the mass distribution, so a canted keel bulb, pumped water ballast or crew on the rail change stability by moving mass, nothing else.
+## What is open
 
-Buoyancy and wave excitation come from the panel method defined in the ocean tab: hydrostatic plus Froude–Krylov pressure on each submerged panel using the sampled local surface height, orbital velocity in the relative-velocity term, and slamming impulses at panel entry; orbital velocity also enters the VLM right-hand side, with a two-state Wagner and Küssner lag per lifting surface (ADR 0007). The calm-water CFD surrogate never sees waves; wave forces are always added by the panel method so the two do not double-count.
+Each item has a GitHub issue under the wayfinder map.
 
-Moving mass from the deck shallow-water sim, crew positions, water ballast and a canting keel is added to the rigid body each tick.
+- **Keel wash on the rudder:** the law removes 95% of the rudder's share of steady side load on the H-boat; tank tests give 20 to 60%. The lead is the free surface over the keel's wake. Keel and hull are probably about 10% strong, hidden by the idle rudder.
+- **Heeled side force:** median 9% high at 10 and 20 degrees, five very wide hulls 50 to 160% high at 20 degrees.
+- **Wave-making drag:** the error follows weight for length; the waterline rule was chosen after seeing three hulls; steep waves, wetted overhangs, sinkage and trim are not modelled; one ship form tested.
+- **Wave-making memory:** damping at rest 25 to 27% against 36 to 39% classical; needs measured seakeeping data and a per-section b(ω) from a 2D boundary-element solve. A bow-down trim feeds a little energy into pitching (about 2.5% negative damping), a property of the ideal law, left in.
+- **Small defects:** a let-go tiller swings hard over; sailing speed drifts by about a knot at 1/120 s; at a crawl the hard-over rudder still turns more than it brakes; the stand-in sails are too powerful, so heel is excessive at 6 to 8 m/s.
+- **Fleet:** the H-boat is run; the Folkboat (comparison boat on published dimensions) runs on estimated data; the Suomen Joutsen and a J-class have not been run yet. A beach catamaran and a Class40 are not targets but nothing in the law rules them out.
 
-## Wake
+## Order of work
 
-The wake source is the hull's hydrostatic pressure footprint (the Yao, Bingham & Zhang moving-pressure model), rasterised from the actual submerged shape each tick and applied to the dispersive patch solver as a forcing term advected along the hull's true velocity vector. The footprint rotates with the hull, so leeway, heel and sternway all produce the right pattern, and the same array feeds buoyancy. The Kelvin feather pattern and its narrowing at high Froude number come from the dispersive solver, not from a separate wake model.
+Get the hull model solid, port the reference model from the archive branch into `sim-hull` in TypeScript with its smoke checks as regression tests (the only way that code reaches main), then sail physics, and only after that the ship data contract and the H-boat transfer into the 3D sim, because the sail model will shape the contract.
 
-## Multihulls
+Sources (the session's notes, results and reference model live on the archive branch `claude/project-thread-mqnuze`, draft pull request [#49](https://github.com/nipatiitti/luovi/pull/49), which is kept for reference and never merged):
 
-Every module above is per-hull, so a catamaran is two hull modules plus their interference. Resistance: a CFD surrogate of the full platform where it matters, otherwise a demihull resistance with Insel–Molland wave and viscous interference factors as functions of separation and Fn. Side force: VLM panels on both hulls and all appendages. Flying a hull is just one hull's buoyancy and wetted area going to zero in the panel method. Cross-flow drag integrates over both hulls independently.
-
-## Emergent cases
-
-All three are emergent if the modules below are present; none is scripted.
-
-| Case                                          | Dominant modules                                                                                                                                                                                                                                                                                          | What must be true                                                                                                                |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Lying ahull, drifting sideways from rest      | Cross-flow drag on hull, keel and rudder; sway added mass; aero side force                                                                                                                                                                                                                                | VLM weight is zero by inflow angle at pure sway, not by speed (ADR 0007); drift settles at roughly 0.5–1.5 kn with a little heel |
-| Sternway (box-hauling, backing off a mooring) | Resistance table with negative surge; VLM on the reversed lattice with the Kutta condition on the leading edge, and cross-flow using the true inflow vector (ADR 0007); ±180° sail polars                                                                                                                 | Rudder lift and turning sense reverse automatically; wake advects bow-first                                                      |
-| Broaching on a following sea                  | Panel buoyancy + Froude–Krylov (wave slope and orbital velocity); heel axis in the surrogate or heeled VLM geometry; rudder panels de-weighted by submergence and the appendage polar beyond stall, no branch (ADR 0007); roll damping and roll–yaw coupling; spinnaker heeling moment from the cloth sim | Surrogate covers β to \~40° and heel to \~45°, or hands off cleanly to cross-flow drag                                           |
-
-The sequence a broach should produce: stern lifts on the wave face → rudder bite drops → heel builds from the spinnaker → heel-induced yaw adds to the wave yaw moment → round-up.
-
-## Validation targets
-
-- H-boat: two benchmarks against the ORC 2026 certificates (ADR 0010). Main and jib against the non-spinnaker certificate at ten points (VMG upwind and downwind, speeds at 60°, 90°, 120° TWA at 8 and 16 kn true) within 5% gates build step 3; spinnaker against the club certificate at the four spinnaker points follows, since three of the six fixed-angle points are spinnaker points. A miss is reviewed as a whole before anything moves, and a tolerance change is a map decision, never a tuning step.
-- Suomen Joutsen: historical loggings (best around 14 kn, poor pointing); tacking fails without backing the headsails and succeeds with them.
-- Sternway test: head to wind, yards braced square or jib backed, 1–2 kn astern with reversed rudder sense.
-- Drift test: ahull in 20 kn, drift speed and heel against known values for the class.
-- Volvo Open 70: 20+ kn reaching and 30+ kn surfing downwind in 25–30 kn true, with the planing blend calibrated so the speed–wind curve matches published race polars within \~10%; J-Class: heeled sailing length and speed against the J-Class Association VPP ratings. Where CFD calibration is run, its upright curve must agree with the regression within \~10% inside the regression's own range.
-
-Sources:
-
-- [Keuning & Katgert 2008, RINA Lorient, DSYHS bare hull resistance extended to higher speeds](https://research.tudelft.nl/en/publications/a-bare-hull-resistance-prediction-method-derived-from-the-results)
-- [Keuning & Sonnenberg 1998, TU Delft report 1175-P, hydrodynamic forces on a sailing yacht from the DSYHS](https://research.tudelft.nl/en/publications/approximation-of-the-hydrodynamic-forces-on-a-sailing-yacht-based/)
-- [TU Delft 2016, new systematic yacht series and regressions](https://repository.tudelft.nl/file/File_b89cddac-c130-429c-9b24-b71e453a1061)
-- [Data-driven models beyond DSYHS, IEEE Access 2024](https://doaj.org/article/04405607232a44288e378d40243ba492)
-- [ORC VPP Documentation 2023](https://orc2.orc.org/rules/ORC%20VPP%20Documentation%202023.pdf)
-- [Obokata 1987, the cross-flow strip form (J-STAGE)](https://www.jstage.jst.go.jp/article/jjasnaoe1968/1987/161/1987_161_183/_pdf)
-- [Masuyama et al. 1993, full-scale sea test of an ocean cruising yacht, Part 2: manoeuvrability and tacking (J-STAGE)](https://www.jstage.jst.go.jp/article/jjasnaoe1968/1993/174/1993_174_377/_pdf)
-- [Masuyama & Fukasawa 2011, tacking simulation of sailing yachts (J. Sailboat Technology)](http://higherlogicdownload.s3.amazonaws.com/SNAME/1516f098-2760-4bff-86fa-9ca63a85f102/UploadedImages/2011-01.pdf)
-- [Slooff 2015, The Aero- and Hydromechanics of Keel Yachts (free-surface image, pressure relief, wave drag due to side force)](https://doi.org/10.1007/978-3-319-13275-4)
-- Hoerner 1965, Fluid-Dynamic Drag (appendage normal-force polars beyond stall)
-- [Lindstrand Levin & Larsson 2017, coupled CFD and 6-DOF rigid body dynamics for sailing yacht performance (Ocean Engineering)](https://doi.org/10.1016/j.oceaneng.2017.09.052)
-- [Insel & Molland, resistance components of catamarans](https://eprints.soton.ac.uk/462776/1/457354.pdf)
-- [ELIGMOS, MMG-based time-domain manoeuvring](https://strathprints.strath.ac.uk/58361/1/Pollalis_etal_MSO2016_ELIGMOS_time_domain_simulation_of_the_maneuvering_of_ships.pdf)
-- [Static vs dynamic pressure distribution for ship waves, Yao, Bingham & Zhang 2024](https://orbit.dtu.dk/en/publications/the-influence-of-static-versus-dynamic-pressure-distribution-stra/)
-- [Kerner, water interaction model for boats (panel buoyancy)](https://gamedeveloper.com/programming/water-interaction-model-for-boats-in-video-games)
+- [docs/research/unified-hull/b-section-momentum.md](https://github.com/nipatiitti/luovi/blob/claude/project-thread-mqnuze/docs/research/unified-hull/b-section-momentum.md) (the law) and the other notes and critiques in [docs/research/unified-hull/](https://github.com/nipatiitti/luovi/tree/claude/project-thread-mqnuze/docs/research/unified-hull/)
+- [docs/research/unified-experiments/](https://github.com/nipatiitti/luovi/tree/claude/project-thread-mqnuze/docs/research/unified-experiments/): h1-h2-drift, h1b-holdout, c1-holdout-rerun and c2-sideforce-fix (side force); r1-rudder, r2-broach, h4-tack and sailing-test-v1 to v3 (rudder, heel, tack); v1-seaway and v2-radiation (waves); h3-waves, h3b-waves-fix, w1-wavedrag and w2-slicewaves (wave-making drag); critic-review
+- Reference model and smoke checks: [experiments/unified-physics/reference-model/](https://github.com/nipatiitti/luovi/tree/claude/project-thread-mqnuze/experiments/unified-physics/reference-model/)
+- [Delft Systematic Yacht Hull Series measurements, 4TU.ResearchData](https://doi.org/10.4121/21501402)
+- Michell 1898; Faltinsen and Zhao 1991; Fontaine and Tulin 2001 (thin-ship sum and its slender-body limit, as used in w2)
+- Jensen, Mansour and Olsen 2004 (classical 2D radiation damping, the seaway reference)
