@@ -18,30 +18,30 @@ Manoeuvres: sheet ease, a tack (wind swung across the centreline; boom crosses a
 
 ## 3. Numbers
 
-| Case | Flapping | Note |
-| --- | --- | --- |
-| 32 panels, 960 / 1920 Hz | 2.8 / 3.0 Hz, 10.7 / 9.5 cm | reference |
-| 64 panels, 960 Hz | 2.8 Hz, 10.2 cm | reference |
-| Same, bending 2.5e-3 | 2.8 to 3.0 Hz, 10 to 12 cm | insensitive |
-| 16 panels, 480 to 1920 Hz | 21 Hz, 1.8 cm | panel-scale ripple |
-| 16 panels, 1920 Hz, 6 passes | 2.8 Hz peak, 3 cm | mixed |
-| 32 or 64 panels, 240 or 480 Hz | blow up by 1.2 s | |
-| 32 panels, no hysteresis / no bending | blow up at 0.7 s / 3.9 s | both needed |
-| Wind 4 m/s; cloth half as heavy | 1.2 Hz; 2.8 Hz | rate follows wind, not cloth mass |
-| (b) lumped air mass, 32 panels | 1.2 Hz, 12 cm | 2.3 times too slow |
-| (d) polar only | blows up, or 28 Hz ripple | |
-| 16 panels, bending 100 times real, 480 Hz | 2.2 Hz, 11.6 cm | within 21% and 15% |
+| Case                                      | Flapping                    | Note                              |
+| ----------------------------------------- | --------------------------- | --------------------------------- |
+| 32 panels, 960 / 1920 Hz                  | 2.8 / 3.0 Hz, 10.7 / 9.5 cm | reference                         |
+| 64 panels, 960 Hz                         | 2.8 Hz, 10.2 cm             | reference                         |
+| Same, bending 2.5e-3                      | 2.8 to 3.0 Hz, 10 to 12 cm  | insensitive                       |
+| 16 panels, 480 to 1920 Hz                 | 21 Hz, 1.8 cm               | panel-scale ripple                |
+| 16 panels, 1920 Hz, 6 passes              | 2.8 Hz peak, 3 cm           | mixed                             |
+| 32 or 64 panels, 240 or 480 Hz            | blow up by 1.2 s            |                                   |
+| 32 panels, no hysteresis / no bending     | blow up at 0.7 s / 3.9 s    | both needed                       |
+| Wind 4 m/s; cloth half as heavy           | 1.2 Hz; 2.8 Hz              | rate follows wind, not cloth mass |
+| (b) lumped air mass, 32 panels            | 1.2 Hz, 12 cm               | 2.3 times too slow                |
+| (d) polar only                            | blows up, or 28 Hz ripple   |                                   |
+| 16 panels, bending 100 times real, 480 Hz | 2.2 Hz, 11.6 cm             | within 21% and 15%                |
 
 Rate times chord over wind is 1.05; Mavroyiakoumou and Alben report 0.6 to 0.7 per half chord for light membranes, so about 1.2 to 1.4 if their rate is in cycles (weak comparison).
 
 Solver, 16 panels, all three manoeuvres:
 
-| Setting | Solves per second | Result |
-| --- | --- | --- |
-| 240 Hz, 2 passes, any damping, any addition | 480 | fails |
-| 480 Hz, 2 passes, crimp and line search | 960 | survives at 8 m/s; fails at 12 and 16 |
-| 720 Hz at 12 m/s; 960 Hz at 16 m/s | 1440; 1920 | survive |
-| 240 Hz, 4 passes, radius 0.3 | 960 | survives at 8 m/s |
+| Setting                                     | Solves per second | Result                                |
+| ------------------------------------------- | ----------------- | ------------------------------------- |
+| 240 Hz, 2 passes, any damping, any addition | 480               | fails                                 |
+| 480 Hz, 2 passes, crimp and line search     | 960               | survives at 8 m/s; fails at 12 and 16 |
+| 720 Hz at 12 m/s; 960 Hz at 16 m/s          | 1440; 1920        | survive                               |
+| 240 Hz, 4 passes, radius 0.3                | 960               | survives at 8 m/s                     |
 
 Sheet snatch in the flogging sail: (b) gave 15 snatches, peak 2.0 kN/m; (c) and the 1920 Hz run gave none; 32 panels at 960 Hz blew up. No agreed value.
 

@@ -15,18 +15,18 @@
 
 ## 3. Numbers
 
-| Case | Model | Reference |
-|---|---|---|
-| Wigley, coefficient ×10³ at Froude 0.25 / 0.267 / 0.289 / 0.316 | 1.06 / 0.98 / 1.99 / 1.83 | 0.88–1.15 / 0.83–0.98 / 1.22–1.37 / 1.79–2.00 |
-| Wigley, ×10³ at Froude 0.05 / 0.10 / 0.12 | 0.006 / 0.10 / 0.18, same at 41 to 161 stations | falls smoothly to zero |
-| Delft, model ÷ tank at Froude 0.25 / 0.30 / 0.35 / 0.40 | 2.8–3.7 / 3.7–5.0 / 3.4–4.1 / 3.2–4.0 | 1 |
-| Delft, model ÷ tank at Froude 0.45 / 0.50 / 0.60 | 2.2–2.8 / 1.5–1.8 / 1.0–1.3 | 1 |
-| Delft, main hump (drag ÷ speed²) | Froude 0.47 | Froude 0.55 |
-| Delft, stern sources halved | 1.2–2.1 at 0.25–0.40, 0.6–0.7 at 0.60 | 1 |
-| Catamaran peak, spacing 0.2 / 0.3 / 0.4 / 0.5 of length | 1.67 / 1.57 / 1.42 / 1.30, at Froude 0.45 to 0.375 | adverse near 0.5 |
-| Catamaran, spacing 0.3, Froude 0.33 | 0.65 | favourable near 0.33 |
-| One hull lifted clear | one hull's drag, reached smoothly | by definition |
-| Side-force wave drag ÷ induced drag, Froude 0.35 | 26 % to 87 % | 10–35 % |
+| Case                                                            | Model                                              | Reference                                     |
+| --------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------- |
+| Wigley, coefficient ×10³ at Froude 0.25 / 0.267 / 0.289 / 0.316 | 1.06 / 0.98 / 1.99 / 1.83                          | 0.88–1.15 / 0.83–0.98 / 1.22–1.37 / 1.79–2.00 |
+| Wigley, ×10³ at Froude 0.05 / 0.10 / 0.12                       | 0.006 / 0.10 / 0.18, same at 41 to 161 stations    | falls smoothly to zero                        |
+| Delft, model ÷ tank at Froude 0.25 / 0.30 / 0.35 / 0.40         | 2.8–3.7 / 3.7–5.0 / 3.4–4.1 / 3.2–4.0              | 1                                             |
+| Delft, model ÷ tank at Froude 0.45 / 0.50 / 0.60                | 2.2–2.8 / 1.5–1.8 / 1.0–1.3                        | 1                                             |
+| Delft, main hump (drag ÷ speed²)                                | Froude 0.47                                        | Froude 0.55                                   |
+| Delft, stern sources halved                                     | 1.2–2.1 at 0.25–0.40, 0.6–0.7 at 0.60              | 1                                             |
+| Catamaran peak, spacing 0.2 / 0.3 / 0.4 / 0.5 of length         | 1.67 / 1.57 / 1.42 / 1.30, at Froude 0.45 to 0.375 | adverse near 0.5                              |
+| Catamaran, spacing 0.3, Froude 0.33                             | 0.65                                               | favourable near 0.33                          |
+| One hull lifted clear                                           | one hull's drag, reached smoothly                  | by definition                                 |
+| Side-force wave drag ÷ induced drag, Froude 0.35                | 26 % to 87 %                                       | 10–35 %                                       |
 
 ## 4. GIFs
 

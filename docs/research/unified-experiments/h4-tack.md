@@ -16,21 +16,21 @@ Constants, one value for all boats: ITTC 1957 friction on wetted area; wave stan
 
 ## 3. Numbers (12 knots true, 45° off the wind)
 
-| | Fin | Long |
-| --- | --- | --- |
-| Speed, leeway, rudder | 5.07 kn, 2.6°, 0.9° | 5.03 kn, 3.0°, 0.3° |
-| Entrained water, sway | 2470 kg | 3520 kg |
-| Through 90° (gentle, normal, slammed) | 6.6, 5.6, 5.6 s | 7.6, 6.7, 6.4 s |
-| Speed lost | 50, 50, 50% | 68, 71, 72% |
-| Lost to windward | 6.0, 6.1, 6.4 m | 9.7, 11.0, 11.6 m |
-| Peak leeway after, normal | 6.1° | 10.8° |
-| Back to 90% speed, normal | 13.4 s | 16.6 s |
-| Coast to half speed from 5 kn | 4.2 lengths | 4.0 lengths |
-| Puff, time to half change: heel, rudder load, speed | 0.7, 1.0, 2.9 s | 0.7, 1.8, 2.9 s |
-| Tiller let go, heading error after 10 s | 29° (rounds up) | 6° |
-| Tiller lashed, shoved: peak turn rate | 3.5°/s | 4.0°/s |
-| Sternway, rudder +20°: turn rate after 3 s | −3.3°/s (reversed) | −2.3°/s (reversed) |
-| Keel wash reaching rudder | 0.9 s late, load 460 to 34 N | 0.2 s |
+|                                                     | Fin                          | Long                |
+| --------------------------------------------------- | ---------------------------- | ------------------- |
+| Speed, leeway, rudder                               | 5.07 kn, 2.6°, 0.9°          | 5.03 kn, 3.0°, 0.3° |
+| Entrained water, sway                               | 2470 kg                      | 3520 kg             |
+| Through 90° (gentle, normal, slammed)               | 6.6, 5.6, 5.6 s              | 7.6, 6.7, 6.4 s     |
+| Speed lost                                          | 50, 50, 50%                  | 68, 71, 72%         |
+| Lost to windward                                    | 6.0, 6.1, 6.4 m              | 9.7, 11.0, 11.6 m   |
+| Peak leeway after, normal                           | 6.1°                         | 10.8°               |
+| Back to 90% speed, normal                           | 13.4 s                       | 16.6 s              |
+| Coast to half speed from 5 kn                       | 4.2 lengths                  | 4.0 lengths         |
+| Puff, time to half change: heel, rudder load, speed | 0.7, 1.0, 2.9 s              | 0.7, 1.8, 2.9 s     |
+| Tiller let go, heading error after 10 s             | 29° (rounds up)              | 6°                  |
+| Tiller lashed, shoved: peak turn rate               | 3.5°/s                       | 4.0°/s              |
+| Sternway, rudder +20°: turn rate after 3 s          | −3.3°/s (reversed)           | −2.3°/s (reversed)  |
+| Keel wash reaching rudder                           | 0.9 s late, load 460 to 34 N | 0.2 s               |
 
 Morph, fin to long keel in five steps: through 90° in 5.6, 6.1, 7.4, 10.4, 13.4 s; speed lost 50, 54, 60, 65, 73%; tiller-free error 29, 16, 10, 6, 4°. Every measure monotonic.
 

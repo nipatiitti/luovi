@@ -16,26 +16,26 @@ References: Helmbold and lifting-line closed forms; Fujin as published; ORC main
 
 ## 3. Numbers
 
-| Attached flow | model | reference |
-|---|---|---|
-| Elliptic wing, aspect 4, lift at 5° (6×12, 8×16) | 0.366, 0.354 | 0.343 Helmbold |
-| Induced drag over ideal | 0.85, 0.73 | 1.0 |
-| Twist 5→25°: side force | 1.91→1.53 | 1.39→1.16 |
-| drive | 0.67→0.57, no peak | 0.33 to 0.39, peak near 15° |
-| centre of effort height | 6.92→6.48 m | falls |
-| Lift, 20→38° (sheets fixed; eased half) | 1.24→2.34; 1.24→1.79 | 0.91→1.58 |
-| Jib side force, alone; with main | 0.57; 0.79 | rises |
-| Main front pressure, alone; with jib | 3.4 q; 0.8 q | falls |
-| Main luff suction low down, jib at 14°; 6° | −0.07; −0.36 (alone +0.49) | negative |
+| Attached flow                                    | model                      | reference                   |
+| ------------------------------------------------ | -------------------------- | --------------------------- |
+| Elliptic wing, aspect 4, lift at 5° (6×12, 8×16) | 0.366, 0.354               | 0.343 Helmbold              |
+| Induced drag over ideal                          | 0.85, 0.73                 | 1.0                         |
+| Twist 5→25°: side force                          | 1.91→1.53                  | 1.39→1.16                   |
+| drive                                            | 0.67→0.57, no peak         | 0.33 to 0.39, peak near 15° |
+| centre of effort height                          | 6.92→6.48 m                | falls                       |
+| Lift, 20→38° (sheets fixed; eased half)          | 1.24→2.34; 1.24→1.79       | 0.91→1.58                   |
+| Jib side force, alone; with main                 | 0.57; 0.79                 | rises                       |
+| Main front pressure, alone; with jib             | 3.4 q; 0.8 q               | falls                       |
+| Main luff suction low down, jib at 14°; 6°       | −0.07; −0.36 (alone +0.49) | negative                    |
 
-| Stalled, boom 85° | 4×8 | 6×12 | 8×16 | reference |
-|---|---|---|---|---|
-| 120°: lift, drag | 2.88, 1.72 | 2.36, 1.24 | 2.27, 1.10 | 0.84, 0.97 |
-| 150°: lift, drag | 1.56, 2.71 | 1.40, 2.31 | 1.32, 2.11 | 0.30, 1.32 |
-| 180°: drag | 2.97 | 2.60 | 2.40 | 1.2 to 1.35 |
-| noise after 0.5 s | 3 to 4% | 2 to 9% | 2 to 9% | limit 20% |
-| fallback 180°: drag | 1.17 | 1.17 | 1.17 | 1.2 to 1.35 |
-| fallback 120°: drive | 0.95 | 1.08 | 1.14 | |
+| Stalled, boom 85°    | 4×8        | 6×12       | 8×16       | reference   |
+| -------------------- | ---------- | ---------- | ---------- | ----------- |
+| 120°: lift, drag     | 2.88, 1.72 | 2.36, 1.24 | 2.27, 1.10 | 0.84, 0.97  |
+| 150°: lift, drag     | 1.56, 2.71 | 1.40, 2.31 | 1.32, 2.11 | 0.30, 1.32  |
+| 180°: drag           | 2.97       | 2.60       | 2.40       | 1.2 to 1.35 |
+| noise after 0.5 s    | 3 to 4%    | 2 to 9%    | 2 to 9%    | limit 20%   |
+| fallback 180°: drag  | 1.17       | 1.17       | 1.17       | 1.2 to 1.35 |
+| fallback 120°: drive | 0.95       | 1.08       | 1.14       |             |
 
 Time per flow step (plain Node, loaded machine): main attached 62 ms, main stalled 118 ms, main plus jib 213 ms.
 

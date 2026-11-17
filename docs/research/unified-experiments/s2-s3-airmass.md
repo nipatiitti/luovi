@@ -16,20 +16,20 @@ References: Tiomkin and Raveh as quoted by Mavroyiakoumou and Alben (opened); my
 
 ## 3. Numbers
 
-| Check | Model | Reference |
-| --- | --- | --- |
-| Lattice air mass | 8.88 kg/m | 8.66 |
-| Flat membrane unstable below | 0.82 to 0.86 rho U2 chord | 0.865, 0.89 |
-| (a) explicit, 240 Hz | blows up at 0.05 s | critic 1 agrees |
-| (b) (c) (d), 2 passes | blow up by 0.28 s | 4 passes fill: 88 N/m, 8.8% camber |
-| Luff inverts before aft half | (b) (c) 0.84 s earlier; (d) no | 0.84 to 0.93 s |
-| Onset sheet length | (b) 1.68, (c) 1.67, (d) 1.15 m | 1.67, 1.70 |
-| Sheet tension before onset | (b) 47, (c) 49, (d) 18 N/m | 42, 38 |
-| Flapping, radius 0.7 | all blow up within 1.7 s | resolved blows up too |
-| Flapping, radius 0.3, 10 s | (c) 3.0 Hz, (b) 1.2 Hz, (d) 17 Hz | 68 Hz (16 panels), 38 Hz (32) |
-| (c) at 480 Hz | 19.6 Hz | as above |
-| Snatch, 2 kg on sheet | damped 2 passes +7% (240 Hz), -4% (480); midpoint -23%, +17% | 4.6 kN |
-| Snatch, 0.1 kg on thread | best +86% (240), +153% (480) | 15.1 kN, 6% uncertain |
+| Check                        | Model                                                        | Reference                          |
+| ---------------------------- | ------------------------------------------------------------ | ---------------------------------- |
+| Lattice air mass             | 8.88 kg/m                                                    | 8.66                               |
+| Flat membrane unstable below | 0.82 to 0.86 rho U2 chord                                    | 0.865, 0.89                        |
+| (a) explicit, 240 Hz         | blows up at 0.05 s                                           | critic 1 agrees                    |
+| (b) (c) (d), 2 passes        | blow up by 0.28 s                                            | 4 passes fill: 88 N/m, 8.8% camber |
+| Luff inverts before aft half | (b) (c) 0.84 s earlier; (d) no                               | 0.84 to 0.93 s                     |
+| Onset sheet length           | (b) 1.68, (c) 1.67, (d) 1.15 m                               | 1.67, 1.70                         |
+| Sheet tension before onset   | (b) 47, (c) 49, (d) 18 N/m                                   | 42, 38                             |
+| Flapping, radius 0.7         | all blow up within 1.7 s                                     | resolved blows up too              |
+| Flapping, radius 0.3, 10 s   | (c) 3.0 Hz, (b) 1.2 Hz, (d) 17 Hz                            | 68 Hz (16 panels), 38 Hz (32)      |
+| (c) at 480 Hz                | 19.6 Hz                                                      | as above                           |
+| Snatch, 2 kg on sheet        | damped 2 passes +7% (240 Hz), -4% (480); midpoint -23%, +17% | 4.6 kN                             |
+| Snatch, 0.1 kg on thread     | best +86% (240), +153% (480)                                 | 15.1 kN, 6% uncertain              |
 
 ## 4. GIFs
 

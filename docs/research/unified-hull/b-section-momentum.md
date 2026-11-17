@@ -18,13 +18,13 @@ For a slice at station x, with all bodies' sections at that station unioned and 
 
 Force per unit length on the hull: `f = -DP/Dt`, with `D/Dt = ∂/∂t - U ∂/∂x` in body coordinates (U is the along-hull water speed, signed). This is Munk's and Jones's steady result, Lighthill's elongated-body law and Zarnick's planing strip law in one statement **[E]**. Expanding it gives:
 
-| Term | What it is |
-| --- | --- |
-| `-A·∂w/∂t` | added mass, following attitude and immersion automatically |
-| `-(∂A/∂t)·w` with immersion changing | von Karman and Wagner slamming |
-| `U·w·∂A/∂x`, lateral | Jones low-aspect lift, total `U·P_tail`; its first moment is the Munk moment |
-| `U·∂(A₃₃w₃)/∂x`, vertical | dynamic lift and bow-up trim moment, momentum leaving at a dry transom |
-| x-weighted integrals with `w = v + r·x - p·z` | sway, yaw and roll damping (Y_r, N_r, N_v) |
+| Term                                          | What it is                                                                   |
+| --------------------------------------------- | ---------------------------------------------------------------------------- |
+| `-A·∂w/∂t`                                    | added mass, following attitude and immersion automatically                   |
+| `-(∂A/∂t)·w` with immersion changing          | von Karman and Wagner slamming                                               |
+| `U·w·∂A/∂x`, lateral                          | Jones low-aspect lift, total `U·P_tail`; its first moment is the Munk moment |
+| `U·∂(A₃₃w₃)/∂x`, vertical                     | dynamic lift and bow-up trim moment, momentum leaving at a dry transom       |
+| x-weighted integrals with `w = v + r·x - p·z` | sway, yaw and roll damping (Y_r, N_r, N_v)                                   |
 
 Hydrostatic and Froude-Krylov pressure are integrated over the same immersed section polygon, so buoyancy, righting moment and wave excitation use the section loop too.
 

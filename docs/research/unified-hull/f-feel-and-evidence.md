@@ -11,7 +11,7 @@ A sailor does not feel forces. He feels **rates, delays, orderings and the point
 Four findings from the simulator literature carry over:
 
 - Pilots are more sensitive to the **shape** of a nonlinearity than to its timing. In a TU Delft stall experiment the just-noticeable change was 5 to 10 percent for stall abruptness but 20 to 30 percent for the flow-separation lag. **[E]**
-- Mariners judge a ship model by "turn rate, rudder and engine response, acceleration and deceleration", and "will reject simulations they do not believe to be accurate". **[E]** (NRC, *Simulated Voyages*)
+- Mariners judge a ship model by "turn rate, rudder and engine response, acceleration and deceleration", and "will reject simulations they do not believe to be accurate". **[E]** (NRC, _Simulated Voyages_)
 - A model tuned on its validation manoeuvres fails nearby: "performing slightly different maneuvers than those used for validation can result in quite inaccurate trajectories", and "field adjustments almost invariably introduce uncertainties and unanticipated inaccuracies". The weak regimes named are slow speed and reversing **[E]**, which for a sailing boat are the middle of a tack and sternway.
 - Marine simulation has **no agreed numeric tolerance**. Practice is three to five days of expert mariners iterating; the NRC committee did not endorse that and proposed objective tests plus an impartial expert panel. **[E]**
 
@@ -31,19 +31,19 @@ Items 1 to 6 are mostly ratios of a force slope to an inertia. A model can miss 
 
 Rank 1 is the most noticed.
 
-**1. Side force scales with speed squared, so slip explodes when slow.** At fixed sail side force, leeway angle goes as 1/U². For an H-boat carrying 800 N of side force: 3 degrees at 5.8 kn, 7 degrees at 3.9 kn, 12 degrees at 2.9 kn, past stall below that (est.). **[K, I]** This one law produces the feel of a bad tack, of pinching, and of bearing away to build speed. *Demand:* lateral force from local flow velocity at each part of the body, no speed threshold, valid at any drift angle.
+**1. Side force scales with speed squared, so slip explodes when slow.** At fixed sail side force, leeway angle goes as 1/U². For an H-boat carrying 800 N of side force: 3 degrees at 5.8 kn, 7 degrees at 3.9 kn, 12 degrees at 2.9 kn, past stall below that (est.). **[K, I]** This one law produces the feel of a bad tack, of pinching, and of bearing away to build speed. _Demand:_ lateral force from local flow velocity at each part of the body, no speed threshold, valid at any drift angle.
 
-**2. How the lateral plane lets go.** A fin of aspect ratio about 2 stalls abruptly near 12 to 15 degrees. A long keel of effective aspect ratio under 1 has a third of the lift slope per unit area but keeps lifting to 30 degrees on leading-edge and tip vortex lift, at high drag. **[K]** For these two boats slope times area comes out similar (about 3 m² per radian each, est.), so close-hauled leeway is similar, but the H-boat bites or lets go while the Folkboat slides and never quite lets go. **[I]** The stall-noticeability result says this shape is the most perceptible parameter. *Demand:* stall character follows from planform, not from a per-boat polar.
+**2. How the lateral plane lets go.** A fin of aspect ratio about 2 stalls abruptly near 12 to 15 degrees. A long keel of effective aspect ratio under 1 has a third of the lift slope per unit area but keeps lifting to 30 degrees on leading-edge and tip vortex lift, at high drag. **[K]** For these two boats slope times area comes out similar (about 3 m² per radian each, est.), so close-hauled leeway is similar, but the H-boat bites or lets go while the Folkboat slides and never quite lets go. **[I]** The stall-noticeability result says this shape is the most perceptible parameter. _Demand:_ stall character follows from planform, not from a per-boat polar.
 
-**3. Yaw inertia against yaw damping, and where the damping sits.** Yaw damping goes as lift slope times area times distance from the pivot squared. The H-boat keel sits at the pivot and adds almost none; nearly all damping and all control come from a spade rudder 2.9 m aft. The Folkboat's lateral plane spreads over 3.8 m with the rudder as a flap on its trailing edge: about twice the yaw damping and nearly twice the total yaw inertia (est.). Its sway added mass is about 9,000 kg, four times its own mass, against roughly 2,000 kg for the H-boat (est., slender-body). **[I]** That entrained water is what "tracks as if on rails" means. *Demand:* added mass and yaw damping computed from the geometry's lengthwise distribution; a constant 6x6 matrix borrowed from a family cannot separate these two boats.
+**3. Yaw inertia against yaw damping, and where the damping sits.** Yaw damping goes as lift slope times area times distance from the pivot squared. The H-boat keel sits at the pivot and adds almost none; nearly all damping and all control come from a spade rudder 2.9 m aft. The Folkboat's lateral plane spreads over 3.8 m with the rudder as a flap on its trailing edge: about twice the yaw damping and nearly twice the total yaw inertia (est.). Its sway added mass is about 9,000 kg, four times its own mass, against roughly 2,000 kg for the H-boat (est., slender-body). **[I]** That entrained water is what "tracks as if on rails" means. _Demand:_ added mass and yaw damping computed from the geometry's lengthwise distribution; a constant 6x6 matrix borrowed from a family cannot separate these two boats.
 
 **4. Surge time constant.** Mass plus surge added mass, over the slope of resistance. H-boat about 8 s linearised at 5 kn, half speed lost in about 3.5 boat lengths of coasting; Folkboat about 9 s and 4.1 lengths (est.). **[I]** The straight-line difference is only about 15 percent, close to unnoticeable. So "the long keel carries her way" is probably not about coasting; it would come from less drag per degree turned (items 2 and 6) and more momentum per wave impact. This prediction can prove me wrong and is a good first check of any candidate.
 
-**5. Rudder load, stall and reversal.** A spade rudder is a separate foil in the keel's downwash; it stalls near 15 degrees of local incidence and ventilates when heeled hard. A keel-hung rudder is a flap that cambers the whole plane: weak at low speed, no clean stall, poor astern. **[K]** In the AC45 simulator study, too much rudder too fast slowed the turn and raised speed loss through rudder stall; the best tack used a 7 s rudder stroke. **[E]** *Demand:* rudder incidence includes yaw rate times arm and keel downwash; helm torque is an output; the same equations give reversed helm astern.
+**5. Rudder load, stall and reversal.** A spade rudder is a separate foil in the keel's downwash; it stalls near 15 degrees of local incidence and ventilates when heeled hard. A keel-hung rudder is a flap that cambers the whole plane: weak at low speed, no clean stall, poor astern. **[K]** In the AC45 simulator study, too much rudder too fast slowed the turn and raised speed loss through rudder stall; the best tack used a 7 s rudder stroke. **[E]** _Demand:_ rudder incidence includes yaw rate times arm and keel downwash; helm torque is an output; the same equations give reversed helm astern.
 
-**6. Drag in the turn.** Tack loss is induced drag at large drift, rudder drag and windage while the sails are empty. Measured on a keelboat from NMEA logs: typical good tacks cost 1 to 3 boat lengths, bad ones 6 or more, with recovery taken at 90 percent of prior speed. **[E]** *Demand:* drag due to side force at all angles, which the current design leaves unowned.
+**6. Drag in the turn.** Tack loss is induced drag at large drift, rudder drag and windage while the sails are empty. Measured on a keelboat from NMEA logs: typical good tacks cost 1 to 3 boat lengths, bad ones 6 or more, with recovery taken at 90 percent of prior speed. **[E]** _Demand:_ drag due to side force at all angles, which the current design leaves unowned.
 
-**7. Heel coupling.** Heel moves the sail force outboard and makes the waterplane asymmetric, both giving weather helm; a gust therefore arrives as heel, then helm, then speed. **[K]** *Demand:* forces integrated on the actual heeled wetted geometry.
+**7. Heel coupling.** Heel moves the sail force outboard and makes the waterplane asymmetric, both giving weather helm; a gust therefore arrives as heel, then helm, then speed. **[K]** _Demand:_ forces integrated on the actual heeled wetted geometry.
 
 **8. Wave response in surge and pitch.** Hobby-horsing, punching through chop, surfing onset. **[I]**
 
@@ -89,6 +89,7 @@ Section 7 needs about 200 scripted manoeuvres per candidate change, so the worke
 Tiers A and B are pass or fail; C and D are scored and judged jointly.
 
 **A. Structural tests (binary, no data needed).**
+
 1. No boat-type switch: swap the two section stacks and mass files and the behaviours swap.
 2. Geometry morph: stretch the H-boat keel chord in ten steps toward the Folkboat profile. Tack time, stall angle and helm-free stability change monotonically and smoothly.
 3. Captive sweep, drift 0 to 180 degrees, speed −2 to +8 kn: force and moment continuous, no kinks.
@@ -97,6 +98,7 @@ Tiers A and B are pass or fail; C and D are scored and judged jointly.
 **B. Ordering tests (binary).** The event orderings of section 4 for tack, puff, broach and sternway; helm sense reversed astern; leeway at fixed side force rising as speed falls; the Joutsen missing stays in light air and tacking in a fresh breeze; the catamaran tacking only with way on or jib backed; the Class40 surfing on a wave the H-boat cannot catch.
 
 **C. Ratio and time-constant bands (scored).** Bands suggested by the noticeability evidence: stall shape and angle within 10 percent, time constants within 25 percent, steady quantities within 8 percent. The boat-specific figures below are my starting guesses, to be replaced by measurement.
+
 - H-boat: tack loss 1 to 3 boat lengths, 6 or more when slammed.
 - Folkboat against H-boat: a 90-degree heading change takes 1.3 to 2 times as long; hands-off course holding lasts longer; coasting distance within 25 percent of each other; no lift drop above 10 percent below 25 degrees of drift.
 - Speed against ORC: H-boat within 5 percent at 8 to 16 kn upwind and reaching, 8 percent elsewhere; Folkboat within 8 percent. More important: the **difference** between the two boats has the right sign wherever ORC and class racing experience agree on who is faster.
@@ -110,7 +112,8 @@ Tiers A and B are pass or fail; C and D are scored and judged jointly.
 ## 8. Sources
 
 Read in part, through a summarising fetch; quotes are as returned by it:
-- NRC, *Simulated Voyages* (1996), chapter on validation: https://www.nationalacademies.org/read/5065/chapter/9
+
+- NRC, _Simulated Voyages_ (1996), chapter on validation: https://www.nationalacademies.org/read/5065/chapter/9
 - ORC one-design certificate, H-boat (dimensions, polar): https://data.orc.org/public/od/2020/hboat.od.pdf
 - Giovannetti, Lidtke, Taunton, AC45 tacking simulator (2014): https://eprints.soton.ac.uk/372719/1/1_s2.0_S1877705814006535_main.pdf
 - Numerical simulation of tacking, Naniwa-maru (Nippon Foundation library): https://nippon.zaidan.info/seikabutsu/2003/00574/contents/0424.htm
@@ -119,8 +122,9 @@ Read in part, through a summarising fetch; quotes are as returned by it:
 - Bonci et al., heel-induced sway and yaw in following waves (2020): https://link.springer.com/article/10.1007/s00773-019-00637-0
 
 Abstract only:
+
 - Subjective noticeability of stall dynamics variations, TU Delft: https://research.tudelft.nl/en/publications/subjective-noticeability-of-variations-in-quasi-steady-aerodynami
 - Kerdraon et al., 6-DOF dynamic VPP for offshore racing yachts: https://oskar-bordeaux.fr/handle/20.500.12278/75995?show=full
 - SINTEF, validation of ship manoeuvring simulation models (2015): https://sintef.brage.unit.no/sintef-xmlui/handle/11250/2728799
 
-Leads, not evidence. Records opened but no content obtained: Keuning and Vermeulen's tacking model (2005), tack speed loss (2004) and yaw balance (2003) at repository.tudelft.nl; a Kaiwo Maru sailing performance record on CiNii; an ORC certificate that may be a Folkboat. Never opened: Masuyama and Fukasawa's Fair V tacking papers, Harland's *Seamanship in the Age of Sail*, the Delft series database, Class40 polars. Statements resting on these are marked [K].
+Leads, not evidence. Records opened but no content obtained: Keuning and Vermeulen's tacking model (2005), tack speed loss (2004) and yaw balance (2003) at repository.tudelft.nl; a Kaiwo Maru sailing performance record on CiNii; an ORC certificate that may be a Folkboat. Never opened: Masuyama and Fukasawa's Fair V tacking papers, Harland's _Seamanship in the Age of Sail_, the Delft series database, Class40 polars. Statements resting on these are marked [K].

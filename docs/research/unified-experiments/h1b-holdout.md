@@ -14,26 +14,26 @@ Frozen: sharpness constant 0.1, shed fraction 1 everywhere, cross-flow drag 2.0 
 
 ## 3. Numbers
 
-| Delft hold-out, model against tank | Result |
-| --- | --- |
-| Mean side force per hull, 35 hulls | −7% to +13% |
-| All 396 runs: side force mean, scatter | +3.9%, 10.3% |
-| Normal speed, leeway 3° and up (223 runs) | 7 runs beyond 15%; centre worst 0.095 L |
-| Normal speed, leeway under 3° (113 runs) | 17 beyond 15%; 15 centres beyond 0.10 L |
-| Froude 0.40 and above (60 runs) | 13 beyond 15%; 20 centres beyond 0.10 L, worst 0.31 L |
-| Drag due to side force | 23% low on average |
-| Original rule on the same runs | −2.1%, 8.8%: no worse |
+| Delft hold-out, model against tank        | Result                                                |
+| ----------------------------------------- | ----------------------------------------------------- |
+| Mean side force per hull, 35 hulls        | −7% to +13%                                           |
+| All 396 runs: side force mean, scatter    | +3.9%, 10.3%                                          |
+| Normal speed, leeway 3° and up (223 runs) | 7 runs beyond 15%; centre worst 0.095 L               |
+| Normal speed, leeway under 3° (113 runs)  | 17 beyond 15%; 15 centres beyond 0.10 L               |
+| Froude 0.40 and above (60 runs)           | 13 beyond 15%; 20 centres beyond 0.10 L, worst 0.31 L |
+| Drag due to side force                    | 23% low on average                                    |
+| Original rule on the same runs            | −2.1%, 8.8%: no worse                                 |
 
-| Tanker, seven hull variants | Original rule | Repaired rule |
-| --- | --- | --- |
-| Centre, worst error | 0.20 to 1.59 L | 0.03 to 0.08 L |
-| Side force, worst error | 17 to 64% | 6 to 37% (17% as first guessed) |
+| Tanker, seven hull variants | Original rule  | Repaired rule                   |
+| --------------------------- | -------------- | ------------------------------- |
+| Centre, worst error         | 0.20 to 1.59 L | 0.03 to 0.08 L                  |
+| Side force, worst error     | 17 to 64%      | 6 to 37% (17% as first guessed) |
 
-| Fin, aspect ratio 3 / 2 / 1 | Tank | Frozen | With attachment number |
-| --- | --- | --- | --- |
-| Lift slope per radian | 3.15 / 2.46 / 1.43 | 3.63 / 2.91 / 1.76 | same |
-| Stall angle | 23 / 29 / 38° | none below 40° | 19 / 23 / 33° |
-| Peak lift | 1.25 / 1.33 / 1.24 | no peak | 1.17 / 1.20 / 1.16 |
+| Fin, aspect ratio 3 / 2 / 1 | Tank               | Frozen             | With attachment number |
+| --------------------------- | ------------------ | ------------------ | ---------------------- |
+| Lift slope per radian       | 3.15 / 2.46 / 1.43 | 3.63 / 2.91 / 1.76 | same                   |
+| Stall angle                 | 23 / 29 / 38°      | none below 40°     | 19 / 23 / 33°          |
+| Peak lift                   | 1.25 / 1.33 / 1.24 | no peak            | 1.17 / 1.20 / 1.16     |
 
 ## 4. GIFs
 

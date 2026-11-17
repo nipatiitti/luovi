@@ -14,37 +14,37 @@ References: Delft measurements (DOI 10.4121/21501402, upright, yawed, 3.4 to 9.2
 
 Constants, one value for everything, fixed before any comparison:
 
-| Constant | Value | Source |
-| --- | --- | --- |
-| sharpness = exp(−(r/T)/K) | K = 0.1 | rounded square bars, Delany and Sorensen |
-| shed fraction | = sharpness | the proposal |
-| cross-flow drag, sharp to round | 2.0 to 0.6 | plate; between sub and supercritical cylinder |
-| travel before a round section separates | 1 draft | impulsive-start cylinder |
-| slice loading length | span/4 | derived from the 2D slope 2π |
-| largest section loading | 1.1 | thin foil |
+| Constant                                | Value       | Source                                        |
+| --------------------------------------- | ----------- | --------------------------------------------- |
+| sharpness = exp(−(r/T)/K)               | K = 0.1     | rounded square bars, Delany and Sorensen      |
+| shed fraction                           | = sharpness | the proposal                                  |
+| cross-flow drag, sharp to round         | 2.0 to 0.6  | plate; between sub and supercritical cylinder |
+| travel before a round section separates | 1 draft     | impulsive-start cylinder                      |
+| slice loading length                    | span/4      | derived from the 2D slope 2π                  |
+| largest section loading                 | 1.1         | thin foil                                     |
 
 ## 3. Numbers
 
-| H1, model against measurement | Rule as proposed | Every slice keeps all |
-| --- | --- | --- |
-| Delft side force, Fn 0.20 | −2, −7, −8% | +9, +3, +1% |
-| Delft side force, Fn 0.35 | −10 to −12% | 0 to −2% |
-| Delft centre, worst error | 0.04 L | 0.04 L |
-| Delft drag due to side force | −22 to −53% | −4 to −42% |
-| Tanker side force, 2° to 20° | −19% to +7% | +3% to +17% |
-| Tanker centre, worst error | **0.23 L** (2°), 0.12 L (6°) | 0.05 L |
-| Tanker yaw damping (ref 0.049) | 0.044 | 0.054 |
+| H1, model against measurement  | Rule as proposed             | Every slice keeps all |
+| ------------------------------ | ---------------------------- | --------------------- |
+| Delft side force, Fn 0.20      | −2, −7, −8%                  | +9, +3, +1%           |
+| Delft side force, Fn 0.35      | −10 to −12%                  | 0 to −2%              |
+| Delft centre, worst error      | 0.04 L                       | 0.04 L                |
+| Delft drag due to side force   | −22 to −53%                  | −4 to −42%            |
+| Tanker side force, 2° to 20°   | −19% to +7%                  | +3% to +17%           |
+| Tanker centre, worst error     | **0.23 L** (2°), 0.12 L (6°) | 0.05 L                |
+| Tanker yaw damping (ref 0.049) | 0.044                        | 0.054                 |
 
 Raising K to 0.3 mends the tanker's centre (0.07 L) but its side force goes 27% high. Both hulls want shed fraction 1; the drag wants K near 0.1.
 
-| H2 | Result |
-| --- | --- |
-| Plates, aspect ratio 0.2 to 4, against Helmbold | +2% to +6%, no bump |
-| Switch rule (slice law below 1, lifting line above) | 38% jump at 1 |
-| Morph, side-force slope | 0.492 to 0.604, every step up |
-| Morph, yaw damping | 0.036 to 0.053, every step up |
-| Morph, side force at 30° over linear | 0.93 to 1.32, every step up |
-| Morph, centre at 5° | 46.4, 45.9, 47.0% L: smooth, shallow dip of 0.5% L |
+| H2                                                  | Result                                             |
+| --------------------------------------------------- | -------------------------------------------------- |
+| Plates, aspect ratio 0.2 to 4, against Helmbold     | +2% to +6%, no bump                                |
+| Switch rule (slice law below 1, lifting line above) | 38% jump at 1                                      |
+| Morph, side-force slope                             | 0.492 to 0.604, every step up                      |
+| Morph, yaw damping                                  | 0.036 to 0.053, every step up                      |
+| Morph, side force at 30° over linear                | 0.93 to 1.32, every step up                        |
+| Morph, centre at 5°                                 | 46.4, 45.9, 47.0% L: smooth, shallow dip of 0.5% L |
 
 ## 4. GIFs
 

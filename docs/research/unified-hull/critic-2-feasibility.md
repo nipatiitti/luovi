@@ -4,15 +4,15 @@ Measurements are from throwaway Node 22 scripts, one thread, in `/tmp/claude-0/-
 
 ## What I measured
 
-| Script | Question | Result |
-| --- | --- | --- |
-| `a_couple.mjs` | A's biggest risk: negative-image panel solve plus FFT wave field with a one-step explicit lag at dt = 1/60 s. Half spheroid (8 m by 2 m by 1 m), 384 panels, impulsive sway start, 10 s | **Stable, and it recovers the rigid lid.** Sway coefficient starts at 0.40 (negative image), overshoots to 1.13 at 1 s, settles at 0.87 to 0.89 against 0.880 rigid lid. Same at 64² (0.5 m cells) and 128² |
-| same | A's per-step work the author did not count | Depositing panel downwash on a 128² plane: 18.6 ms brute force. Reading the field back at 384 panels: 37.5 ms brute force, or about 17 FFTs (16 ms) through depth layers |
-| `pf/bench.mjs` rerun | A's table | Reproduced (768 panels: product 0.61 ms, LU 179 ms) |
-| `c_var.mjs` | C's CPU twin with honest kernels | Author's constant-coefficient sweep: 215 M cells/s. With cut-cell face coefficients: 104 M/s. Trilinear advection: 73 M/s |
-| `michell_low.mjs` | B's Michell sum at tack speeds | Fine from Fn 0.12 up. At Fn 0.10 C_w is 20 times too large, at Fn 0.08 it is 12 (not 12e-3): station aliasing |
-| `slam.mjs` | B and D: flat light section (375 kg/m, 4.5 m beam, 5° deadrise) entering at 2 m/s | Neither form blows up at 1/60 s. Peak deceleration: true 5.9 g, momentum form 5.6 g, acceleration form 10.7 g. Rebound velocity after 2 s is wrong by 50 percent either way at 60 Hz, within 10 percent at 240 Hz in momentum form |
-| `d_bs.mjs` | D's wake cost | 3e5 Biot-Savart evaluations: 1.8 ms. The author's figure holds |
+| Script               | Question                                                                                                                                                                                | Result                                                                                                                                                                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `a_couple.mjs`       | A's biggest risk: negative-image panel solve plus FFT wave field with a one-step explicit lag at dt = 1/60 s. Half spheroid (8 m by 2 m by 1 m), 384 panels, impulsive sway start, 10 s | **Stable, and it recovers the rigid lid.** Sway coefficient starts at 0.40 (negative image), overshoots to 1.13 at 1 s, settles at 0.87 to 0.89 against 0.880 rigid lid. Same at 64² (0.5 m cells) and 128²                        |
+| same                 | A's per-step work the author did not count                                                                                                                                              | Depositing panel downwash on a 128² plane: 18.6 ms brute force. Reading the field back at 384 panels: 37.5 ms brute force, or about 17 FFTs (16 ms) through depth layers                                                           |
+| `pf/bench.mjs` rerun | A's table                                                                                                                                                                               | Reproduced (768 panels: product 0.61 ms, LU 179 ms)                                                                                                                                                                                |
+| `c_var.mjs`          | C's CPU twin with honest kernels                                                                                                                                                        | Author's constant-coefficient sweep: 215 M cells/s. With cut-cell face coefficients: 104 M/s. Trilinear advection: 73 M/s                                                                                                          |
+| `michell_low.mjs`    | B's Michell sum at tack speeds                                                                                                                                                          | Fine from Fn 0.12 up. At Fn 0.10 C_w is 20 times too large, at Fn 0.08 it is 12 (not 12e-3): station aliasing                                                                                                                      |
+| `slam.mjs`           | B and D: flat light section (375 kg/m, 4.5 m beam, 5° deadrise) entering at 2 m/s                                                                                                       | Neither form blows up at 1/60 s. Peak deceleration: true 5.9 g, momentum form 5.6 g, acceleration form 10.7 g. Rebound velocity after 2 s is wrong by 50 percent either way at 60 Hz, within 10 percent at 240 Hz in momentum form |
+| `d_bs.mjs`           | D's wake cost                                                                                                                                                                           | 3e5 Biot-Savart evaluations: 1.8 ms. The author's figure holds                                                                                                                                                                     |
 
 ## A. Live panel solve plus wave field
 
@@ -29,6 +29,7 @@ Measurements are from throwaway Node 22 scripts, one thread, in `/tmp/claude-0/-
 **Cost is honest** (well under a millisecond), which buys what A and C cannot: sub-stepping. The slam test says a flat run wants 240 Hz.
 
 **Things skipped** [J]:
+
 - The conveyor on a 40-station grid is first-order advection at a Courant number near 0.25. It will smear the keel's sidewash before it reaches the rudder. Carry slices as Lagrangian markers fixed in the water instead.
 - Michell fails outright below Fn 0.12 [M]. Every tack goes there, and the Suomen Joutsen lives there. The cure is ordinary: integrate each station segment's phase analytically.
 - Lags written per chord of travel have a rate of |U|/c, fine at zero speed, but anything in angle of attack or its rate is singular there. Write every law in velocity components.

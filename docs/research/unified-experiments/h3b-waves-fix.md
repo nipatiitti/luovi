@@ -15,13 +15,13 @@
 
 ## 3. Numbers (model ÷ tank, range over hulls 1, 2, 3, 6, 7)
 
-| Froude | 0.25 | 0.30 | 0.35 | 0.40 | 0.45 | 0.50 | 0.60 |
-|---|---|---|---|---|---|---|---|
-| Thin ship, real lines | 2.2–3.1 | 3.2–4.2 | 3.4–4.2 | 3.4–4.2 | 2.3–2.8 | 1.6–1.9 | 1.1–1.4 |
-| Thin ship, generated lines (H3) | 2.8–3.7 | 3.7–5.0 | 3.4–4.1 | 3.2–4.0 | 2.2–2.8 | 1.5–1.8 | 1.0–1.3 |
+| Froude                               | 0.25    | 0.30    | 0.35    | 0.40    | 0.45    | 0.50    | 0.60    |
+| ------------------------------------ | ------- | ------- | ------- | ------- | ------- | ------- | ------- |
+| Thin ship, real lines                | 2.2–3.1 | 3.2–4.2 | 3.4–4.2 | 3.4–4.2 | 2.3–2.8 | 1.6–1.9 | 1.1–1.4 |
+| Thin ship, generated lines (H3)      | 2.8–3.7 | 3.7–5.0 | 3.4–4.1 | 3.2–4.0 | 2.2–2.8 | 1.5–1.8 | 1.0–1.3 |
 | Thin ship, measured sinkage and trim | 2.2–3.2 | 3.6–4.8 | 3.5–4.2 | 3.9–4.8 | 3.0–4.0 | 2.3–3.1 | 1.7–2.5 |
-| Hogner | 3.7–4.8 | 4.3–5.5 | 3.7–4.8 | 3.4–4.1 | 2.2–2.5 | 1.4–1.6 | 0.8–1.0 |
-| Noblesse zeroth order | 10–17 | 7–13 | 7–11 | 3.6–5.5 | 1.6–2.7 | 0.9–1.4 | 0.3–0.9 |
+| Hogner                               | 3.7–4.8 | 4.3–5.5 | 3.7–4.8 | 3.4–4.1 | 2.2–2.5 | 1.4–1.6 | 0.8–1.0 |
+| Noblesse zeroth order                | 10–17   | 7–13    | 7–11    | 3.6–5.5 | 1.6–2.7 | 0.9–1.4 | 0.3–0.9 |
 
 - Cost: 0.1 to 0.3 s per speed point (numpy, one core) for the three sums.
 - Panel solve: 2 to 5 s per point, but on the Wigley hull at Froude 0.316 it gave 0.62, 1.28, then 6.9 (×10⁻³) on three finer grids against 1.8 to 2.0 measured. Not converged, no result claimed.

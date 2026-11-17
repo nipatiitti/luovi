@@ -50,13 +50,13 @@ Checks marked (script) were run in `/tmp/claude-0/-home-user/005e1c2d-09e2-5a19-
 
 ## The five boats
 
-| Boat | A | B | C | D | E |
-| --- | --- | --- | --- | --- | --- |
-| H-boat | tack loss too high (suction) | lift is the closures; no speed effect on effective draft | best case; drag high | fine as lifting line; no wave drag | fine if solver fine |
-| Folkboat | lift drifts low below 2 kn; half-angle rule | best case; flap too strong | lift is numerical | zero lift as written | edge vortex uncertain |
-| Suomen Joutsen | rule 3 and patch resolution | shed fraction is the answer | bilge separation, drag high | X₀ is the answer | anchor runs wrong regime |
-| Catamaran | re-entry slap has no source | radiation absent, else good | under-resolved | fine | switch |
-| Class40 | transom push, no pile-up | double-counted lift drag, assumed dry transom | pressure peak smeared | rigid-lid table wrong, no wave drag | needs unsolved solver |
+| Boat           | A                                           | B                                                        | C                           | D                                   | E                        |
+| -------------- | ------------------------------------------- | -------------------------------------------------------- | --------------------------- | ----------------------------------- | ------------------------ |
+| H-boat         | tack loss too high (suction)                | lift is the closures; no speed effect on effective draft | best case; drag high        | fine as lifting line; no wave drag  | fine if solver fine      |
+| Folkboat       | lift drifts low below 2 kn; half-angle rule | best case; flap too strong                               | lift is numerical           | zero lift as written                | edge vortex uncertain    |
+| Suomen Joutsen | rule 3 and patch resolution                 | shed fraction is the answer                              | bilge separation, drag high | X₀ is the answer                    | anchor runs wrong regime |
+| Catamaran      | re-entry slap has no source                 | radiation absent, else good                              | under-resolved              | fine                                | switch                   |
+| Class40        | transom push, no pile-up                    | double-counted lift drag, assumed dry transom            | pressure peak smeared       | rigid-lid table wrong, no wave drag | needs unsolved solver    |
 
 ## Ranking on physical soundness
 

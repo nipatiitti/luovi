@@ -92,11 +92,11 @@ Canting keel and water ballast: geometry and mass move, nothing else changes. A 
 Measured in a throwaway Node 22 script (constant-source panels with image on a half spheroid, plain JS doubles, one thread). Added mass against Lamb: surge 0.083 against 0.082, sway 0.87 against 0.860, with crude point quadrature.
 
 | Panels | Image matrix rebuild | One matrix-vector product | Dense LU |
-| --- | --- | --- | --- |
-| 384 | 2.7 ms | 0.5 ms | 27 ms |
-| 768 | 1.7 ms | 0.6 ms | 177 ms |
-| 1536 | 6.7 ms | 3.1 ms | 1.4 s |
-| 3072 | 41 ms | 21 ms | 13 s |
+| ------ | -------------------- | ------------------------- | -------- |
+| 384    | 2.7 ms               | 0.5 ms                    | 27 ms    |
+| 768    | 1.7 ms               | 0.6 ms                    | 177 ms   |
+| 1536   | 6.7 ms               | 3.1 ms                    | 1.4 s    |
+| 3072   | 41 ms                | 21 ms                     | 13 s     |
 
 2D FFT: 0.8 ms at 128², 4.5 ms at 256².
 

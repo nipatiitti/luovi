@@ -17,17 +17,17 @@ References: Milgram 1971 (NACA 65 mean line, 12% and 18% camber), figures 6 and 
 
 ## 3. Numbers (12 panels unless stated)
 
-| Quantity | Model | Measured |
-|---|---|---|
-| 12% camber, maximum lift | 2.29 at 12° | 2.03 at 17° |
-| 12% camber, drag at 0°, 8°, 16°, 24° | 0.04, 0.07, 0.24, 0.49 | 0.05, 0.09, 0.37, 0.78 |
-| 18% camber, maximum lift | 2.64 at 16° | 2.5 at 22° |
-| 18% camber, lift at 0° | 1.78 | 0.85 |
-| 18% camber, drag at 0°, 8°, 16°, 24° | 0.07, 0.11, 0.16, 0.50 | 0.10, 0.15, 0.22, 0.82 |
-| Drag square to the wind, 8 to 24 panels | 1.98 to 2.30 | 1.6 to 2.4 |
-| Maximum lift, 10% camber, 8 / 12 / 24 panels | 1.85 / 2.02 / 1.91 | equal |
-| Maximum lift, 20% camber, 8 / 12 / 24 panels | 2.83 / 2.76 / 2.57 | equal |
-| Aback (mirrored) | identical to four decimals | mirror |
+| Quantity                                     | Model                      | Measured               |
+| -------------------------------------------- | -------------------------- | ---------------------- |
+| 12% camber, maximum lift                     | 2.29 at 12°                | 2.03 at 17°            |
+| 12% camber, drag at 0°, 8°, 16°, 24°         | 0.04, 0.07, 0.24, 0.49     | 0.05, 0.09, 0.37, 0.78 |
+| 18% camber, maximum lift                     | 2.64 at 16°                | 2.5 at 22°             |
+| 18% camber, lift at 0°                       | 1.78                       | 0.85                   |
+| 18% camber, drag at 0°, 8°, 16°, 24°         | 0.07, 0.11, 0.16, 0.50     | 0.10, 0.15, 0.22, 0.82 |
+| Drag square to the wind, 8 to 24 panels      | 1.98 to 2.30               | 1.6 to 2.4             |
+| Maximum lift, 10% camber, 8 / 12 / 24 panels | 1.85 / 2.02 / 1.91         | equal                  |
+| Maximum lift, 20% camber, 8 / 12 / 24 panels | 2.83 / 2.76 / 2.57         | equal                  |
+| Aback (mirrored)                             | identical to four decimals | mirror                 |
 
 Stalled drag at 30° spreads 20% across panel counts. Core 0.15 to 0.6 of a panel moves maximum lift 1.80 to 2.07 (10% camber). Drag square to the wind is 2.37 with no decay, 2.06 at 10 chords, 2.46 at 5.
 

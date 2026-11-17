@@ -24,14 +24,14 @@ A plus B is the right direction and clearly beats the per-triangle polar: slot, 
 
 ## 2. Further rigs: what must be added by hand
 
-| Rig | Needs |
-| --- | --- |
-| Staysail schooner | Nothing new |
-| Junk | Sail lies on the mast on one tack: contact |
-| Lug, lateen | Mast crosses the sail mid-chord. "Luff type" has no answer; needs contact, and a mast the flow sees |
-| Wing mast | A thick section is not one panel with a number; needs thickness, or S_crit from nose radius |
-| Kite | Inflated tube is a fifth luff type |
-| Square sail aback | The sail should lie on mast and stays and load them; without contact it balloons through |
+| Rig               | Needs                                                                                               |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| Staysail schooner | Nothing new                                                                                         |
+| Junk              | Sail lies on the mast on one tack: contact                                                          |
+| Lug, lateen       | Mast crosses the sail mid-chord. "Luff type" has no answer; needs contact, and a mast the flow sees |
+| Wing mast         | A thick section is not one panel with a number; needs thickness, or S_crit from nose radius         |
+| Kite              | Inflated tube is a fifth luff type                                                                  |
+| Square sail aback | The sail should lie on mast and stays and load them; without contact it balloons through            |
 
 Two changes remove most of this: S_crit as one function of **edge radius over chord** (wire, bolt rope, mast, wing nose and tube become one geometric number), and **contact as a core element**.
 
