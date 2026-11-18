@@ -63,7 +63,7 @@ Decided by the owner on the Foam rework visual prototype ([#41](https://github.c
 
 ## Amendment, 2026-11-15: ocean update
 
-Decided by the owner with ADR 0005's amendment of the same date. It corrects two clauses of the whitecap amendment; the rest stands.
+Decided by the owner on the ocean update ticket ([#61](https://github.com/nipatiitti/luovi/issues/61)), with ADR 0005's amendment of the same date. It corrects two clauses of the whitecap amendment; the rest stands.
 
 - The onset steepness is 0.21, from 0.18. The measured equilibrium range gives the 1 to 3 m waves up to twice the energy, and on that spectrum 0.18 spilled about twice the cited cover. At 0.21 the bright foam seen straight down from 100 m covers 1.20% of the gulf sea against Brumer et al. 2017's 1.36% at 12 m/s, and 6.1% of the storm against 5.5% at the law's upper limit; the sailing day and the archipelago show 0.17% and 0.06% against 0.31% and 0.49%. These are pixel counts of one frame each, not a benchmark, and the value stays a flagged estimate in `data`.
 - The whitecaps are drawn on the 32-component band, which stays. The hex-tiled cascade 0 is still decided and unbuilt.
