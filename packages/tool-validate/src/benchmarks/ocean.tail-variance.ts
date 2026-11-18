@@ -15,7 +15,7 @@ import {
 } from '@luovi/sim-world'
 import type { Benchmark, Gate, Harness, Measurement } from '../harness/types.ts'
 import { bandIntegral } from './ocean.band-hs.ts'
-import { measureEachSea, type ReferenceSea } from './reference-seas.ts'
+import { measureEachSea, REFERENCE_SEA_NAMES, type ReferenceSea } from './reference-seas.ts'
 
 // The default rule gives every reference sea three cascades, so the gates can be listed statically.
 const CASCADES = 3
@@ -171,7 +171,7 @@ export const benchmark: Benchmark = {
   tier: 'quick',
   // Each sea is loaded in turn by measure.
   scenario: null,
-  gates: [...seaGates('light'), ...seaGates('moderate'), ...seaGates('storm')],
+  gates: REFERENCE_SEA_NAMES.flatMap(seaGates),
   // eslint-disable-next-line @typescript-eslint/require-await -- measure is async for modules that read files; this one only computes
   measure: async (harness) => measure(harness),
 }

@@ -1,6 +1,6 @@
 import type { SeaDescription } from '@luovi/core'
-import { atanh, cosh, exp, pow, powInt, PI, remainder, sqrt, tanh, TWO_PI } from '@luovi/core/math'
-import { donelanBanner, jonswap, tma } from '@luovi/data'
+import { atanh, cosh, exp, max, min, pow, powInt, PI, remainder, sqrt, tanh, TWO_PI } from '@luovi/core/math'
+import { donelanBanner, equilibriumRange, jonswap, tma } from '@luovi/data'
 import { dispersionFrequency, groupVelocity } from './dispersion.ts'
 
 // The spectrum under the convention stated on SeaDescription in core: F(k, theta) = S(omega) Phi(omega, d)
@@ -28,6 +28,10 @@ const bannerThreshold = donelanBanner.bannerThreshold.value
 const bannerOffset = donelanBanner.bannerOffset.value
 const bannerScale = donelanBanner.bannerScale.value
 const bannerRate = donelanBanner.bannerRate.value
+const rangeCoefficient = equilibriumRange.coefficient.value
+const rangeExponent = equilibriumRange.exponent.value
+const rangeLower = equilibriumRange.lowerLimit.value
+const rangeUpper = equilibriumRange.upperLimit.value
 
 /** The TMA depth factor Phi(omega, d) in its piecewise form (data's tma table). */
 const depthFactor = (omega: number, depth: number, gravity: number): number => {
@@ -40,7 +44,35 @@ const depthFactor = (omega: number, depth: number, gravity: number): number => {
   return 1
 }
 
-/** S(omega) Phi(omega, d), the JONSWAP-TMA frequency density, m^2 s; m0 = its integral over omega. */
+/**
+ * The measured equilibrium range above the peak (data's equilibriumRange table), m^2 s, before the depth factor: zero
+ * below the law's first frequency. Beyond its last frequency the level it reached falls as omega^-5, JONSWAP's own
+ * saturation slope, since the law is not measured there.
+ */
+const equilibriumDensity = (model: SpectrumSource, omega: number): number => {
+  const { peakFrequency, windSpeed } = model.spectrum
+  const ratio = omega / peakFrequency
+  if (ratio < rangeLower) return 0
+  // U / c_p with the generating wind, which blows along the mean direction, and the finite-depth peak phase speed.
+  const forcing = (windSpeed * model.peakWavenumber) / peakFrequency
+  const g = model.gravity
+  const held = min(ratio, rangeUpper)
+  const level =
+    (rangeCoefficient *
+      pow(forcing, rangeExponent) *
+      g *
+      g *
+      powInt(held * peakFrequency, -4) *
+      exp(-powInt(held, -4))) /
+    peakFrequency
+  return level * powInt(held / ratio, 5)
+}
+
+/**
+ * S(omega) Phi(omega, d), m^2 s; m0 = its integral over omega. JONSWAP at the peak, and above it whichever of JONSWAP
+ * and the measured equilibrium range is higher: JONSWAP's omega^-5 falls below the measured omega^-4 rear face from
+ * about 1.5 omega_p in a growing sea, which leaves the metre-scale waves too little energy.
+ */
 export const frequencyDensity = (model: SpectrumSource, omega: number): number => {
   if (omega <= 0) return 0
   const { alpha, peakFrequency, gamma } = model.spectrum
@@ -51,7 +83,8 @@ export const frequencyDensity = (model: SpectrumSource, omega: number): number =
   const offset = (omega - peakFrequency) / (sigma * peakFrequency)
   const enhancement = pow(gamma, exp(-0.5 * offset * offset))
   const g = model.gravity
-  return alpha * g * g * powInt(omega, -5) * shape * enhancement * depthFactor(omega, model.depth, g)
+  const peaked = alpha * g * g * powInt(omega, -5) * shape * enhancement
+  return max(peaked, equilibriumDensity(model, omega)) * depthFactor(omega, model.depth, g)
 }
 
 /**

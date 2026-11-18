@@ -10,7 +10,7 @@ import {
 } from '@luovi/core'
 import { effectiveSeaBlock } from '@luovi/sim-world'
 import { bearing, toDegrees, toRadians } from './angles.ts'
-import moderate from './scenarios/reference-seas/moderate.json' with { type: 'json' }
+import sailingDay from './scenarios/reference-seas/sailing-day.json' with { type: 'json' }
 
 // The live environment panel's model. The panel speaks knots and compass bearings, the contract east/north vectors in
 // m/s; every conversion happens in this file, at the boundary, so the blocks the panel sends are plain contract blocks.
@@ -106,10 +106,10 @@ export interface EnvironmentForm {
   seed: number
 }
 
-/** What a sea toggled on starts from when the loaded scenario had none: the moderate reference sea, with its defaults. */
+/** What a sea toggled on starts from when the loaded scenario had none: the sailing day reference sea, with its defaults. */
 const seaWhenNone = (): EffectiveSeaBlock => {
-  const { sea } = parseScenario(moderate).environment
-  if (sea === undefined) throw new Error('The moderate reference sea has no sea block')
+  const { sea } = parseScenario(sailingDay).environment
+  if (sea === undefined) throw new Error('The sailing day reference sea has no sea block')
   return effectiveSeaBlock(sea)
 }
 

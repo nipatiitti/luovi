@@ -6,7 +6,7 @@
 import { abs, PI, sqrt, TWO_PI } from '@luovi/core/math'
 import { type SeaDescription, waveSpectrum } from '@luovi/sim-world'
 import type { Benchmark, Gate, Harness, Measurement } from '../harness/types.ts'
-import { GRID_TICKS, gridPoints, measureEachSea, type ReferenceSea } from './reference-seas.ts'
+import { GRID_TICKS, gridPoints, measureEachSea, REFERENCE_SEA_NAMES, type ReferenceSea } from './reference-seas.ts'
 
 // The polar trapezoid for m0_band: the k step resolves the JONSWAP peak (width about 0.14 k_p for sigma 0.07, since
 // omega goes as sqrt k) with a hundred points at a cut ratio of 3, and the spreading is smooth and periodic in theta,
@@ -129,7 +129,7 @@ export const benchmark: Benchmark = {
   tier: 'quick',
   // Each sea is loaded in turn by measure.
   scenario: null,
-  gates: [hsGate('light'), hsGate('moderate'), hsGate('storm')],
+  gates: REFERENCE_SEA_NAMES.map(hsGate),
   // eslint-disable-next-line @typescript-eslint/require-await -- measure is async for modules that read files; this one only computes
   measure: async (harness) => measure(harness),
 }

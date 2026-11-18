@@ -6,7 +6,7 @@ The alternatives were a camera-centred band texture (rejected because hardware f
 
 Decided by the render-ocean v1 ticket ([#23](https://github.com/nipatiitti/luovi/issues/23)) on 2026-10-22, from the ocean wave survey ([#18](https://github.com/nipatiitti/luovi/issues/18)) and the ocean contract ([#8](https://github.com/nipatiitti/luovi/issues/8), `docs/adr/0005`).
 
-The band is now 128 components (ADR 0005, amended 2026-10-24). Drawing them per vertex runs at 114 to 120 fps on an M1 Pro at 2560x1440; the comparison against a band texture was not re-measured at that size.
+The band stays at 32 components: the 128-component band of ADR 0005's 2026-10-24 amendment was withdrawn by its 2026-11-15 amendment before it was built.
 
 ## Consequences
 
@@ -60,3 +60,10 @@ Decided by the owner on the Foam rework visual prototype ([#41](https://github.c
 - Every constant of the model lives in `data` as the whitecap table. The two air-entrainment wavelengths are cited; the onset steepness, the roller's reach, the foam's density and fade, the sheen, the plume and the lace cell are estimates, flagged as such.
 - Main does not yet draw the hex-tiled cascade 0 or the 128-component band, so the whitecaps were merged on the sea as it stands. The slice that builds the cascade layout blends cascade 0's crest bands as it blends the drawn fields: the steepness and slope with the blend's weights, the squared envelope with their squares.
 - Nothing here is benchmarked. The whitecaps are picture-only and were judged by eye.
+
+## Amendment, 2026-11-15: ocean update
+
+Decided by the owner on the ocean update ticket ([#61](https://github.com/nipatiitti/luovi/issues/61)), with ADR 0005's amendment of the same date. It corrects two clauses of the whitecap amendment; the rest stands.
+
+- The onset steepness is 0.21, from 0.18. The measured equilibrium range gives the 1 to 3 m waves up to twice the energy, and on that spectrum 0.18 spilled about twice the cited cover. At 0.21 the bright foam seen straight down from 100 m covers 1.20% of the gulf sea against Brumer et al. 2017's 1.36% at 12 m/s, and 6.1% of the storm against 5.5% at the law's upper limit; the sailing day and the archipelago show 0.17% and 0.06% against 0.31% and 0.49%. These are pixel counts of one frame each, not a benchmark, and the value stays a flagged estimate in `data`.
+- The whitecaps are drawn on the 32-component band, which stays. The hex-tiled cascade 0 is still decided and unbuilt.
